@@ -1,0 +1,21 @@
+# Rust
+target/
+**/*.rlib
+**/*.rmeta
+
+# Editor
+.vscode/
+.idea/
+
+# OS
+[Dd]esktop.ini
+[Tt]humbs.db
+*.lnk
+
+# Test vaults (create real ones in your home dir instead)
+*.rpass
+!docs/**/*.rpass
+
+# Backup / temp
+*.bak
+*.swp

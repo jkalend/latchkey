@@ -19,3 +19,8 @@ target/
 # Backup / temp
 *.bak
 *.swp
+
+# cargo-fuzz (fuzz/README.md documents the run procedure)
+fuzz/target/
+fuzz/artifacts/
+fuzz/coverage/

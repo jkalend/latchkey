@@ -102,7 +102,11 @@ fn estimate_index_size(p: &IndexPayload) -> usize {
 pub fn parse_index(buf: &[u8]) -> Result<IndexPayload> {
     let mut cur = Cursor::new(buf);
     let count = cur.read_u32()?;
-    let mut entries = Vec::with_capacity(count.min(1_000_000) as usize);
+    // `count` is untrusted: bound the pre-allocation by both a hard cap and
+    // the input length (each entry needs ≥9 bytes on the wire, so an input
+    // of n bytes can hold at most n/9 real entries).
+    let cap = count.min(1_000_000).min(buf.len() as u32 / 9 + 1);
+    let mut entries = Vec::with_capacity(cap as usize);
     for _ in 0..count {
         entries.push(IndexEntry {
             item_id: cur.read_u32()?,

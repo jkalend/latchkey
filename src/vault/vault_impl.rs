@@ -411,22 +411,32 @@ impl Vault {
 
     /// Split an on-disk vault into per-slot item frames (nonce || ct_len ||
     /// ciphertext+tag). Frame position == slot after any save (slots are
-    /// renumbered densely on write).
-    fn split_item_frames(raw: &[u8]) -> Result<Vec<Vec<u8>>> {
+    /// renumbered densely on write). Public for the fuzz targets: this walker
+    /// is the first code that touches untrusted file bytes.
+    pub fn split_item_frames(raw: &[u8]) -> Result<Vec<Vec<u8>>> {
         let mut cursor = HEADER_LEN + NONCE_LEN;
         let index_ct_len = be_u32_at(raw, cursor)? as usize;
         cursor += 4 + index_ct_len;
         let slot_count = be_u32_at(raw, cursor)? as usize;
         cursor += 4;
 
-        let mut frames = Vec::with_capacity(slot_count);
+        // slot_count is untrusted file input — never pre-allocate from it
+        // (a forged header claims 4 billion slots and OOMs the process
+        // before the first bounds check fires). Grow on demand instead.
+        let mut frames = Vec::new();
         for _ in 0..slot_count {
+            if cursor + NONCE_LEN > raw.len() {
+                return Err(Error::Encrypt("truncated item frame".into()));
+            }
             let start = cursor;
             cursor += NONCE_LEN;
             let ct_len = be_u32_at(raw, cursor)? as usize;
             // ct_len covers ciphertext + AEAD tag (the aead crate appends the
             // tag to the ciphertext; VAULT_FORMAT §6.1's separate "16 tag"
             // field is subsumed into ct_len in this implementation).
+            if cursor + 4 + ct_len > raw.len() {
+                return Err(Error::Encrypt("truncated item ciphertext".into()));
+            }
             cursor += 4 + ct_len;
             frames.push(raw[start..cursor].to_vec());
         }

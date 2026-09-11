@@ -1,0 +1,47 @@
+[package]
+name = "rpass-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rpass = { path = ".." }
+
+[[bin]]
+name = "parse_header"
+path = "fuzz_targets/parse_header.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "parse_index"
+path = "fuzz_targets/parse_index.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "parse_item"
+path = "fuzz_targets/parse_item.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "split_item_frames"
+path = "fuzz_targets/split_item_frames.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "otpauth_uri"
+path = "fuzz_targets/otpauth_uri.rs"
+test = false
+doc = false
+bench = false

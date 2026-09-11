@@ -16,13 +16,21 @@ pub struct KdfParams {
 }
 
 #[cfg(not(test))]
-fn default_argon2_m_mib() -> u32 { 64 }
+fn default_argon2_m_mib() -> u32 {
+    64
+}
 #[cfg(test)]
-fn default_argon2_m_mib() -> u32 { 8 }
+fn default_argon2_m_mib() -> u32 {
+    8
+}
 
 impl Default for KdfParams {
     fn default() -> Self {
-        Self { argon2_m_mib: default_argon2_m_mib(), argon2_t: 2, argon2_p: 1 }
+        Self {
+            argon2_m_mib: default_argon2_m_mib(),
+            argon2_t: 2,
+            argon2_p: 1,
+        }
     }
 }
 
@@ -30,7 +38,11 @@ impl KdfParams {
     pub fn new(m_mib: u32, t: u32, p: u8) -> Result<Self> {
         Params::new(m_mib * 1024, t, p as u32, Some(KEK_LEN))
             .map_err(|e| Error::Kdf(format!("invalid params: {e}")))?;
-        Ok(Self { argon2_m_mib: m_mib, argon2_t: t, argon2_p: p })
+        Ok(Self {
+            argon2_m_mib: m_mib,
+            argon2_t: t,
+            argon2_p: p,
+        })
     }
 }
 
@@ -78,19 +90,21 @@ mod tests {
         assert_eq!(kek1.expose_secret(), kek2.expose_secret());
     }
 
-
     #[test]
     fn different_passwords_different_keks() {
         let params = KdfParams::default();
         let kdf = Kdf::new(params);
         let salt = [0x42u8; SALT_LEN];
 
-        let kek1 = kdf.derive(&SecretVec::new(b"one".to_vec().into_boxed_slice()), &salt).unwrap();
-        let kek2 = kdf.derive(&SecretVec::new(b"two".to_vec().into_boxed_slice()), &salt).unwrap();
+        let kek1 = kdf
+            .derive(&SecretVec::new(b"one".to_vec().into_boxed_slice()), &salt)
+            .unwrap();
+        let kek2 = kdf
+            .derive(&SecretVec::new(b"two".to_vec().into_boxed_slice()), &salt)
+            .unwrap();
 
         assert_ne!(kek1.expose_secret(), kek2.expose_secret());
     }
-
 
     #[test]
     fn argon2_correctness_via_cross_validation() {

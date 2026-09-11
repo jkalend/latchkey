@@ -31,8 +31,12 @@ pub struct ParsedHeader {
 }
 
 impl ParsedHeader {
-    pub fn wrap_algorithm(&self) -> Result<Algorithm> { Algorithm::from_id(self.wrap_alg_id) }
-    pub fn item_algorithm(&self) -> Result<Algorithm> { Algorithm::from_id(self.item_alg_id) }
+    pub fn wrap_algorithm(&self) -> Result<Algorithm> {
+        Algorithm::from_id(self.wrap_alg_id)
+    }
+    pub fn item_algorithm(&self) -> Result<Algorithm> {
+        Algorithm::from_id(self.item_alg_id)
+    }
     pub fn kdf_params(&self) -> KdfParams {
         KdfParams {
             argon2_m_mib: self.argon2_m_mib,
@@ -161,7 +165,10 @@ mod tests {
         buf[0..3].copy_from_slice(MAGIC);
         buf[3] = 0x99;
         let err = parse_header(&buf).unwrap_err();
-        match err { Error::Unsupported(v) => assert_eq!(v, 0x99), other => panic!("{other:?}") }
+        match err {
+            Error::Unsupported(v) => assert_eq!(v, 0x99),
+            other => panic!("{other:?}"),
+        }
     }
 
     #[test]

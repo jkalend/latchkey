@@ -17,21 +17,23 @@ use crate::crypto::error::{Error, Result};
 use crate::crypto::kdf::{KdfParams, SecretVec};
 use crate::crypto::keys::{random_dek, random_salt};
 use crate::vault::atomic_write::atomic_write;
-use crate::vault::parse::{self, ParsedHeader, HEADER_LEN, WRAP_TAG_LEN, WRAPPED_DEK_CIPHER_LEN};
+use crate::vault::parse::{self, ParsedHeader, HEADER_LEN, WRAPPED_DEK_CIPHER_LEN, WRAP_TAG_LEN};
 use crate::vault::shape::{
-    parse_index, parse_item, serialize_index, serialize_item, IndexEntry, IndexPayload,
-    ItemRecord,
+    parse_index, parse_item, serialize_index, serialize_item, IndexEntry, IndexPayload, ItemRecord,
 };
 
 // Drop orphan reference to shape module (was needed in earlier draft, now unused).
 
 /// Build AEAD AAD for the index ciphertext: `[version || 0x49 ('I')]`.
-pub fn index_aad(version: u8) -> [u8; 2] { [version, 0x49] }
+pub fn index_aad(version: u8) -> [u8; 2] {
+    [version, 0x49]
+}
 
 /// Build AEAD AAD for an item ciphertext: `[version || 0x53 ('S') || item_id_be(u32)]`.
 pub fn item_aad(version: u8, item_id: u32) -> [u8; 6] {
     let mut a = [0u8; 6];
-    a[0] = version; a[1] = 0x53;
+    a[0] = version;
+    a[1] = 0x53;
     a[2..6].copy_from_slice(&item_id.to_be_bytes());
     a
 }
@@ -118,7 +120,11 @@ impl Vault {
         let mut wrap_tag = [0u8; WRAP_TAG_LEN];
         wrap_tag.copy_from_slice(&ct_with_tag[WRAPPED_DEK_CIPHER_LEN..]);
 
-        let header = ParsedHeader { wrapped_dek, wrap_tag, ..placeholder };
+        let header = ParsedHeader {
+            wrapped_dek,
+            wrap_tag,
+            ..placeholder
+        };
         let this = Self {
             path: path.to_path_buf(),
             header: VaultCryptoConfig {
@@ -159,7 +165,10 @@ impl Vault {
         let aad = parse::header_aad(&header);
         let dek_vec = wrap_cipher.decrypt_raw(&kek, &header.wrap_nonce, &ct_with_tag, &aad)?;
         if dek_vec.len() != crate::crypto::ciphers::DEK_LEN {
-            return Err(Error::KeyLength { expected: 32, actual: dek_vec.len() });
+            return Err(Error::KeyLength {
+                expected: 32,
+                actual: dek_vec.len(),
+            });
         }
         let dek: SecretVec = SecretVec::new(dek_vec.into_boxed_slice());
 
@@ -184,7 +193,12 @@ impl Vault {
         )?;
         let index = parse_index(&index_pt)?;
 
-        let next_item_id = index.entries.iter().map(|e| e.item_id).max().map_or(1, |m| m + 1);
+        let next_item_id = index
+            .entries
+            .iter()
+            .map(|e| e.item_id)
+            .max()
+            .map_or(1, |m| m + 1);
 
         Ok(Self {
             path: path.to_path_buf(),
@@ -205,9 +219,15 @@ impl Vault {
 
     /// Decrypt one item into `open_items`.
     pub fn open_item(&mut self, item_id: u32) -> Result<()> {
-        if let Some(entry) = self.entries.iter().find(|e| e.item_id == item_id && e.state != 0xFF) {
+        if let Some(entry) = self
+            .entries
+            .iter()
+            .find(|e| e.item_id == item_id && e.state != 0xFF)
+        {
             let slot = entry.slot;
-            if self.open_items.contains_key(&slot) { return Ok(()); }
+            if self.open_items.contains_key(&slot) {
+                return Ok(());
+            }
 
             // Re-read the vault bytes — we don't keep them in memory.
             let bytes = std::fs::read(&self.path)
@@ -237,16 +257,22 @@ impl Vault {
                 }
                 let _ = frame_off;
             }
-            let (ct_off, ct_len) = target
-                .ok_or_else(|| Error::Encrypt(format!("slot {slot} out of range")))?;
+            let (ct_off, ct_len) =
+                target.ok_or_else(|| Error::Encrypt(format!("slot {slot} out of range")))?;
 
             let nonce_off = ct_off - NONCE_LEN - 4;
-            let nonce: [u8; NONCE_LEN] = bytes[nonce_off..nonce_off + NONCE_LEN].try_into().unwrap();
+            let nonce: [u8; NONCE_LEN] =
+                bytes[nonce_off..nonce_off + NONCE_LEN].try_into().unwrap();
             let ct = &bytes[ct_off..ct_off + ct_len];
 
             let item_alg = self.header.item_alg;
             let cipher = AeadCipher::new(item_alg);
-            let pt = cipher.decrypt_raw(&self.dek, &nonce, ct, &item_aad(self.header.version, item_id))?;
+            let pt = cipher.decrypt_raw(
+                &self.dek,
+                &nonce,
+                ct,
+                &item_aad(self.header.version, item_id),
+            )?;
             let (record, embedded_id) = parse_item(&pt)?;
             if embedded_id != item_id {
                 return Err(Error::Encrypt(format!(
@@ -279,10 +305,15 @@ impl Vault {
         out.extend_from_slice(&parse::build_header(header));
 
         // Index
-        let index_pt = serialize_index(&IndexPayload { entries: self.entries.clone() });
+        let index_pt = serialize_index(&IndexPayload {
+            entries: self.entries.clone(),
+        });
         let index_nonce = random_nonce()?;
         let index_ct = AeadCipher::new(self.header.item_alg).encrypt_raw(
-            &self.dek, &index_nonce, &index_pt, &index_aad(header.version),
+            &self.dek,
+            &index_nonce,
+            &index_pt,
+            &index_aad(header.version),
         )?;
         out.extend_from_slice(&index_nonce);
         out.extend_from_slice(&(index_ct.len() as u32).to_be_bytes());
@@ -294,12 +325,17 @@ impl Vault {
         let mut live: Vec<&IndexEntry> = self.entries.iter().filter(|e| e.state != 0xFF).collect();
         live.sort_by_key(|e| e.slot);
         for e in &live {
-            let rec = self.open_items.get(&e.slot)
+            let rec = self
+                .open_items
+                .get(&e.slot)
                 .ok_or_else(|| Error::Encrypt(format!("slot {} not open", e.slot)))?;
             let pt = serialize_item(rec, e.item_id);
             let nonce = random_nonce()?;
             let ct = AeadCipher::new(self.header.item_alg).encrypt_raw(
-                &self.dek, &nonce, &pt, &item_aad(header.version, e.item_id),
+                &self.dek,
+                &nonce,
+                &pt,
+                &item_aad(header.version, e.item_id),
             )?;
             out.extend_from_slice(&nonce);
             out.extend_from_slice(&(ct.len() as u32).to_be_bytes());
@@ -316,10 +352,24 @@ impl Vault {
 
     pub fn add_item(&mut self, title: String, username: String, record: ItemRecord) -> Result<u32> {
         let item_id = self.next_item_id;
-        self.next_item_id = self.next_item_id.checked_add(1)
+        self.next_item_id = self
+            .next_item_id
+            .checked_add(1)
             .ok_or_else(|| Error::Encrypt("item_id space exhausted".into()))?;
-        let slot = self.entries.iter().filter(|e| e.state != 0xFF).map(|e| e.slot).max().map_or(0, |m| m + 1);
-        self.entries.push(IndexEntry { item_id, slot, state: 0x01, title, username });
+        let slot = self
+            .entries
+            .iter()
+            .filter(|e| e.state != 0xFF)
+            .map(|e| e.slot)
+            .max()
+            .map_or(0, |m| m + 1);
+        self.entries.push(IndexEntry {
+            item_id,
+            slot,
+            state: 0x01,
+            title,
+            username,
+        });
         self.open_items.insert(slot, record);
         Ok(item_id)
     }
@@ -337,7 +387,9 @@ mod tests {
     use super::*;
     use crate::crypto::kdf::KdfParams;
 
-    fn pswd(s: &str) -> SecretVec { SecretVec::new(s.as_bytes().to_vec().into_boxed_slice()) }
+    fn pswd(s: &str) -> SecretVec {
+        SecretVec::new(s.as_bytes().to_vec().into_boxed_slice())
+    }
 
     #[test]
     fn create_open_roundtrip_empty() {
@@ -346,7 +398,14 @@ mod tests {
         let kdf_params = KdfParams::new(8, 1, 1).unwrap();
         let password = pswd("test-password");
         {
-            let _ = Vault::create(&tmp, &password, kdf_params.clone(), Algorithm::Aes256Gcm, Algorithm::Aes256Gcm).unwrap();
+            let _ = Vault::create(
+                &tmp,
+                &password,
+                kdf_params.clone(),
+                Algorithm::Aes256Gcm,
+                Algorithm::Aes256Gcm,
+            )
+            .unwrap();
         }
         let v = Vault::open(&tmp, &password).unwrap();
         assert!(v.entries.is_empty());
@@ -360,7 +419,14 @@ mod tests {
         let _ = std::fs::remove_file(&tmp);
         let kdf_params = KdfParams::new(8, 1, 1).unwrap();
         let right = pswd("right");
-        Vault::create(&tmp, &right, kdf_params, Algorithm::Aes256Gcm, Algorithm::Aes256Gcm).unwrap();
+        Vault::create(
+            &tmp,
+            &right,
+            kdf_params,
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
         let wrong = pswd("wrong");
         assert!(Vault::open(&tmp, &wrong).is_err());
         let _ = std::fs::remove_file(&tmp);
@@ -372,7 +438,14 @@ mod tests {
         let _ = std::fs::remove_file(&tmp);
         let kdf_params = KdfParams::new(8, 1, 1).unwrap();
         let password = pswd("pw");
-        let mut v = Vault::create(&tmp, &password, kdf_params, Algorithm::Aes256Gcm, Algorithm::Aes256Gcm).unwrap();
+        let mut v = Vault::create(
+            &tmp,
+            &password,
+            kdf_params,
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
         let rec = ItemRecord {
             password: Some(b"hunter2".to_vec()),
             url: "https://example.com".to_string(),
@@ -381,7 +454,9 @@ mod tests {
             created_unix: 1,
             modified_unix: 1,
         };
-        let id = v.add_item("example".to_string(), "alice".to_string(), rec.clone()).unwrap();
+        let id = v
+            .add_item("example".to_string(), "alice".to_string(), rec.clone())
+            .unwrap();
         v.save().unwrap();
         drop(v);
 

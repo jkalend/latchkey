@@ -42,16 +42,24 @@ pub struct TotpSubRecord {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
-pub enum TotpAlgorithm { Sha1 = 0x01, Sha256 = 0x02, Sha512 = 0x03 }
+pub enum TotpAlgorithm {
+    Sha1 = 0x01,
+    Sha256 = 0x02,
+    Sha512 = 0x03,
+}
 
 impl TotpAlgorithm {
-    pub fn id(self) -> u8 { self as u8 }
+    pub fn id(self) -> u8 {
+        self as u8
+    }
     pub fn from_id(id: u8) -> Result<Self> {
         match id {
             0x01 => Ok(Self::Sha1),
             0x02 => Ok(Self::Sha256),
             0x03 => Ok(Self::Sha512),
-            other => Err(Error::Encrypt(format!("unknown TOTP algorithm id 0x{other:02x}"))),
+            other => Err(Error::Encrypt(format!(
+                "unknown TOTP algorithm id 0x{other:02x}"
+            ))),
         }
     }
 }
@@ -85,7 +93,9 @@ pub fn serialize_index(p: &IndexPayload) -> Vec<u8> {
 
 fn estimate_index_size(p: &IndexPayload) -> usize {
     let mut n = 4;
-    for e in &p.entries { n += 9 + 2 + e.title.len() + 2 + e.username.len(); }
+    for e in &p.entries {
+        n += 9 + 2 + e.title.len() + 2 + e.username.len();
+    }
     n
 }
 
@@ -143,14 +153,29 @@ pub fn parse_item(buf: &[u8]) -> Result<(ItemRecord, u32)> {
             let period = cur.read_u32()?;
             let digits = cur.read_u32()?;
             let algorithm = TotpAlgorithm::from_id(cur.read_u8()?)?;
-            Some(TotpSubRecord { secret, period, digits, algorithm })
+            Some(TotpSubRecord {
+                secret,
+                period,
+                digits,
+                algorithm,
+            })
         }
         o => return Err(Error::Encrypt(format!("bad totp presence byte 0x{o:02x}"))),
     };
     let created_unix = cur.read_u64()?;
     let modified_unix = cur.read_u64()?;
     let item_id = cur.read_u32()?;
-    Ok((ItemRecord { password, url, notes, totp, created_unix, modified_unix }, item_id))
+    Ok((
+        ItemRecord {
+            password,
+            url,
+            notes,
+            totp,
+            created_unix,
+            modified_unix,
+        },
+        item_id,
+    ))
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -164,37 +189,66 @@ fn push_bytes(out: &mut Vec<u8>, b: &[u8]) {
     out.extend_from_slice(b);
 }
 fn push_opt_bytes(out: &mut Vec<u8>, v: &Option<Vec<u8>>) {
-    match v { None => out.push(0x00), Some(b) => { out.push(0x01); push_bytes(out, b); } }
+    match v {
+        None => out.push(0x00),
+        Some(b) => {
+            out.push(0x01);
+            push_bytes(out, b);
+        }
+    }
 }
 
-pub struct Cursor<'a> { buf: &'a [u8], pos: usize }
+pub struct Cursor<'a> {
+    buf: &'a [u8],
+    pos: usize,
+}
 impl<'a> Cursor<'a> {
-    pub fn new(buf: &'a [u8]) -> Self { Self { buf, pos: 0 } }
-    pub fn remaining(&self) -> usize { self.buf.len().saturating_sub(self.pos) }
-    pub fn pos(&self) -> usize { self.pos }
-    fn take(&mut self, n: usize) -> Result<&'a [u8]> {
-        if self.remaining() < n { return Err(Error::Encrypt("deserialize: unexpected end".into())); }
-        let s = &self.buf[self.pos..self.pos + n]; self.pos += n; Ok(s)
+    pub fn new(buf: &'a [u8]) -> Self {
+        Self { buf, pos: 0 }
     }
-    pub fn read_u8(&mut self) -> Result<u8> { Ok(self.take(1)?[0]) }
+    pub fn remaining(&self) -> usize {
+        self.buf.len().saturating_sub(self.pos)
+    }
+    pub fn pos(&self) -> usize {
+        self.pos
+    }
+    fn take(&mut self, n: usize) -> Result<&'a [u8]> {
+        if self.remaining() < n {
+            return Err(Error::Encrypt("deserialize: unexpected end".into()));
+        }
+        let s = &self.buf[self.pos..self.pos + n];
+        self.pos += n;
+        Ok(s)
+    }
+    pub fn read_u8(&mut self) -> Result<u8> {
+        Ok(self.take(1)?[0])
+    }
     pub fn read_u16(&mut self) -> Result<u16> {
-        let s = self.take(2)?; Ok(u16::from_be_bytes([s[0], s[1]]))
+        let s = self.take(2)?;
+        Ok(u16::from_be_bytes([s[0], s[1]]))
     }
     pub fn read_u32(&mut self) -> Result<u32> {
-        let s = self.take(4)?; Ok(u32::from_be_bytes([s[0], s[1], s[2], s[3]]))
+        let s = self.take(4)?;
+        Ok(u32::from_be_bytes([s[0], s[1], s[2], s[3]]))
     }
     pub fn read_u64(&mut self) -> Result<u64> {
         let s = self.take(8)?;
-        Ok(u64::from_be_bytes([s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7]]))
+        Ok(u64::from_be_bytes([
+            s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7],
+        ]))
     }
     pub fn read_bytes(&mut self) -> Result<Vec<u8>> {
         let len = self.read_u32()? as usize;
-        if len > 16 * 1024 * 1024 { return Err(Error::Encrypt("byte string too large".into())); }
+        if len > 16 * 1024 * 1024 {
+            return Err(Error::Encrypt("byte string too large".into()));
+        }
         Ok(self.take(len)?.to_vec())
     }
     pub fn read_str(&mut self) -> Result<String> {
         let len = self.read_u16()? as usize;
-        if len > 8192 { return Err(Error::Encrypt("utf8 string too large".into())); }
+        if len > 8192 {
+            return Err(Error::Encrypt("utf8 string too large".into()));
+        }
         let s = self.take(len)?;
         String::from_utf8(s.to_vec()).map_err(|_| Error::Encrypt("invalid utf8".into()))
     }

@@ -26,6 +26,7 @@ docs/           specs and ADRs — read THREAT_MODEL, CRYPTO_SPEC,
 src/            binary + library
   crypto/       KDF, AEAD wrappers, key hierarchy
   vault/        file format reader/writer, index, items
+  gen/          password generator (ADR-0006); embeds the EFF wordlist
   clip/         platform clipboard (Win32; clip.exe interop for WSL)
   cli/          command parsing and dispatch
   tui/          interactive interface

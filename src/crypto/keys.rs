@@ -3,8 +3,8 @@ use zeroize::Zeroizing;
 
 use crate::crypto::ciphers::{AeadCipher, DEK_LEN};
 use crate::crypto::error::Result;
-use crate::crypto::kdf::SALT_LEN;
 use crate::crypto::kdf::SecretVec;
+use crate::crypto::kdf::SALT_LEN;
 
 const ENC_COUNTER_ROTATION_LIMIT: u32 = 1 << 24;
 
@@ -25,7 +25,10 @@ impl KeyHierarchy {
     ) -> Result<Self> {
         let dek_bytes = cipher.unwrap_dek(kek, wrap_nonce, wrapped_dek, header_aad)?;
         if dek_bytes.len() != DEK_LEN {
-            return Err(crate::crypto::error::Error::KeyLength { expected: DEK_LEN, actual: dek_bytes.len() });
+            return Err(crate::crypto::error::Error::KeyLength {
+                expected: DEK_LEN,
+                actual: dek_bytes.len(),
+            });
         }
         Ok(Self {
             dek: SecretVec::new(dek_bytes.into_boxed_slice()),
@@ -47,9 +50,16 @@ impl KeyHierarchy {
         })
     }
 
-    pub fn needs_rotation(&self) -> bool { self.enc_counter >= ENC_COUNTER_ROTATION_LIMIT }
+    pub fn needs_rotation(&self) -> bool {
+        self.enc_counter >= ENC_COUNTER_ROTATION_LIMIT
+    }
 
-    pub fn rotate(&mut self, cipher: &AeadCipher, kek: &SecretVec, header_aad: &[u8]) -> Result<()> {
+    pub fn rotate(
+        &mut self,
+        cipher: &AeadCipher,
+        kek: &SecretVec,
+        header_aad: &[u8],
+    ) -> Result<()> {
         let new_dek = random_dek();
         let new_dek_box = SecretVec::new(new_dek.to_vec().into_boxed_slice());
         let (new_wrapped, new_nonce) = cipher.wrap_dek(kek, &new_dek_box, header_aad)?;
@@ -60,7 +70,12 @@ impl KeyHierarchy {
         Ok(())
     }
 
-    pub fn rekey_kek(&mut self, cipher: &AeadCipher, new_kek: &SecretVec, header_aad: &[u8]) -> Result<()> {
+    pub fn rekey_kek(
+        &mut self,
+        cipher: &AeadCipher,
+        new_kek: &SecretVec,
+        header_aad: &[u8],
+    ) -> Result<()> {
         let dek_copy: [u8; DEK_LEN] = self.dek.expose_secret().as_ref().try_into().unwrap();
         let dek_copy_box = SecretVec::new(dek_copy.to_vec().into_boxed_slice());
         let (new_wrapped, new_nonce) = cipher.wrap_dek(new_kek, &dek_copy_box, header_aad)?;

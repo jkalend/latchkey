@@ -18,7 +18,10 @@ pub enum Algorithm {
 
 impl Algorithm {
     pub fn id(&self) -> u8 {
-        match self { Algorithm::Aes256Gcm => 0x01, Algorithm::ChaCha20Poly1305 => 0x02 }
+        match self {
+            Algorithm::Aes256Gcm => 0x01,
+            Algorithm::ChaCha20Poly1305 => 0x02,
+        }
     }
 
     pub fn from_id(id: u8) -> Result<Self> {
@@ -35,7 +38,9 @@ pub struct AeadCipher {
 }
 
 impl AeadCipher {
-    pub fn new(alg: Algorithm) -> Self { Self { alg } }
+    pub fn new(alg: Algorithm) -> Self {
+        Self { alg }
+    }
 
     pub fn encrypt_item(
         &self,
@@ -141,13 +146,25 @@ impl AeadCipher {
             Algorithm::Aes256Gcm => {
                 let cipher = Aes256Gcm::new(AesKey::<Aes256Gcm>::from_slice(key));
                 cipher
-                    .encrypt(AesNonce::from_slice(nonce), Payload { msg: plaintext, aad })
+                    .encrypt(
+                        AesNonce::from_slice(nonce),
+                        Payload {
+                            msg: plaintext,
+                            aad,
+                        },
+                    )
                     .map_err(|e| Error::Encrypt(e.to_string()))
             }
             Algorithm::ChaCha20Poly1305 => {
                 let cipher = ChaCha20Poly1305::new(ChaKey::from_slice(key));
                 cipher
-                    .encrypt(ChaNonce::from_slice(nonce), Payload { msg: plaintext, aad })
+                    .encrypt(
+                        ChaNonce::from_slice(nonce),
+                        Payload {
+                            msg: plaintext,
+                            aad,
+                        },
+                    )
                     .map_err(|e| Error::Encrypt(e.to_string()))
             }
         }
@@ -164,13 +181,25 @@ impl AeadCipher {
             Algorithm::Aes256Gcm => {
                 let cipher = Aes256Gcm::new(AesKey::<Aes256Gcm>::from_slice(key));
                 cipher
-                    .decrypt(AesNonce::from_slice(nonce), Payload { msg: ciphertext, aad })
+                    .decrypt(
+                        AesNonce::from_slice(nonce),
+                        Payload {
+                            msg: ciphertext,
+                            aad,
+                        },
+                    )
                     .map_err(|_| Error::Decrypt)
             }
             Algorithm::ChaCha20Poly1305 => {
                 let cipher = ChaCha20Poly1305::new(ChaKey::from_slice(key));
                 cipher
-                    .decrypt(ChaNonce::from_slice(nonce), Payload { msg: ciphertext, aad })
+                    .decrypt(
+                        ChaNonce::from_slice(nonce),
+                        Payload {
+                            msg: ciphertext,
+                            aad,
+                        },
+                    )
                     .map_err(|_| Error::Decrypt)
             }
         }
@@ -200,11 +229,15 @@ mod tests {
             let header_aad: &[u8] = &[0x01u8; 20];
 
             let (wrapped, wrap_nonce) = cipher.wrap_dek(&kek, &dek, header_aad).unwrap();
-            let unwrapped = cipher.unwrap_dek(&kek, &wrap_nonce, &wrapped, header_aad).unwrap();
+            let unwrapped = cipher
+                .unwrap_dek(&kek, &wrap_nonce, &wrapped, header_aad)
+                .unwrap();
             assert_eq!(unwrapped.as_slice(), dek.expose_secret().as_ref());
 
             let (item_ct, item_nonce) = cipher.encrypt_item(&dek, b"secret", 42).unwrap();
-            let item_pt = cipher.decrypt_item(&dek, &item_nonce, &item_ct, 42).unwrap();
+            let item_pt = cipher
+                .decrypt_item(&dek, &item_nonce, &item_ct, 42)
+                .unwrap();
             assert_eq!(item_pt, b"secret");
         }
     }
@@ -220,13 +253,17 @@ mod tests {
 
         let mut flipped = wrapped.clone();
         flipped[0] ^= 0xff;
-        assert!(cipher.unwrap_dek(&kek, &wrap_nonce, &flipped, header_aad).is_err());
+        assert!(cipher
+            .unwrap_dek(&kek, &wrap_nonce, &flipped, header_aad)
+            .is_err());
 
         let (item_ct, item_nonce) = cipher.encrypt_item(&dek, b"secret", 42).unwrap();
         let mut bad_aad = vec![0x53u8, 0, 0, 0, 0];
         bad_aad[0] ^= 0xff;
         let key: &[u8; DEK_LEN] = dek.expose_secret().as_ref().try_into().unwrap();
-        assert!(cipher.decrypt_with_aad(key, &item_nonce, &item_ct, &bad_aad).is_err());
+        assert!(cipher
+            .decrypt_with_aad(key, &item_nonce, &item_ct, &bad_aad)
+            .is_err());
     }
 
     #[test]
@@ -247,6 +284,8 @@ mod tests {
         let header_aad: &[u8] = &[0x01u8; 20];
         let (wrapped, nonce) = cipher.wrap_dek(&kek_right, &dek_box, header_aad).unwrap();
 
-        assert!(cipher.unwrap_dek(&kek_wrong, &nonce, &wrapped, header_aad).is_err());
+        assert!(cipher
+            .unwrap_dek(&kek_wrong, &nonce, &wrapped, header_aad)
+            .is_err());
     }
 }

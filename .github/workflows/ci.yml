@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  # MSRV is the source of truth (Cargo.toml rust-version); CI pins to it so a
+  # dependency requiring newer Rust fails here, not on a user's machine.
+  MSRV: "1.98"
+
+jobs:
+  lint:
+    name: fmt + clippy (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: rustfmt
+        run: cargo fmt --check
+      - name: clippy
+        run: cargo clippy --lib --tests -- -D warnings
+
+  test-windows:
+    name: test (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98
+      - uses: Swatinem/rust-cache@v2
+      - name: cargo test
+        run: cargo test --locked
+      - name: cargo build (binary)
+        run: cargo build --locked
+
+  test-linux:
+    name: test (ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98
+      - uses: Swatinem/rust-cache@v2
+      - name: cargo test
+        run: cargo test --locked
+      - name: cargo build (binary)
+        run: cargo build --locked
+
+  audit:
+    name: cargo audit + deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98
+      - name: install cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: cargo audit
+        run: cargo audit
+      # cargo-deny checks licenses + advisories + the ADR-0005 network ban.
+      - name: install cargo-deny
+        run: cargo install cargo-deny --locked
+      - name: cargo deny
+        run: cargo deny check
+
+  network-ban:
+    name: no-network grep (ADR-0005)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: no socket APIs in src/
+        run: |
+          ! grep -rniE "std::net|TcpStream|UdpSocket|SocketAddr" src/
+      - name: no http/tls crates in the dependency tree
+        run: |
+          ! cargo tree | grep -iE "reqwest|hyper|ureq|http|tls"

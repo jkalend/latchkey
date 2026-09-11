@@ -17,17 +17,23 @@ vault is a single encrypted file on your own disk.
   derivation and authenticated encryption (AES-256-GCM default,
   ChaCha20-Poly1305 fallback).
 - 🖥️ **CLI and TUI** — scriptable commands and an interactive fuzzy-search
-  interface over the same vault.
+  interface over the same vault. Bare `rpass` opens the TUI.
 - 📋 **Clipboard with auto-clear** — secrets copy to the clipboard and
-  clear themselves after 30 seconds (delayed-render on Windows native —
-  process death clears the clipboard automatically).
+  clear themselves after 30 seconds; on native Windows the pre-copy
+  clipboard contents are restored rather than left empty (delayed
+  rendering is tracked for v1.x — see
+  [docs/adr/ADR-0003-clipboard-strategy.md](docs/adr/ADR-0003-clipboard-strategy.md)).
 - 🎲 **Password generation** — cryptographically secure, rejection-sampled
   from the OS CSPRNG, entropy-documented presets.
 - ⏱️ **TOTP authenticator** — store TOTP secrets alongside credentials
   and generate codes locally (RFC 6238; `otpauth://` URIs accepted on
   add/edit).
+- 🔁 **Key rotation & master-password change** — re-key the DEK under
+  current-policy KDF parameters, or change the master password, without
+  re-encrypting item contents you haven't opened.
 - 🚫 **Zero network** — no HTTP client exists in the dependency tree at
-  all, so the no-phoning-home guarantee is checkable, not a promise.
+  all, so the no-phoning-home guarantee is checkable, not a promise
+  (CI-enforced).
 
 ## Quick start
 
@@ -51,6 +57,27 @@ $ # back up the encrypted vault (just a file copy — restore is copying it back
 $ rpass backup --out /mnt/c/Backups/vault-backup.bin
 ```
 
+## Command status
+
+| Command | Status |
+|---|---|
+| `rpass init` | ✅ implemented |
+| `rpass add <title>` | ✅ implemented — `--username --url --notes --generate --totp --totp-uri` |
+| `rpass list` | ✅ implemented |
+| `rpass get <title>` | ✅ implemented — `--reveal` to print, `--copy`, `--id` |
+| `rpass copy <title>` | ✅ implemented — `--timeout`, auto-clear |
+| `rpass generate` | ✅ implemented — ADR-0006 presets, `--copy` |
+| `rpass totp <title>` | ✅ implemented — `--copy` |
+| `rpass edit <title>` | ✅ implemented — single atomic write for index + secrets |
+| `rpass rm <title>` | ✅ implemented — `--purge` skips confirm |
+| `rpass rotate` | ✅ implemented — DEK + KDF policy; `--new-password` |
+| `rpass export` | ✅ implemented — `--format json --yes-i-mean-it --out <file>` |
+| `rpass backup` | ✅ implemented — `--out` |
+| `rpass tui` (or bare `rpass`) | ✅ implemented — fuzzy search, detail view, idle lock |
+| `rpass import` | ⏳ v1.x |
+
+Full contract per command: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md).
+
 ## Building
 
 Rust 1.98+ (stable, MSRV CI-enforced — DEVELOPMENT.md). From the repo root:
@@ -63,7 +90,7 @@ $ cargo build --release
 
 | Platform | Notes |
 |---|---|
-| Windows | Works natively; delayed-render clipboard (process death clears the clipboard automatically). Warns if Windows Clipboard History is enabled, since it defeats auto-clear. |
+| Windows | Works natively; synchronous set-and-hold clipboard (delayed rendering tracked for v1.x, ADR-0003). Warns if Windows Clipboard History is enabled, since it defeats auto-clear. |
 | Linux (WSL2) | Clipboard goes through `clip.exe` stdin; secret never appears in process listings or interop logs. Auto-clear works while `rpass copy` lives; process death strands the secret (mitigation: run natively on Windows, or `echo. \| clip.exe`). See ADR-0008 for detection details. |
 | Plain Linux | **Best-effort** — clipboard via `wl-copy` (Wayland) or `xclip`/`xsel` (X11), probed at runtime. Auto-clear parity: X11's selection model clears the clipboard when the process exits; Wayland clears on timeout. Not a supported platform in the strict sense; X11/Wayland behavior is engineered but not release-tested. |
 | macOS | Out of scope for v1. |

@@ -39,7 +39,6 @@ pub fn item_aad(version: u8, item_id: u32) -> [u8; 6] {
 }
 
 pub const INDEX_NONCE_LEN: usize = NONCE_LEN;
-const SLOT_FRAME_FOOTER: usize = 16; // AEAD tag after every item ciphertext
 
 fn random_nonce() -> Result<[u8; NONCE_LEN]> {
     let mut n = [0u8; NONCE_LEN];
@@ -174,24 +173,8 @@ impl Vault {
 
         // Index
         let item_alg = header.item_algorithm()?;
-        let mut cursor = HEADER_LEN;
-        let index_nonce: [u8; NONCE_LEN] = bytes
-            .get(cursor..cursor + NONCE_LEN)
-            .and_then(|s| s.try_into().ok())
-            .ok_or_else(|| Error::Encrypt("truncated index nonce".into()))?;
-        cursor += NONCE_LEN;
-        let index_ct_len = be_u32_at(&bytes, cursor)?;
-        cursor += 4;
-        let index_ct = bytes
-            .get(cursor..cursor + index_ct_len as usize)
-            .ok_or_else(|| Error::Encrypt("truncated index ciphertext".into()))?;
-        let index_pt = AeadCipher::new(item_alg).decrypt_raw(
-            &dek,
-            &index_nonce,
-            index_ct,
-            &index_aad(header.version),
-        )?;
-        let index = parse_index(&index_pt)?;
+        let (entries, _) = Self::read_index_entries_with(&bytes, &header, &dek, item_alg)?;
+        let index = IndexPayload { entries };
 
         let next_item_id = index
             .entries
@@ -233,37 +216,17 @@ impl Vault {
             let bytes = std::fs::read(&self.path)
                 .map_err(|e| Error::Encrypt(format!("read vault: {e}")))?;
 
-            // Skip past index frame
-            let mut cursor = HEADER_LEN + NONCE_LEN;
-            let index_ct_len = be_u32_at(&bytes, cursor)? as usize;
-            cursor += 4 + index_ct_len;
+            // Walk the items region; frame position == slot (save renumbers
+            // densely, so the index's slot is a direct frame index).
+            let frames = Self::split_item_frames(&bytes)?;
+            let frame = frames
+                .get(slot as usize)
+                .ok_or_else(|| Error::Encrypt(format!("slot {slot} out of range")))?;
 
-            // Items region header
-            let slot_count = be_u32_at(&bytes, cursor)? as usize;
-            cursor += 4;
-
-            // Walk to the desired slot
-            let mut target: Option<(usize, usize)> = None; // (ct_off, ct_len)
-            for i in 0..slot_count {
-                let frame_off = cursor;
-                cursor += NONCE_LEN;
-                let ct_len = be_u32_at(&bytes, cursor)? as usize;
-                cursor += 4;
-                let ct_off = cursor;
-                cursor += ct_len + SLOT_FRAME_FOOTER;
-                if i as u32 == slot {
-                    target = Some((ct_off, ct_len));
-                    break;
-                }
-                let _ = frame_off;
-            }
-            let (ct_off, ct_len) =
-                target.ok_or_else(|| Error::Encrypt(format!("slot {slot} out of range")))?;
-
-            let nonce_off = ct_off - NONCE_LEN - 4;
-            let nonce: [u8; NONCE_LEN] =
-                bytes[nonce_off..nonce_off + NONCE_LEN].try_into().unwrap();
-            let ct = &bytes[ct_off..ct_off + ct_len];
+            let nonce: [u8; NONCE_LEN] = frame[..NONCE_LEN].try_into().unwrap();
+            let ct_len =
+                u32::from_be_bytes(frame[NONCE_LEN..NONCE_LEN + 4].try_into().unwrap()) as usize;
+            let ct = &frame[NONCE_LEN + 4..NONCE_LEN + 4 + ct_len];
 
             let item_alg = self.header.item_alg;
             let cipher = AeadCipher::new(item_alg);
@@ -300,13 +263,57 @@ impl Vault {
 
     /// Write the entire file from (header, entries, open_items). The header's wrap
     /// material and salt must already be final; only enc_counter/index/items vary.
+    ///
+    /// Items NOT in `open_items` are copied verbatim from the on-disk file —
+    /// deleting or editing one item must not require decrypting every other.
+    /// Every save renumbers slots densely (frame position = slot), so the
+    /// index's `slot` fields are regenerated here, not trusted from callers.
     fn save_with_header(&self, header: &ParsedHeader) -> Result<()> {
-        let mut out = Vec::with_capacity(4096);
+        // A vault being created has no prior file — nothing to copy frames from.
+        let old = match std::fs::read(&self.path) {
+            Ok(b) => b,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Vec::new(),
+            Err(e) => return Err(Error::Encrypt(format!("read vault for save: {e}"))),
+        };
+        // item_id → frame position on disk, derived by decrypting the OLD
+        // index (we hold the DEK; titles are already known to us in-memory —
+        // this just maps identity to position without touching item secrets).
+        let old_index: std::collections::HashMap<u32, u32> = if old.is_empty() {
+            Default::default()
+        } else {
+            let old_header = parse::parse_header(&old)?;
+            let old_alg = old_header.item_algorithm()?;
+            let (old_entries, _) =
+                Self::read_index_entries_with(&old, &old_header, &self.dek, old_alg)?;
+            old_entries
+                .into_iter()
+                .filter(|e| e.state != 0xFF)
+                .map(|e| (e.item_id, e.slot))
+                .collect()
+        };
+        let old_frames: Vec<Vec<u8>> = if old.is_empty() {
+            Vec::new()
+        } else {
+            Self::split_item_frames(&old)?
+        };
+
+        let mut out = Vec::with_capacity(old.len());
         out.extend_from_slice(&parse::build_header(header));
+
+        // Live entries in index order; renumber slots to frame position.
+        let live: Vec<&IndexEntry> = self.entries.iter().filter(|e| e.state != 0xFF).collect();
+        let renumbered: Vec<IndexEntry> = live
+            .iter()
+            .enumerate()
+            .map(|(i, e)| IndexEntry {
+                slot: i as u32,
+                ..(**e).clone()
+            })
+            .collect();
 
         // Index
         let index_pt = serialize_index(&IndexPayload {
-            entries: self.entries.clone(),
+            entries: renumbered.clone(),
         });
         let index_nonce = random_nonce()?;
         let index_ct = AeadCipher::new(self.header.item_alg).encrypt_raw(
@@ -319,35 +326,98 @@ impl Vault {
         out.extend_from_slice(&(index_ct.len() as u32).to_be_bytes());
         out.extend_from_slice(&index_ct);
 
-        // Items region (ordered by slot)
-        let live_count = self.entries.iter().filter(|e| e.state != 0xFF).count() as u32;
-        out.extend_from_slice(&live_count.to_be_bytes());
-        let mut live: Vec<&IndexEntry> = self.entries.iter().filter(|e| e.state != 0xFF).collect();
-        live.sort_by_key(|e| e.slot);
-        for e in &live {
-            let rec = self
-                .open_items
-                .get(&e.slot)
-                .ok_or_else(|| Error::Encrypt(format!("slot {} not open", e.slot)))?;
-            let pt = serialize_item(rec, e.item_id);
-            let nonce = random_nonce()?;
-            let ct = AeadCipher::new(self.header.item_alg).encrypt_raw(
-                &self.dek,
-                &nonce,
-                &pt,
-                &item_aad(header.version, e.item_id),
-            )?;
-            out.extend_from_slice(&nonce);
-            out.extend_from_slice(&(ct.len() as u32).to_be_bytes());
-            out.extend_from_slice(&ct);
+        // Items region
+        out.extend_from_slice(&(renumbered.len() as u32).to_be_bytes());
+        for e in &renumbered {
+            match self.open_items.get(&e.slot) {
+                Some(rec) => {
+                    let pt = serialize_item(rec, e.item_id);
+                    let nonce = random_nonce()?;
+                    let ct = AeadCipher::new(self.header.item_alg).encrypt_raw(
+                        &self.dek,
+                        &nonce,
+                        &pt,
+                        &item_aad(header.version, e.item_id),
+                    )?;
+                    out.extend_from_slice(&nonce);
+                    out.extend_from_slice(&(ct.len() as u32).to_be_bytes());
+                    out.extend_from_slice(&ct);
+                }
+                None => {
+                    // Not open: copy the existing frame verbatim.
+                    let old_slot = old_index.get(&e.item_id).ok_or_else(|| {
+                        Error::Encrypt(format!(
+                            "item {} not open and not on disk — open it before saving",
+                            e.item_id
+                        ))
+                    })?;
+                    let frame = &old_frames[*old_slot as usize];
+                    out.extend_from_slice(frame);
+                }
+            }
         }
 
         // Trailer (spec §7): u32 slot_count || u32 crc32c over the whole preceding file.
         let crc = crc32c::crc32c(&out);
-        out.extend_from_slice(&live_count.to_be_bytes());
+        out.extend_from_slice(&(renumbered.len() as u32).to_be_bytes());
         out.extend_from_slice(&crc.to_be_bytes());
 
         atomic_write(&self.path, &out)
+    }
+
+    /// Split an on-disk vault into (per-slot frames, item_id → slot map).
+    /// Frames include the full nonce || ct_len || ct || tag bytes.
+    /// Decrypt the index from raw vault bytes. Returns (entries, end offset of
+    /// the index frame) — the offset is where the items region starts.
+    fn read_index_entries_with(
+        raw: &[u8],
+        header: &parse::ParsedHeader,
+        dek: &SecretVec,
+        item_alg: Algorithm,
+    ) -> Result<(Vec<IndexEntry>, usize)> {
+        let mut cursor = HEADER_LEN;
+        let index_nonce: [u8; NONCE_LEN] = raw
+            .get(cursor..cursor + NONCE_LEN)
+            .and_then(|s| s.try_into().ok())
+            .ok_or_else(|| Error::Encrypt("truncated index nonce".into()))?;
+        cursor += NONCE_LEN;
+        let index_ct_len = be_u32_at(raw, cursor)? as usize;
+        cursor += 4;
+        let index_ct = raw
+            .get(cursor..cursor + index_ct_len)
+            .ok_or_else(|| Error::Encrypt("truncated index ciphertext".into()))?;
+        let index_pt = AeadCipher::new(item_alg).decrypt_raw(
+            dek,
+            &index_nonce,
+            index_ct,
+            &index_aad(header.version),
+        )?;
+        let index = parse_index(&index_pt)?;
+        Ok((index.entries, cursor + index_ct_len))
+    }
+
+    /// Split an on-disk vault into per-slot item frames (nonce || ct_len ||
+    /// ciphertext+tag). Frame position == slot after any save (slots are
+    /// renumbered densely on write).
+    fn split_item_frames(raw: &[u8]) -> Result<Vec<Vec<u8>>> {
+        let mut cursor = HEADER_LEN + NONCE_LEN;
+        let index_ct_len = be_u32_at(raw, cursor)? as usize;
+        cursor += 4 + index_ct_len;
+        let slot_count = be_u32_at(raw, cursor)? as usize;
+        cursor += 4;
+
+        let mut frames = Vec::with_capacity(slot_count);
+        for _ in 0..slot_count {
+            let start = cursor;
+            cursor += NONCE_LEN;
+            let ct_len = be_u32_at(raw, cursor)? as usize;
+            // ct_len covers ciphertext + AEAD tag (the aead crate appends the
+            // tag to the ciphertext; VAULT_FORMAT §6.1's separate "16 tag"
+            // field is subsumed into ct_len in this implementation).
+            cursor += 4 + ct_len;
+            frames.push(raw[start..cursor].to_vec());
+        }
+        Ok(frames)
     }
 
     pub fn add_item(&mut self, title: String, username: String, record: ItemRecord) -> Result<u32> {

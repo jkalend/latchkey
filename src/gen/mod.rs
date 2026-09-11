@@ -92,6 +92,17 @@ pub struct GenerateSpec {
     pub no_ambiguous: bool,
 }
 
+impl Default for GenerateSpec {
+    fn default() -> Self {
+        GenerateSpec {
+            preset: Preset::Alphanumeric,
+            length: None,
+            words: None,
+            no_ambiguous: false,
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Generated {
     pub value: String,

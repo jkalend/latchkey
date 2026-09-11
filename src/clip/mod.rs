@@ -44,7 +44,7 @@ pub fn copy_and_hold(secret: &[u8], timeout_secs: u64) -> Result<()> {
         );
     }
     match platform::detect() {
-        Platform::Windows => crate::clip::win32::copy_and_hold(secret, timeout),
+        Platform::Windows => crate::clip::win32_delayed::copy_and_hold(secret, timeout),
         Platform::Wsl => crate::clip::wsl::copy_and_hold(secret, timeout),
         Platform::Linux => crate::clip::unix::copy_and_hold(secret, timeout),
     }
@@ -63,6 +63,8 @@ pub fn copy_async(secret: &[u8]) -> Result<()> {
 // Windows backend is a whole module; keep it cfg-gated.
 #[cfg(windows)]
 pub mod win32;
+#[cfg(windows)]
+pub mod win32_delayed;
 #[cfg(not(windows))]
 pub mod win32_fallback;
 #[cfg(not(windows))]

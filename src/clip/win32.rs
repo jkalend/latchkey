@@ -1,13 +1,11 @@
-//! Win32 clipboard backend (ADR-0003 §3).
+//! Win32 clipboard backend (ADR-0003 §3): synchronous primitives.
 //!
-//! v1 uses a straightforward open/set/close with the pre-copy snapshot
-//! restored on expiry. Delayed rendering (SetClipboardData(NULL) plus a
-//! message-pump window answering WM_RENDERFORMAT) is the design target
-//! tracked for v1.x — it needs a hidden window and a message loop; the
-//! current synchronous model gets the security-relevant parts right:
-//! the secret is set, the process holds for the timeout, and the
-//! clipboard is cleared/restored on exit. Process death before the
-//! timer fires is bounded by the timeout, not unbounded.
+//! `copy_and_hold`/`copy_now` set the data eagerly. The hardened path —
+//! delayed rendering via `SetClipboardData(NULL)` plus a message-only
+//! window answering `WM_RENDERFORMAT` — lives in `win32_delayed.rs` and
+//! is what the CLI routes to; this module keeps the shared primitives
+//! (global allocation, snapshot, restore) and the immediate-copy path
+//! the TUI uses.
 
 use std::time::{Duration, Instant};
 
@@ -34,7 +32,7 @@ fn to_utf16(s: &[u8]) -> Vec<u16> {
 
 /// Render text into a moveable HGLOBAL with NUL terminator (ownership transfers
 /// to the clipboard on SetClipboardData success).
-fn render_into_global(text: &[u16]) -> Result<HGLOBAL> {
+pub(super) fn render_into_global(text: &[u16]) -> Result<HGLOBAL> {
     unsafe {
         let bytes = (text.len() + 1) * std::mem::size_of::<u16>();
         let h = GlobalAlloc(GMEM_MOVEABLE, bytes).map_err(|_| last_err("GlobalAlloc"))?;
@@ -52,7 +50,7 @@ fn render_into_global(text: &[u16]) -> Result<HGLOBAL> {
 }
 
 /// Read the current CF_UNICODETEXT, if any (for restore-on-clear).
-fn snapshot_clipboard() -> Result<Option<Vec<u16>>> {
+pub(super) fn snapshot_clipboard() -> Result<Option<Vec<u16>>> {
     unsafe {
         OpenClipboard(None).map_err(|_| ClipError::Open)?;
         let result = (|| {
@@ -82,8 +80,24 @@ fn snapshot_clipboard() -> Result<Option<Vec<u16>>> {
 
 /// Snapshot helper that treats "cannot open" as "nothing to restore" so a busy
 /// clipboard never blocks a copy.
-fn snapshot_best_effort() -> Option<Vec<u16>> {
+pub(super) fn snapshot_best_effort() -> Option<Vec<u16>> {
     snapshot_clipboard().unwrap_or(None)
+}
+
+/// Restore the clipboard to a prior snapshot: blank it, then put `prev` back
+/// if there was one. Best-effort — a busy clipboard just stays busy.
+pub(super) fn restore_clipboard(prev: &Option<Vec<u16>>) {
+    unsafe {
+        if OpenClipboard(None).is_ok() {
+            let _ = EmptyClipboard();
+            if let Some(prev) = prev {
+                if let Ok(h) = render_into_global(prev) {
+                    let _ = SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(h.0)));
+                }
+            }
+            let _ = CloseClipboard();
+        }
+    }
 }
 
 /// Copy `secret`, hold for `timeout_secs`, then restore the pre-copy
@@ -111,17 +125,7 @@ pub fn copy_and_hold(secret: &[u8], timeout_secs: u64) -> Result<()> {
         std::thread::sleep(Duration::from_millis(100).min(deadline - Instant::now()));
     }
 
-    unsafe {
-        if OpenClipboard(None).is_ok() {
-            let _ = EmptyClipboard();
-            if let Some(prev) = &restore {
-                if let Ok(h) = render_into_global(prev) {
-                    let _ = SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(h.0)));
-                }
-            }
-            let _ = CloseClipboard();
-        }
-    }
+    restore_clipboard(&restore);
     Ok(())
 }
 
@@ -155,7 +159,12 @@ mod tests {
     #[test]
     fn copy_now_roundtrips_through_the_real_clipboard() {
         // Only safe to run where we may touch the user's clipboard: it saves
-        // and restores whatever was there.
+        // and restores whatever was there. Serialized against the
+        // delayed-render tests via the same lock (they share the clipboard).
+        let _guard = super::super::win32_delayed::CLIPBOARD_TEST_LOCK
+            .get_or_init(|| std::sync::Mutex::new(()))
+            .lock()
+            .unwrap_or_else(|p| p.into_inner());
         let before = super::snapshot_best_effort();
         super::copy_now(b"rpass-test-123").unwrap();
         let got = super::snapshot_best_effort().unwrap();

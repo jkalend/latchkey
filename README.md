@@ -19,10 +19,11 @@ vault is a single encrypted file on your own disk.
 - 🖥️ **CLI and TUI** — scriptable commands and an interactive fuzzy-search
   interface over the same vault. Bare `rpass` opens the TUI.
 - 📋 **Clipboard with auto-clear** — secrets copy to the clipboard and
-  clear themselves after 30 seconds; on native Windows the pre-copy
-  clipboard contents are restored rather than left empty (delayed
-  rendering is tracked for v1.x — see
-  [docs/adr/ADR-0003-clipboard-strategy.md](docs/adr/ADR-0003-clipboard-strategy.md)).
+  clear themselves after 30 seconds. On native Windows the copy uses
+  **delayed rendering**: the secret is only handed to a paste target on
+  request, and process death clears the entry automatically; the pre-copy
+  clipboard contents are restored after the timeout
+  ([docs/adr/ADR-0003-clipboard-strategy.md](docs/adr/ADR-0003-clipboard-strategy.md)).
 - 🎲 **Password generation** — cryptographically secure, rejection-sampled
   from the OS CSPRNG, entropy-documented presets.
 - ⏱️ **TOTP authenticator** — store TOTP secrets alongside credentials
@@ -90,7 +91,7 @@ $ cargo build --release
 
 | Platform | Notes |
 |---|---|
-| Windows | Works natively; synchronous set-and-hold clipboard (delayed rendering tracked for v1.x, ADR-0003). Warns if Windows Clipboard History is enabled, since it defeats auto-clear. |
+| Windows | Works natively; clipboard uses Win32 delayed rendering (the secret is served on WM_RENDERFORMAT, so process death clears it automatically) and restores the pre-copy clipboard after the timeout. Warns if Windows Clipboard History is enabled, since it defeats auto-clear. |
 | Linux (WSL2) | Clipboard goes through `clip.exe` stdin; secret never appears in process listings or interop logs. Auto-clear works while `rpass copy` lives; process death strands the secret (mitigation: run natively on Windows, or `echo. \| clip.exe`). See ADR-0008 for detection details. |
 | Plain Linux | **Best-effort** — clipboard via `wl-copy` (Wayland) or `xclip`/`xsel` (X11), probed at runtime. Auto-clear parity: X11's selection model clears the clipboard when the process exits; Wayland clears on timeout. Not a supported platform in the strict sense; X11/Wayland behavior is engineered but not release-tested. |
 | macOS | Out of scope for v1. |

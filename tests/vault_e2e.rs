@@ -437,3 +437,116 @@ fn change_password_rewraps_same_dek() {
 
     let _ = std::fs::remove_dir_all(path.parent().unwrap());
 }
+
+/// The full export → import round trip through the CLI's own JSON emitter
+/// and the hand-rolled JSON reader: what comes out must go back in intact.
+#[test]
+fn export_import_roundtrip() {
+    use rpass::cli::export_item_json;
+    use rpass::cli::import::import_into;
+
+    let path = tmp_vault("imp");
+    let password = pw("import-master-pw");
+    let original = sample_item(true);
+
+    // Build a vault with two items, then "export" via the CLI's own emitter.
+    let export = {
+        let mut v = Vault::create(
+            &path,
+            &password,
+            test_kdf(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        v.add_item("example.com".into(), "alice".into(), original.clone())
+            .unwrap();
+        v.add_item("github.com".into(), "bob".into(), sample_item(false))
+            .unwrap();
+        v.save().unwrap();
+
+        let live: Vec<rpass::vault::shape::IndexEntry> = v
+            .entries
+            .iter()
+            .filter(|e| e.state != 0xFF)
+            .cloned()
+            .collect();
+        let mut items = Vec::new();
+        for e in &live {
+            v.open_item(e.item_id).unwrap();
+            let rec = v.open_items.get(&e.slot).unwrap().clone();
+            items.push(export_item_json(e, &rec));
+        }
+        format!(
+            "{{\n  \"format_version\": 1,\n  \"exported_at\": 99,\n  \"items\": {{\n{}\n  }}\n}}\n",
+            items.join(",\n")
+        )
+    };
+
+    // Import into a fresh vault under a DIFFERENT password.
+    let fresh = tmp_vault("imp2");
+    let fresh_pw = pw("fresh-master-pw");
+    {
+        let mut v = Vault::create(
+            &fresh,
+            &fresh_pw,
+            test_kdf(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        // pure adds (fresh vault) → yes=true may skip the prompt
+        import_into(&mut v, &export, false, true).unwrap();
+    }
+
+    // Verify both items came through with the same plaintext.
+    let ids_by_title: std::collections::HashMap<String, u32> = {
+        let mut v = Vault::open(&fresh, &fresh_pw).unwrap();
+        assert_eq!(v.entries.len(), 2);
+        let map: std::collections::HashMap<String, u32> = v
+            .entries
+            .iter()
+            .map(|e| (e.title.clone(), e.item_id))
+            .collect();
+        let ex_id = *map.get("example.com").unwrap();
+        let gh_id = *map.get("github.com").unwrap();
+        assert_ne!(ex_id, gh_id);
+
+        v.open_item(ex_id).unwrap();
+        let rec = v.open_items.values().next().unwrap().clone();
+        assert_eq!(rec.password, original.password);
+        assert_eq!(rec.url, original.url);
+        assert_eq!(rec.notes, original.notes);
+        assert_eq!(rec.totp, original.totp);
+        v.open_item(gh_id).unwrap();
+        map
+    };
+
+    // Now the update path: re-import the same export; both titles match
+    // exactly one live entry each → updates, item ids preserved. Confirm is
+    // required (updates exist) and stdin is not a terminal in tests, so the
+    // run must refuse rather than silently overwrite.
+    {
+        let mut v = Vault::open(&fresh, &fresh_pw).unwrap();
+        let refused = import_into(&mut v, &export, false, true);
+        assert!(
+            refused.is_err(),
+            "import with updates must not --yes past the prompt"
+        );
+        // --dry-run of the same import must succeed and change nothing.
+        import_into(&mut v, &export, true, false).unwrap();
+        drop(v);
+        let check = Vault::open(&fresh, &fresh_pw).unwrap();
+        assert_eq!(check.entries.len(), 2);
+        for e in &check.entries {
+            assert_eq!(
+                e.item_id,
+                *ids_by_title.get(&e.title).unwrap(),
+                "dry-run must not rewrite items"
+            );
+        }
+    }
+
+    let _ = std::fs::remove_dir_all(path.parent().unwrap());
+    let _ = std::fs::remove_dir_all(fresh.parent().unwrap());
+}

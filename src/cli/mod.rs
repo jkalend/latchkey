@@ -1,6 +1,7 @@
 //! CLI dispatch (CLI_REFERENCE.md).
 
 pub mod error;
+pub mod import;
 pub mod passwords;
 pub mod resolve;
 pub mod vault_path;
@@ -169,6 +170,19 @@ enum Command {
         #[arg(long, value_name = "FILE")]
         out: Option<std::path::PathBuf>,
     },
+    /// Import items from a JSON export (preview + confirm)
+    Import {
+        /// Import format; only json exists in v1
+        #[arg(long)]
+        format: String,
+        file: std::path::PathBuf,
+        /// Print what would happen, change nothing
+        #[arg(long)]
+        dry_run: bool,
+        /// Skip the confirm prompt (pure adds, zero collisions only)
+        #[arg(long)]
+        yes: bool,
+    },
     /// Copy the vault file to a backup path (still encrypted)
     Backup {
         #[arg(long, value_name = "FILE")]
@@ -290,6 +304,12 @@ fn dispatch(cli: Cli) -> Result<()> {
             yes_i_mean_it,
             out,
         } => cmd_export(&vault_path, &format, yes_i_mean_it, out),
+        Command::Import {
+            format,
+            file,
+            dry_run,
+            yes,
+        } => cmd_import(&vault_path, &format, &file, dry_run, yes),
         Command::Backup { out } => cmd_backup(&vault_path, out),
         Command::Tui => {
             crate::tui::run(vault_path);
@@ -641,6 +661,24 @@ fn cmd_rm(path: &std::path::Path, title: &str, id: Option<u32>, purge: bool) -> 
     Ok(())
 }
 
+fn cmd_import(
+    path: &std::path::Path,
+    format: &str,
+    file: &std::path::Path,
+    dry_run: bool,
+    yes: bool,
+) -> Result<()> {
+    import::run(
+        path,
+        import::ImportArgs {
+            format,
+            file,
+            dry_run,
+            yes,
+        },
+    )
+}
+
 fn cmd_backup(path: &std::path::Path, out: Option<std::path::PathBuf>) -> Result<()> {
     if !path.exists() {
         return Err(CliError::VaultNotFound(path.to_path_buf()));
@@ -965,8 +1003,9 @@ fn cmd_export(
     Ok(())
 }
 
-/// One item's JSON block (CLI_REFERENCE export schema v1).
-fn export_item_json(
+/// One item's JSON block (CLI_REFERENCE export schema v1). Public for the
+/// export→import integration test.
+pub fn export_item_json(
     e: &crate::vault::shape::IndexEntry,
     rec: &crate::vault::shape::ItemRecord,
 ) -> String {

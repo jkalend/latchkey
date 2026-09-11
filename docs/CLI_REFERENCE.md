@@ -47,7 +47,7 @@ copy-history warnings every time; errors must still reach a human.
 | `rpass rotate` | Raise KDF params to current policy; rotate DEK if `enc_counter` near cap |
 | `rpass backup` | Atomic copy of the vault file for safekeeping |
 | `rpass export` | Plaintext export; requires `--format json` + explicit `--yes-i-mean-it` |
-| `rpass import` | Import from JSON export / other managers (v1.x — not implemented) |
+| `rpass import` | Import from JSON export / other managers |
 | `rpass tui` | Interactive interface (docs/TUI_GUIDE.md) |
 
 ## Details

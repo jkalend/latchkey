@@ -128,6 +128,97 @@ pub fn validate_secret(secret_b32: &str, algorithm: TotpAlgorithm) -> Result<Vec
     Ok(decoded)
 }
 
+/// Parse an `otpauth://totp/...` URI (CLI_REFERENCE `rpass add --totp-uri`).
+/// Extracts secret/period/digits/algorithm; the caller zeroizes the raw URI
+/// (we take it by value and drop it, but the input String lives in the caller).
+pub fn parse_otpauth_uri(uri: &str) -> Result<TotpParams> {
+    let rest = uri
+        .strip_prefix("otpauth://totp/")
+        .ok_or_else(|| Error::Encrypt("not an otpauth://totp/ URI".into()))?;
+    let (label, query) = match rest.split_once('?') {
+        Some((l, q)) => (l, q),
+        None => (rest, ""),
+    };
+    if label.is_empty() {
+        return Err(Error::Encrypt("otpauth URI has an empty label".into()));
+    }
+
+    let mut secret_b32: Option<&str> = None;
+    let mut period = 30u32;
+    let mut digits = 6u32;
+    let mut algorithm = TotpAlgorithm::Sha1;
+    for pair in query.split('&').filter(|s| !s.is_empty()) {
+        let (k, v) = pair
+            .split_once('=')
+            .ok_or_else(|| Error::Encrypt(format!("bad otpauth query pair '{pair}'")))?;
+        match k {
+            "secret" => secret_b32 = Some(v),
+            "period" => {
+                period = v
+                    .parse()
+                    .map_err(|_| Error::Encrypt(format!("bad otpauth period '{v}'")))?
+            }
+            "digits" => {
+                digits = v
+                    .parse()
+                    .map_err(|_| Error::Encrypt(format!("bad otpauth digits '{v}'")))?
+            }
+            "algorithm" => {
+                algorithm = match v.to_uppercase().as_str() {
+                    "SHA1" | "SHA" => TotpAlgorithm::Sha1,
+                    "SHA256" => TotpAlgorithm::Sha256,
+                    "SHA512" => TotpAlgorithm::Sha512,
+                    other => {
+                        return Err(Error::Encrypt(format!(
+                            "unsupported otpauth algorithm '{other}'"
+                        )))
+                    }
+                }
+            }
+            // issuer, counter (HOTP), image, anything unknown: ignored.
+            _ => {}
+        }
+    }
+    let secret_b32 = percent_decode(
+        secret_b32.ok_or_else(|| Error::Encrypt("otpauth URI has no secret parameter".into()))?,
+    )?;
+    let secret = validate_secret(&secret_b32, algorithm)?;
+    Ok(TotpParams {
+        secret,
+        period,
+        digits,
+        algorithm,
+    })
+}
+
+/// Minimal percent-decoding for the query string (secrets are base32, but
+/// issuers love pasting URIs with an escaped '=' or label).
+fn percent_decode(s: &str) -> Result<String> {
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'%' => {
+                if i + 3 > bytes.len() {
+                    return Err(Error::Encrypt("truncated percent-escape".into()));
+                }
+                let hex = std::str::from_utf8(&bytes[i + 1..i + 3])
+                    .map_err(|_| Error::Encrypt("bad percent-escape".into()))?;
+                let b = u8::from_str_radix(hex, 16)
+                    .map_err(|_| Error::Encrypt("bad percent-escape hex".into()))?;
+                out.push(b);
+                i += 3;
+            }
+            b => {
+                out.push(b);
+                i += 1;
+            }
+        }
+    }
+    String::from_utf8(out).map_err(|_| Error::Encrypt("percent-decoded value is not UTF-8".into()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -177,5 +268,48 @@ mod tests {
         assert!(err.to_string().contains("need ≥16"));
         // garbage base32
         assert!(validate_secret("!!not-base32!!", TotpAlgorithm::Sha1).is_err());
+    }
+
+    #[test]
+    fn otpauth_full_uri() {
+        // The canonical Google Authenticator export form. Secret is 32 base32
+        // chars = 20 bytes ("12345678901234567890"), above the SHA256 floor of 16.
+        let p = parse_otpauth_uri(
+            "otpauth://totp/example.com:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&period=30&digits=6&algorithm=SHA256",
+        )
+        .unwrap();
+        assert_eq!(p.secret, b"12345678901234567890".to_vec());
+        assert_eq!(p.period, 30);
+        assert_eq!(p.digits, 6);
+        assert_eq!(p.algorithm, TotpAlgorithm::Sha256);
+    }
+
+    #[test]
+    fn otpauth_defaults_and_bad_input() {
+        // Bare-minimum URI: only a secret; defaults fill the rest.
+        let p = parse_otpauth_uri("otpauth://totp/x?secret=GEZDGNBVGY3TQOJQ").unwrap();
+        assert_eq!(p.period, 30);
+        assert_eq!(p.digits, 6);
+        assert_eq!(p.algorithm, TotpAlgorithm::Sha1);
+
+        assert!(parse_otpauth_uri("https://example.com").is_err()); // not otpauth
+        assert!(parse_otpauth_uri("otpauth://totp/x").is_err()); // no secret
+        assert!(parse_otpauth_uri("otpauth://hotp/x?secret=GEZDGNBVGY3TQOJQ").is_err()); // HOTP
+        let err =
+            parse_otpauth_uri("otpauth://totp/x?secret=GEZDGNBVGY3TQOJQ&period=abc").unwrap_err();
+        assert!(err.to_string().contains("period"));
+    }
+
+    #[test]
+    fn otpauth_percent_escapes() {
+        // A trailing '=' in the secret is only valid base32 with padding
+        // enabled; our decoder rejects it either way — the point of the test
+        // is that percent-decoding happens before validation.
+        let p = parse_otpauth_uri("otpauth://totp/x?secret=GEZDGNBVGY%3D");
+        assert!(p.is_err());
+        // A valid 10-byte secret with a percent-encoded character in the label.
+        let ok =
+            parse_otpauth_uri("otpauth://totp/issuer%3Aalice?secret=GEZDGNBVGY3TQOJQ").unwrap();
+        assert_eq!(ok.secret.len(), 10);
     }
 }

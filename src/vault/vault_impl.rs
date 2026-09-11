@@ -12,6 +12,8 @@
 
 use std::path::{Path, PathBuf};
 
+use secrecy::ExposeSecret;
+
 use crate::crypto::ciphers::{AeadCipher, Algorithm, NONCE_LEN};
 use crate::crypto::error::{Error, Result};
 use crate::crypto::kdf::{KdfParams, SecretVec};
@@ -141,7 +143,7 @@ impl Vault {
         };
 
         // Serialize and atomically write
-        this.save_with_header(&header)?;
+        this.save_with_header(&header, &this.dek)?;
         Ok(this)
     }
 
@@ -258,17 +260,21 @@ impl Vault {
             .map_err(|e| Error::Encrypt(format!("read vault for save: {e}")))?;
         let old = parse::parse_header(&raw)?;
         let new_header = ParsedHeader { ..old.clone() };
-        self.save_with_header(&new_header)
+        self.save_with_header(&new_header, &self.dek)
     }
 
     /// Write the entire file from (header, entries, open_items). The header's wrap
     /// material and salt must already be final; only enc_counter/index/items vary.
     ///
+    /// `disk_dek` is the DEK the on-disk file's index/items are encrypted with —
+    /// it equals `self.dek` for ordinary saves, but differs after `rotate()`
+    /// (the old file is still old-DEK-encrypted until we overwrite it).
+    ///
     /// Items NOT in `open_items` are copied verbatim from the on-disk file —
     /// deleting or editing one item must not require decrypting every other.
     /// Every save renumbers slots densely (frame position = slot), so the
     /// index's `slot` fields are regenerated here, not trusted from callers.
-    fn save_with_header(&self, header: &ParsedHeader) -> Result<()> {
+    fn save_with_header(&self, header: &ParsedHeader, disk_dek: &SecretVec) -> Result<()> {
         // A vault being created has no prior file — nothing to copy frames from.
         let old = match std::fs::read(&self.path) {
             Ok(b) => b,
@@ -284,7 +290,7 @@ impl Vault {
             let old_header = parse::parse_header(&old)?;
             let old_alg = old_header.item_algorithm()?;
             let (old_entries, _) =
-                Self::read_index_entries_with(&old, &old_header, &self.dek, old_alg)?;
+                Self::read_index_entries_with(&old, &old_header, disk_dek, old_alg)?;
             old_entries
                 .into_iter()
                 .filter(|e| e.state != 0xFF)
@@ -301,13 +307,18 @@ impl Vault {
         out.extend_from_slice(&parse::build_header(header));
 
         // Live entries in index order; renumber slots to frame position.
-        let live: Vec<&IndexEntry> = self.entries.iter().filter(|e| e.state != 0xFF).collect();
+        let live: Vec<IndexEntry> = self
+            .entries
+            .iter()
+            .filter(|e| e.state != 0xFF)
+            .cloned()
+            .collect();
         let renumbered: Vec<IndexEntry> = live
             .iter()
             .enumerate()
             .map(|(i, e)| IndexEntry {
                 slot: i as u32,
-                ..(**e).clone()
+                ..e.clone()
             })
             .collect();
 
@@ -326,10 +337,12 @@ impl Vault {
         out.extend_from_slice(&(index_ct.len() as u32).to_be_bytes());
         out.extend_from_slice(&index_ct);
 
-        // Items region
+        // Items region. open_items is keyed by each entry's CURRENT slot (as
+        // last written/read); the dense renumbered slot only becomes valid
+        // once this save lands — look up by the original slot.
         out.extend_from_slice(&(renumbered.len() as u32).to_be_bytes());
-        for e in &renumbered {
-            match self.open_items.get(&e.slot) {
+        for (e, orig) in renumbered.iter().zip(live.iter()) {
+            match self.open_items.get(&orig.slot) {
                 Some(rec) => {
                     let pt = serialize_item(rec, e.item_id);
                     let nonce = random_nonce()?;
@@ -442,6 +455,111 @@ impl Vault {
         });
         self.open_items.insert(slot, record);
         Ok(item_id)
+    }
+
+    /// Rotate the DEK and re-wrap under the CURRENT default KDF params and a
+    /// fresh salt (CLI_REFERENCE `rpass rotate`). Every live item is re-encrypted
+    /// under the new DEK — unlike `save()`, this is a full rewrite, so the
+    /// caller must first `open_item()` everything (or pass nothing to open and
+    /// let unopened frames copy verbatim — but their ciphertext then stays on
+    /// the old DEK, which defeats rotation, so we require all items open).
+    pub fn rotate(&mut self, password: &SecretVec) -> Result<()> {
+        // Snapshot the old DEK: the on-disk file is still encrypted with it,
+        // and save_with_header needs it to decrypt the old index.
+        let old_dek = SecretVec::new(self.dek.expose_secret().to_vec().into_boxed_slice());
+
+        let new_params = KdfParams::default();
+        let kdf_salt = random_salt();
+        let kdf = crate::crypto::kdf::Kdf::new(new_params);
+        let kek = kdf.derive(password, &kdf_salt)?;
+
+        let new_dek = random_dek();
+        let wrap_cipher = AeadCipher::new(self.header.wrap_alg);
+        let wrap_nonce = [0u8; NONCE_LEN];
+        let mut placeholder = ParsedHeader {
+            version: self.header.version,
+            kdf_id: 0x01,
+            wrap_alg_id: self.header.wrap_alg.id(),
+            item_alg_id: self.header.item_alg.id(),
+            reserved: [0, 0, 0],
+            argon2_m_mib: new_params.argon2_m_mib,
+            argon2_t: new_params.argon2_t,
+            argon2_p: new_params.argon2_p,
+            kdf_salt,
+            enc_counter: 0,
+            wrap_nonce,
+            wrapped_dek: [0u8; WRAPPED_DEK_CIPHER_LEN],
+            wrap_tag: [0u8; WRAP_TAG_LEN],
+            future_pad: [0u8; parse::FUTURE_PAD_LEN],
+        };
+        let aad = parse::header_aad(&placeholder);
+        let dek_vec = new_dek.to_vec();
+        let ct_with_tag = wrap_cipher.encrypt_raw(&kek, &wrap_nonce, &dek_vec, &aad)?;
+        debug_assert_eq!(ct_with_tag.len(), WRAPPED_DEK_CIPHER_LEN + WRAP_TAG_LEN);
+        let mut wrapped_dek = [0u8; WRAPPED_DEK_CIPHER_LEN];
+        wrapped_dek.copy_from_slice(&ct_with_tag[..WRAPPED_DEK_CIPHER_LEN]);
+        let mut wrap_tag = [0u8; WRAP_TAG_LEN];
+        wrap_tag.copy_from_slice(&ct_with_tag[WRAPPED_DEK_CIPHER_LEN..]);
+        placeholder.wrapped_dek = wrapped_dek;
+        placeholder.wrap_tag = wrap_tag;
+
+        // Swap the in-memory state over to the new key material BEFORE the
+        // save, so every open item re-encrypts under the new DEK.
+        self.dek = SecretVec::new(dek_vec.into_boxed_slice());
+        self.header.kdf_params = new_params;
+        self.header.kdf_salt = kdf_salt;
+        self.header.enc_counter = 0;
+
+        self.save_with_header(&placeholder, &old_dek)
+    }
+
+    /// Change the master password: same DEK, re-wrapped under a KEK derived
+    /// from the new password (and fresh salt/current-policy KDF params).
+    /// Item ciphertext is untouched — only the header's wrap material changes.
+    pub fn change_password(&mut self, new_password: &SecretVec) -> Result<()> {
+        let new_params = KdfParams::default();
+        let kdf_salt = random_salt();
+        let kdf = crate::crypto::kdf::Kdf::new(new_params);
+        let new_kek = kdf.derive(new_password, &kdf_salt)?;
+
+        let old = std::fs::read(&self.path)
+            .map_err(|e| Error::Encrypt(format!("read vault for save: {e}")))?;
+        let mut header = parse::parse_header(&old)?;
+        let wrap_cipher = AeadCipher::new(self.header.wrap_alg);
+        let dek_copy: [u8; crate::crypto::ciphers::DEK_LEN] = self
+            .dek
+            .expose_secret()
+            .as_ref()
+            .try_into()
+            .map_err(|_| Error::KeyLength {
+                expected: 32,
+                actual: self.dek.expose_secret().len(),
+            })?;
+        let dek_box = SecretVec::new(dek_copy.to_vec().into_boxed_slice());
+        let wrap_nonce = [0u8; NONCE_LEN];
+
+        // The header AAD covers bytes 4..51 — KDF params and salt live inside
+        // that range, so build the final header first, then wrap against it.
+        header.kdf_salt = kdf_salt;
+        header.argon2_m_mib = new_params.argon2_m_mib;
+        header.argon2_t = new_params.argon2_t;
+        header.argon2_p = new_params.argon2_p;
+        header.enc_counter = 0;
+        header.wrap_nonce = wrap_nonce;
+        let aad = parse::header_aad(&header);
+        let ct_with_tag =
+            wrap_cipher.encrypt_raw(&new_kek, &wrap_nonce, dek_box.expose_secret(), &aad)?;
+        let mut wrapped_dek = [0u8; WRAPPED_DEK_CIPHER_LEN];
+        wrapped_dek.copy_from_slice(&ct_with_tag[..WRAPPED_DEK_CIPHER_LEN]);
+        let mut wrap_tag = [0u8; WRAP_TAG_LEN];
+        wrap_tag.copy_from_slice(&ct_with_tag[WRAPPED_DEK_CIPHER_LEN..]);
+        header.wrapped_dek = wrapped_dek;
+        header.wrap_tag = wrap_tag;
+
+        self.header.kdf_params = new_params;
+        self.header.kdf_salt = kdf_salt;
+        self.header.enc_counter = 0;
+        self.save_with_header(&header, &self.dek)
     }
 }
 

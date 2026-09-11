@@ -1,12 +1,7 @@
 # CLI Reference
 
-**Status:** Draft v0.1 — pre-implementation
+**Status:** v1 — implemented (except where noted)
 **Binary name:** `rpass`
-
-> The command surface below is the contract this document proposes.
-> Once implemented, embed the real `--help` output verbatim per command
-> (the PROPOSAL.md standard) and mark this table as authoritative only
-> where it matches.
 
 ---
 
@@ -52,7 +47,7 @@ copy-history warnings every time; errors must still reach a human.
 | `rpass rotate` | Raise KDF params to current policy; rotate DEK if `enc_counter` near cap |
 | `rpass backup` | Atomic copy of the vault file for safekeeping |
 | `rpass export` | Plaintext export; requires `--format json` + explicit `--yes-i-mean-it` |
-| `rpass import` | Import from JSON export / other managers (v1.x) |
+| `rpass import` | Import from JSON export / other managers (v1.x — not implemented) |
 | `rpass tui` | Interactive interface (docs/TUI_GUIDE.md) |
 
 ## Details

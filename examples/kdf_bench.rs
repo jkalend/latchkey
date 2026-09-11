@@ -3,7 +3,7 @@ use rpass::crypto::kdf::{Kdf, KdfParams, SecretVec};
 fn main() {
     let pw = SecretVec::new(b"benchmark-password".to_vec().into_boxed_slice());
     let salt = [0u8; 16];
-    for t in [36u32] {
+    for t in [36u32, 38u32] {
         let params = KdfParams::new(64, t, 1).unwrap();
         let kdf = Kdf::new(params);
         // warm-up discarded, measure the second run

@@ -8,6 +8,7 @@ use rpass::gen::{GenerateSpec, Preset};
 use rpass::totp::{totp_at, TotpParams};
 use rpass::vault::shape::{IndexEntry, ItemRecord, TotpAlgorithm, TotpSubRecord};
 use rpass::vault::vault_impl::Vault;
+use secrecy::ExposeSecret;
 
 fn pw(s: &str) -> SecretVec {
     SecretVec::new(s.as_bytes().to_vec().into_boxed_slice())
@@ -290,6 +291,149 @@ fn backup_is_byte_identical() {
     // The backup opens as a vault with the same password.
     let v = Vault::open(&backup, &password).unwrap();
     assert_eq!(v.entries.len(), 1);
+
+    let _ = std::fs::remove_dir_all(path.parent().unwrap());
+}
+
+#[test]
+fn edit_updates_index_and_item_atomically() {
+    let path = tmp_vault("edit");
+    let password = pw("edit-master-pw");
+
+    {
+        let mut v = Vault::create(
+            &path,
+            &password,
+            test_kdf(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        v.add_item("example.com".into(), "alice".into(), sample_item(false))
+            .unwrap();
+        v.save().unwrap();
+    }
+
+    // Reopen, mutate username (index) + password (item) in one save.
+    {
+        let mut v = Vault::open(&path, &password).unwrap();
+        let entry = v.entries[0].clone();
+        v.open_item(entry.item_id).unwrap();
+        let mut rec = v.open_items.get(&entry.slot).unwrap().clone();
+        rec.password = Some(b"new-password-42".to_vec());
+        rec.url = "https://example.org".into();
+        rec.modified_unix += 1;
+        v.entries[0].username = "alice2".into();
+        v.open_items.insert(entry.slot, rec);
+        v.save().unwrap();
+    }
+
+    let mut v = Vault::open(&path, &password).unwrap();
+    assert_eq!(v.entries[0].username, "alice2");
+    v.open_item(v.entries[0].item_id).unwrap();
+    let rec = v.open_items.values().next().unwrap();
+    assert_eq!(rec.password.as_deref(), Some(b"new-password-42".as_ref()));
+    assert_eq!(rec.url, "https://example.org");
+
+    let _ = std::fs::remove_dir_all(path.parent().unwrap());
+}
+
+#[test]
+fn rotate_reencrypts_under_new_dek_and_kdf() {
+    let path = tmp_vault("rot");
+    let password = pw("rotate-master-pw");
+
+    {
+        let mut v = Vault::create(
+            &path,
+            &password,
+            test_kdf(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        v.add_item("a".into(), "ua".into(), sample_item(true))
+            .unwrap();
+        v.add_item("b".into(), "ub".into(), sample_item(false))
+            .unwrap();
+        v.save().unwrap();
+    }
+
+    // Rotate with everything open: all frames must re-encrypt under the new DEK.
+    {
+        let mut v = Vault::open(&path, &password).unwrap();
+        for e in &v.entries.clone() {
+            v.open_item(e.item_id).unwrap();
+        }
+        let before = std::fs::read(&path).unwrap();
+        v.rotate(&password).unwrap();
+        let after = std::fs::read(&path).unwrap();
+        // Same plaintext content, completely different ciphertext.
+        assert_ne!(before, after);
+    }
+
+    // Reopen with the same password; KDF params are now the production defaults.
+    {
+        let mut v = Vault::open(&path, &password).unwrap();
+        let def = KdfParams::default();
+        assert_eq!(v.header.kdf_params.argon2_m_mib, def.argon2_m_mib);
+        assert_eq!(v.header.kdf_params.argon2_t, def.argon2_t);
+        assert_eq!(v.entries.len(), 2);
+        v.open_item(v.entries[0].item_id).unwrap();
+        let rec = v.open_items.values().next().unwrap();
+        assert_eq!(
+            rec.password.as_deref(),
+            Some(b"correct horse battery staple".as_ref())
+        );
+        // TOTP still works after rotation.
+        if let Some(t) = &rec.totp {
+            let code = totp_at(&TotpParams::from(t), 59).unwrap();
+            assert_eq!(code.len(), 6);
+        }
+    }
+
+    // Old password still works (rotate is not a password change).
+    assert!(Vault::open(&path, &password).is_ok());
+
+    let _ = std::fs::remove_dir_all(path.parent().unwrap());
+}
+
+#[test]
+fn change_password_rewraps_same_dek() {
+    let path = tmp_vault("pw");
+    let password = pw("original-master-pw");
+    let new_password = pw("a-fresh-master-pw");
+
+    {
+        let mut v = Vault::create(
+            &path,
+            &password,
+            test_kdf(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        v.add_item("x".into(), "u".into(), sample_item(true))
+            .unwrap();
+        v.save().unwrap();
+        let dek_before = v.dek.expose_secret().to_vec();
+        v.change_password(&new_password).unwrap();
+        // Same DEK — only the wrap changed.
+        assert_eq!(dek_before, v.dek.expose_secret().to_vec());
+    }
+
+    // Old password fails, new one opens the same content.
+    assert!(Vault::open(&path, &password).is_err());
+    {
+        let mut v = Vault::open(&path, &new_password).unwrap();
+        assert_eq!(v.entries.len(), 1);
+        v.open_item(v.entries[0].item_id).unwrap();
+        let rec = v.open_items.values().next().unwrap();
+        assert_eq!(
+            rec.password.as_deref(),
+            Some(b"correct horse battery staple".as_ref())
+        );
+    }
 
     let _ = std::fs::remove_dir_all(path.parent().unwrap());
 }

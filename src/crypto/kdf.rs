@@ -24,11 +24,19 @@ fn default_argon2_m_mib() -> u32 {
     8
 }
 
+/// Iterations tuned so 64 MiB Argon2id takes ~1 s wall-clock on a mid-range
+/// 2026 CPU (CRYPTO_SPEC §3). Measured on a Ryzen-class desktop in release:
+/// t=34 → 0.94 s, t=36 → 1.00 s, t=38 → 1.09 s. If hardware assumptions
+/// change, re-measure with `cargo run --release --example kdf_bench` and
+/// update both this constant and CRYPTO_SPEC §3 (DEVELOPMENT.md release
+/// checklist).
+const DEFAULT_ARGON2_T: u32 = 36;
+
 impl Default for KdfParams {
     fn default() -> Self {
         Self {
             argon2_m_mib: default_argon2_m_mib(),
-            argon2_t: 2,
+            argon2_t: DEFAULT_ARGON2_T,
             argon2_p: 1,
         }
     }

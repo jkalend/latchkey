@@ -50,7 +50,7 @@ random Data-Encryption-Key encrypts the actual items.
 |---|---|---|
 | Variant | Argon2id | Side-channel-resistant hybrid; the standard choice for password managers |
 | Memory | 64 MiB | Meaningful GPU/ASIC cost; low enough to stay snappy on WSL (default WSL2 memory is 50–80% of host RAM, but the *tool* runs fine in 64 MiB) |
-| Iterations | tuned to ≥ 1 s wall-clock on a mid-range 2026 CPU, measured at init time; stored in header | KDF params live in the vault header so they can be raised without a format change |
+| Iterations | 36 (tuned to ~1 s wall-clock; see the measured baseline below) | KDF params live in the vault header so they can be raised without a format change |
 | Parallelism | 1 lane | Simpler constant memory behavior; parallelism buys little at 64 MiB |
 | Salt | 16 bytes, random per vault | Precludes precomputation and cross-vault amortization |
 | Output | 32 bytes (KEK) | Matches all downstream key sizes |
@@ -210,8 +210,14 @@ vs. in an item, so an attacker cannot use failures as an oracle.
 
 ## 12. Open items
 
-1. Exact Argon2 iteration count — measure on dev hardware at
-   implementation time, record the measured floor here.
+1. ~~Exact Argon2 iteration count~~ — **resolved 2026-09-11:**
+   **t = 36** at m = 64 MiB, p = 1. Measured in release on the dev
+   machine (Ryzen-class desktop, Windows 11): t=34 → 0.94 s,
+   t=36 → 1.00 s (stable across three runs: 1.001/1.007/1.008 s),
+   t=38 → 1.09 s. Re-measure with
+   `cargo run --release --example kdf_bench` if hardware assumptions
+   change; update `DEFAULT_ARGON2_T` in `src/crypto/kdf.rs` and §3
+   together.
 2. ~~Header MAC placement~~ — **resolved:** folded into the wrapped-DEK
    AEAD tag, whose AAD covers the full 117-byte header
    (VAULT_FORMAT §4.3).

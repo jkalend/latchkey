@@ -152,6 +152,20 @@ impl Vault {
     pub fn open(path: &Path, password: &SecretVec) -> Result<Self> {
         let bytes = std::fs::read(path)
             .map_err(|e| Error::Encrypt(format!("read vault {}: {e}", path.display())))?;
+        // Trailer first (VAULT_FORMAT §7): a bad CRC means torn write or
+        // sync-in-progress — surface that before any crypto error, since the
+        // realistic cause under bring-your-own-sync is a half-written file
+        // (THREAT_MODEL §5.5), not an attack.
+        if bytes.len() >= 8 {
+            let body = &bytes[..bytes.len() - 8];
+            let stored_crc =
+                u32::from_be_bytes(bytes[bytes.len() - 4..].try_into().expect("4 bytes"));
+            if crc32c::crc32c(body) != stored_crc {
+                return Err(Error::Encrypt(
+                    "vault file appears incomplete or still syncing (crc mismatch)".into(),
+                ));
+            }
+        }
         let header = parse::parse_header(&bytes)?;
 
         let kdf_params = header.kdf_params();
@@ -177,6 +191,18 @@ impl Vault {
         let item_alg = header.item_algorithm()?;
         let (entries, _) = Self::read_index_entries_with(&bytes, &header, &dek, item_alg)?;
         let index = IndexPayload { entries };
+
+        // The trailer's slot_count is "a cheap consistency check" (§7) but
+        // sits outside the CRC — cross-check it against the authenticated
+        // index's live-entry count. Both are written by the same save, so a
+        // mismatch means truncation or tampering with unauthenticated bytes.
+        let live_count = index.entries.iter().filter(|e| e.state != 0xFF).count() as u32;
+        let trailer_count = be_u32_at(&bytes, bytes.len() - 8)?;
+        if trailer_count != live_count {
+            return Err(Error::Encrypt(
+                "slot count mismatch between items region and trailer".into(),
+            ));
+        }
 
         let next_item_id = index
             .entries
@@ -419,6 +445,15 @@ impl Vault {
         cursor += 4 + index_ct_len;
         let slot_count = be_u32_at(raw, cursor)? as usize;
         cursor += 4;
+
+        // The trailer repeats the slot count as "a cheap consistency check"
+        // (VAULT_FORMAT §7) — but the trailer is outside the CRC's coverage,
+        // so enforce it here: the two counts must agree.
+        if raw.len() >= 8 && be_u32_at(raw, raw.len() - 8)? as usize != slot_count {
+            return Err(Error::Encrypt(
+                "slot count mismatch between items region and trailer".into(),
+            ));
+        }
 
         // slot_count is untrusted file input — never pre-allocate from it
         // (a forged header claims 4 billion slots and OOMs the process

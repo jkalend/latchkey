@@ -80,6 +80,15 @@ pub fn parse_header(data: &[u8]) -> Result<ParsedHeader> {
     let wrapped_dek: [u8; WRAPPED_DEK_CIPHER_LEN] = data[51..83].try_into().unwrap();
     let wrap_tag: [u8; WRAP_TAG_LEN] = data[83..99].try_into().unwrap();
     let future_pad: [u8; FUTURE_PAD_LEN] = data[99..117].try_into().unwrap();
+    // future_pad is unauthenticated in v1 (outside both the header AAD and
+    // every AEAD tag). v1 writers must zero it; a non-zero pad means either
+    // corruption or a v1.x file with fields this reader doesn't know — both
+    // are refuse-to-open, not silently-ignored-tampering.
+    if future_pad != [0u8; FUTURE_PAD_LEN] {
+        return Err(Error::Encrypt(
+            "non-zero future pad — vault written by a newer version or corrupted".into(),
+        ));
+    }
     Ok(ParsedHeader {
         version,
         kdf_id: data[4],

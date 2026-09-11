@@ -1,0 +1,3 @@
+  1 example.com              alice        pw='correct horse battery staple' url='https://example.com/login' totp=SHA1 notes=b'work account' created=1750000000
+  2 github.com               bob          pw='Tr0ub4dor&3' url='' totp=None notes=None created=1750000000
+  3 github.com               bob-personal pw=None url='https://github.com' totp=None notes=b'token in the totp slot? no - plain note' created=1750000000

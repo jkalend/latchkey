@@ -128,7 +128,7 @@ enum Command {
         #[arg(long, value_name = "FILE")]
         out: Option<std::path::PathBuf>,
     },
-    /// Interactive interface (not yet implemented)
+    /// Interactive interface (fuzzy search, detail view, copy)
     Tui,
 }
 
@@ -202,7 +202,10 @@ fn dispatch(cli: Cli) -> Result<()> {
         Command::Totp { title, id, copy } => cmd_totp(&vault_path, &title, id, copy),
         Command::Rm { title, id, purge } => cmd_rm(&vault_path, &title, id, purge),
         Command::Backup { out } => cmd_backup(&vault_path, out),
-        Command::Tui => Err(CliError::Other("the TUI is not yet implemented".into())),
+        Command::Tui => {
+            crate::tui::run(vault_path);
+            Ok(())
+        }
     }
 }
 

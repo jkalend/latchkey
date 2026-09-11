@@ -1,16 +1,11 @@
 # TUI Guide
 
-**Status:** Draft v0.1 — pre-implementation
+**Status:** v1 — implemented with ratatui (ADR-0001-consistent, pure Rust)
 
-> Placeholder outline. The TUI is the last deliverable in the authoring
-> order (PROPOSAL.md §4); this document gets real content once the
-> command surface and vault format are frozen and a `rpass tui` skeleton
-> exists.
+## Scope
 
-## Planned scope
-
-- Entry: `rpass tui` (or `rpass` with no subcommand, if the UX feels
-  right).
+- Entry: `rpass tui` — or just `rpass` with no subcommand, which is the
+  same thing (the TUI is the interactive default).
 - Fuzzy search over titles/usernames (index-only decryption — secrets
   stay untouched until selection, VAULT_FORMAT §5).
 - Single-item detail view with masked secrets, `Enter` to copy with the
@@ -67,7 +62,5 @@
 
 ## Library decision
 
-TBD — `ratatui` is the leading candidate (maintained fork of
-`tui-rs`, pure Rust, no-termbox C dependency — consistent with
-ADR-0001's no-C-build principle). Decide in an ADR-0007 when
-implementation starts.
+ratatui 0.29 + crossterm 0.28 — maintained, pure Rust, no termbox C
+dependency, consistent with ADR-0001's no-C-build principle.

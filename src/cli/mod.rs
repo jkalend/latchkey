@@ -35,8 +35,9 @@ pub struct Cli {
     #[arg(short = 'q', long, global = true)]
     quiet: bool,
 
+    /// Interactive interface (fuzzy search, detail view, copy)
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand)]
@@ -207,7 +208,9 @@ pub fn run(args: std::env::Args) -> i32 {
 
 fn dispatch(cli: Cli) -> Result<()> {
     let vault_path = vault_path::resolve(cli.vault.as_deref());
-    match cli.command {
+    // Bare `rpass` → the TUI (CLI_REFERENCE: tui is the interactive default).
+    let command = cli.command.unwrap_or(Command::Tui);
+    match command {
         Command::Init { force } => cmd_init(&vault_path, force),
         Command::Add {
             title,

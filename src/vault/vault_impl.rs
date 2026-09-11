@@ -401,7 +401,7 @@ mod tests {
             let _ = Vault::create(
                 &tmp,
                 &password,
-                kdf_params.clone(),
+                kdf_params,
                 Algorithm::Aes256Gcm,
                 Algorithm::Aes256Gcm,
             )

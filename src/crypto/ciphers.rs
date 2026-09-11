@@ -232,7 +232,7 @@ mod tests {
             let unwrapped = cipher
                 .unwrap_dek(&kek, &wrap_nonce, &wrapped, header_aad)
                 .unwrap();
-            assert_eq!(unwrapped.as_slice(), dek.expose_secret().as_ref());
+            assert_eq!(unwrapped.as_slice(), dek.expose_secret());
 
             let (item_ct, item_nonce) = cipher.encrypt_item(&dek, b"secret", 42).unwrap();
             let item_pt = cipher

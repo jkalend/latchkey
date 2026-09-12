@@ -30,6 +30,16 @@ pub struct ImportedUpdate {
     pub record: ItemRecord,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CheckReport {
+    pub format_version: u8,
+    pub wrap_algorithm: crate::crypto::ciphers::Algorithm,
+    pub item_algorithm: crate::crypto::ciphers::Algorithm,
+    pub kdf_params: crate::crypto::kdf::KdfParams,
+    pub live_items: usize,
+    pub tombstones: usize,
+}
+
 #[derive(Debug, Default)]
 pub enum Change<T> {
     #[default]
@@ -196,6 +206,18 @@ pub fn apply_import(
     vault.save()
 }
 
+pub fn check_vault(vault: &Vault) -> Result<CheckReport> {
+    let (live_items, tombstones) = vault.verify_all_items()?;
+    Ok(CheckReport {
+        format_version: vault.header.version,
+        wrap_algorithm: vault.header.wrap_alg,
+        item_algorithm: vault.header.item_alg,
+        kdf_params: vault.header.kdf_params,
+        live_items,
+        tombstones,
+    })
+}
+
 fn validate_metadata(title: &str, username: &str) -> Result<()> {
     if title.len() > 256 {
         return Err(Error::Encrypt("title exceeds 256-byte format limit".into()));
@@ -284,9 +306,10 @@ mod tests {
         assert!(record.notes.is_none());
 
         delete_entry(&mut reopened, id).unwrap();
-        drop(reopened);
-        let deleted = Vault::open(&path, &password).unwrap();
-        assert_eq!(deleted.entries[0].state, TOMBSTONE_STATE);
+        let before = std::fs::read(&path).unwrap();
+        let report = check_vault(&reopened).unwrap();
+        assert_eq!((report.live_items, report.tombstones), (0, 1));
+        assert_eq!(std::fs::read(&path).unwrap(), before);
         let _ = std::fs::remove_file(path);
     }
 }

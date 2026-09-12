@@ -169,22 +169,10 @@ impl Vault {
     pub fn open(path: &Path, password: &SecretVec) -> Result<Self> {
         let bytes = read_vault_bytes(path)?;
         // Trailer first (VAULT_FORMAT §7): a bad CRC means torn write or
-        // sync-in-progress — surface that before any crypto error, since the
-        // realistic cause under bring-your-own-sync is a half-written file
-        // (THREAT_MODEL §5.5), not an attack.
-        let trailer_crc = if bytes.len() >= 8 {
-            let body = &bytes[..bytes.len() - 8];
-            let stored_crc =
-                u32::from_be_bytes(bytes[bytes.len() - 4..].try_into().expect("4 bytes"));
-            if crc32c::crc32c(body) != stored_crc {
-                return Err(Error::Encrypt(
-                    "vault file appears incomplete or still syncing (crc mismatch)".into(),
-                ));
-            }
-            Some(stored_crc)
-        } else {
-            None
-        };
+        // sync-in-progress — surface that before any crypto error.
+        let trailer_crc = trailer_crc_of(&bytes).ok_or_else(|| {
+            Error::Encrypt("vault file appears incomplete or still syncing (crc mismatch)".into())
+        })?;
         let header = parse::parse_header(&bytes)?;
 
         let kdf_params = header.kdf_params();
@@ -242,7 +230,7 @@ impl Vault {
             entries: index.entries,
             open_items: Default::default(),
             next_item_id,
-            last_disk_crc: trailer_crc,
+            last_disk_crc: Some(trailer_crc),
         })
     }
 
@@ -268,34 +256,91 @@ impl Vault {
                 .get(slot as usize)
                 .ok_or_else(|| Error::Encrypt(format!("slot {slot} out of range")))?;
 
-            let nonce: [u8; NONCE_LEN] = frame[..NONCE_LEN].try_into().unwrap();
-            let ct_len =
-                u32::from_be_bytes(frame[NONCE_LEN..NONCE_LEN + 4].try_into().unwrap()) as usize;
-            let ct = &frame[NONCE_LEN + 4..NONCE_LEN + 4 + ct_len];
-            let tag = &frame[NONCE_LEN + 4 + ct_len..];
-            let mut ct_with_tag = Vec::with_capacity(ct.len() + tag.len());
-            ct_with_tag.extend_from_slice(ct);
-            ct_with_tag.extend_from_slice(tag);
-
-            let item_alg = self.header.item_alg;
-            let cipher = AeadCipher::new(item_alg);
-            let pt = Zeroizing::new(cipher.decrypt_raw(
-                &self.dek,
-                &nonce,
-                &ct_with_tag,
-                &item_aad(self.header.version, item_id),
-            )?);
-            let (record, embedded_id) = parse_item(&pt)?;
-            if embedded_id != item_id {
-                return Err(Error::Encrypt(format!(
-                    "item id mismatch: index={item_id}, body={embedded_id}"
-                )));
-            }
+            let record = self.decrypt_item_frame(frame, item_id)?;
             self.open_items.insert(slot, record);
             Ok(())
         } else {
             Err(Error::Encrypt(format!("no such item {item_id}")))
         }
+    }
+
+    /// Authenticate and parse every item frame without retaining plaintext.
+    pub fn verify_all_items(&self) -> Result<(usize, usize)> {
+        let bytes = read_vault_bytes(&self.path)?;
+        trailer_crc_of(&bytes).ok_or_else(|| {
+            Error::Encrypt("vault file appears incomplete or still syncing (crc mismatch)".into())
+        })?;
+        let frames = Self::split_item_frames(&bytes)?;
+        if frames.len() != self.entries.len() {
+            return Err(Error::Encrypt(
+                "index entry count does not match item frame count".into(),
+            ));
+        }
+
+        let mut seen_slots = vec![false; frames.len()];
+        let mut live = 0;
+        let mut tombstones = 0;
+        for entry in &self.entries {
+            let slot = usize::try_from(entry.slot)
+                .map_err(|_| Error::Encrypt("item slot is out of range".into()))?;
+            let frame = frames
+                .get(slot)
+                .ok_or_else(|| Error::Encrypt(format!("slot {} out of range", entry.slot)))?;
+            if std::mem::replace(&mut seen_slots[slot], true) {
+                return Err(Error::Encrypt(format!(
+                    "duplicate item slot {}",
+                    entry.slot
+                )));
+            }
+            let record = self.decrypt_item_frame(frame, entry.item_id)?;
+            drop(record);
+            if entry.state == LIVE_STATE {
+                live += 1;
+            } else {
+                tombstones += 1;
+            }
+        }
+        Ok((live, tombstones))
+    }
+
+    fn decrypt_item_frame(&self, frame: &[u8], item_id: u32) -> Result<ItemRecord> {
+        let nonce: [u8; NONCE_LEN] = frame
+            .get(..NONCE_LEN)
+            .and_then(|bytes| bytes.try_into().ok())
+            .ok_or_else(|| Error::Encrypt("truncated item nonce".into()))?;
+        let ct_len = u32::from_be_bytes(
+            frame
+                .get(NONCE_LEN..NONCE_LEN + 4)
+                .and_then(|bytes| bytes.try_into().ok())
+                .ok_or_else(|| Error::Encrypt("truncated item ciphertext length".into()))?,
+        ) as usize;
+        let ct_end = NONCE_LEN
+            .checked_add(4)
+            .and_then(|start| start.checked_add(ct_len))
+            .ok_or_else(|| Error::Encrypt("item ciphertext length overflow".into()))?;
+        let ct = frame
+            .get(NONCE_LEN + 4..ct_end)
+            .ok_or_else(|| Error::Encrypt("truncated item ciphertext".into()))?;
+        let tag = frame
+            .get(ct_end..)
+            .ok_or_else(|| Error::Encrypt("truncated item tag".into()))?;
+        let mut ct_with_tag = Vec::with_capacity(ct.len() + tag.len());
+        ct_with_tag.extend_from_slice(ct);
+        ct_with_tag.extend_from_slice(tag);
+
+        let pt = Zeroizing::new(AeadCipher::new(self.header.item_alg).decrypt_raw(
+            &self.dek,
+            &nonce,
+            &ct_with_tag,
+            &item_aad(self.header.version, item_id),
+        )?);
+        let (record, embedded_id) = parse_item(&pt)?;
+        if embedded_id != item_id {
+            return Err(Error::Encrypt(format!(
+                "item id mismatch: index={item_id}, body={embedded_id}"
+            )));
+        }
+        Ok(record)
     }
 
     pub fn save(&mut self) -> Result<()> {
@@ -785,5 +830,88 @@ mod tests {
         let rec2 = v2.open_items.values().next().unwrap();
         assert_eq!(*rec2, rec);
         let _ = std::fs::remove_file(&tmp);
+    }
+
+    #[test]
+    fn verify_all_detects_index_item_tombstone_and_trailer_corruption() {
+        let path = std::env::temp_dir().join(format!("rpass_v_check_{}.rpass", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+        let password = pswd("check-password");
+        let record = || ItemRecord {
+            password: Some(b"secret".to_vec()),
+            url: String::new(),
+            notes: None,
+            totp: None,
+            created_unix: 1,
+            modified_unix: 1,
+        };
+        let mut vault = Vault::create(
+            &path,
+            &password,
+            KdfParams::new(8, 1, 1).unwrap(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        let live_id = vault.add_item("live".into(), "u".into(), record()).unwrap();
+        let tombstone_id = vault
+            .add_item("deleted".into(), "u".into(), record())
+            .unwrap();
+        vault.save().unwrap();
+        let tombstone = vault
+            .entries
+            .iter_mut()
+            .find(|entry| entry.item_id == tombstone_id)
+            .unwrap();
+        tombstone.state = TOMBSTONE_STATE;
+        vault.open_items.remove(&tombstone.slot);
+        vault.save().unwrap();
+        drop(vault);
+
+        let verified = Vault::open(&path, &password).unwrap();
+        assert_eq!(verified.verify_all_items().unwrap(), (1, 1));
+        let original = std::fs::read(&path).unwrap();
+
+        let repair_crc = |bytes: &mut Vec<u8>| {
+            let len = bytes.len();
+            let crc = crc32c::crc32c(&bytes[..len - 8]);
+            bytes[len - 4..].copy_from_slice(&crc.to_be_bytes());
+        };
+        let index_ct_len = be_u32_at(&original, HEADER_LEN + NONCE_LEN).unwrap() as usize;
+        let index_ciphertext = HEADER_LEN + NONCE_LEN + 4;
+        let mut cursor = index_ciphertext + index_ct_len;
+        assert_eq!(be_u32_at(&original, cursor).unwrap(), 2);
+        cursor += 4;
+        let mut item_ciphertexts = Vec::new();
+        for _ in 0..2 {
+            let ct_len = be_u32_at(&original, cursor + NONCE_LEN).unwrap() as usize;
+            item_ciphertexts.push(cursor + NONCE_LEN + 4);
+            cursor += NONCE_LEN + 4 + ct_len + WRAP_TAG_LEN;
+        }
+
+        for position in item_ciphertexts {
+            let mut corrupted = original.clone();
+            corrupted[position] ^= 1;
+            repair_crc(&mut corrupted);
+            std::fs::write(&path, corrupted).unwrap();
+            assert!(verified.verify_all_items().is_err());
+        }
+
+        let mut corrupted_index = original.clone();
+        corrupted_index[index_ciphertext] ^= 1;
+        repair_crc(&mut corrupted_index);
+        std::fs::write(&path, corrupted_index).unwrap();
+        assert!(Vault::open(&path, &password).is_err());
+
+        let mut corrupted_trailer = original.clone();
+        let last = corrupted_trailer.len() - 1;
+        corrupted_trailer[last] ^= 1;
+        std::fs::write(&path, corrupted_trailer).unwrap();
+        assert!(Vault::open(&path, &password).is_err());
+
+        std::fs::write(&path, original).unwrap();
+        let mut final_vault = Vault::open(&path, &password).unwrap();
+        final_vault.open_item(live_id).unwrap();
+        let _ = std::fs::remove_file(path);
     }
 }

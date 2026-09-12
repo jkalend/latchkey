@@ -45,6 +45,7 @@ copy-history warnings every time; errors must still reach a human.
 | `rpass rm <title>` | Delete an item; `--purge` skips confirmation (fuzzy-selects on collision) |
 | `rpass rotate` | Raise KDF params to current policy; rotate DEK if `enc_counter` near cap |
 | `rpass backup` | Atomic copy of the vault file for safekeeping |
+| `rpass check` | Authenticate every record without modifying the vault |
 | `rpass export` | Plaintext export; requires `--format json` + explicit `--yes-i-mean-it` |
 | `rpass import` | Import from JSON export / other managers |
 | `rpass tui` | Interactive interface (docs/TUI_GUIDE.md) |
@@ -224,6 +225,17 @@ copy-history warnings every time; errors must still reach a human.
 - To restore: copy the backup file over `vault.bin` at the location
   rpass expects (or use `--vault <path>` to point rpass at the backup).
   No restore subcommand — restore is just a file copy in reverse.
+
+### `rpass check`
+
+- Prompts for the master password and authenticates the wrapped DEK, encrypted
+  index, every live item, every tombstone frame, and the trailer CRC.
+- Reports format version, algorithms, KDF parameters, and live/tombstone
+  counts. It never prints titles, usernames, field lengths, or plaintext
+  record data.
+- Read-only: a successful or failed check never writes the vault. Validate an
+  encrypted backup before relying on it with
+  `rpass --vault <backup-path> check`.
 
 ## Exit codes
 

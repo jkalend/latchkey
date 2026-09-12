@@ -213,6 +213,8 @@ enum Command {
         #[arg(long, value_name = "FILE")]
         out: Option<std::path::PathBuf>,
     },
+    /// Authenticate every record without modifying the vault
+    Check,
     /// Interactive interface (fuzzy search, detail view, copy)
     Tui,
 }
@@ -342,6 +344,7 @@ fn dispatch(cli: Cli) -> Result<()> {
             yes,
         } => cmd_import(&vault_path, &format, &file, dry_run, yes),
         Command::Backup { out } => cmd_backup(&vault_path, out),
+        Command::Check => cmd_check(&vault_path),
         Command::Tui => match crate::tui::run(vault_path, quiet) {
             0 => Ok(()),
             code => Err(CliError::Other(format!("TUI exited with status {code}"))),
@@ -703,6 +706,31 @@ fn cmd_rm(path: &std::path::Path, title: &str, id: Option<u32>, purge: bool) -> 
     }
     ops::delete_entry(&mut vault, entry.item_id).map_err(|e| CliError::Other(e.to_string()))?;
     println!("deleted item {}", entry.item_id);
+    Ok(())
+}
+
+fn cmd_check(path: &std::path::Path) -> Result<()> {
+    let (vault, _pw) = open_vault(path)?;
+    let report = ops::check_vault(&vault).map_err(|e| CliError::Other(e.to_string()))?;
+    let algorithm_name = |algorithm| match algorithm {
+        Algorithm::Aes256Gcm => "AES-256-GCM",
+        Algorithm::ChaCha20Poly1305 => "ChaCha20-Poly1305",
+    };
+    println!("vault check: ok");
+    println!("format: {}", report.format_version);
+    println!(
+        "algorithms: wrap={}, items={}",
+        algorithm_name(report.wrap_algorithm),
+        algorithm_name(report.item_algorithm)
+    );
+    println!(
+        "KDF: Argon2id {} MiB, t={}, p={}",
+        report.kdf_params.argon2_m_mib, report.kdf_params.argon2_t, report.kdf_params.argon2_p
+    );
+    println!(
+        "records: {} live, {} tombstone",
+        report.live_items, report.tombstones
+    );
     Ok(())
 }
 

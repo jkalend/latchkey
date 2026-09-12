@@ -117,7 +117,7 @@ Add these list/detail actions:
 | `a` | Add a credential |
 | `e` | Edit the selected credential |
 | `d` | Delete the selected credential after confirmation |
-| `g` | Generate or regenerate a password inside add/edit |
+| `Ctrl-G` | Generate or regenerate a password inside add/edit |
 
 Add/edit forms cover every existing credential field: title, username,
 password, URL, notes, and optional TOTP configuration. Passwords and TOTP

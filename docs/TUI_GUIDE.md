@@ -10,6 +10,8 @@
   stay untouched until selection, VAULT_FORMAT §5).
 - Single-item detail view with masked secrets; `c` copies the password and
   `t` copies the current TOTP code with the ADR-0003 countdown.
+- Add forms cover title, username, password, URL, notes, and TOTP without
+  leaving the alternate screen or exposing secret input.
 
 ## Keybindings
 
@@ -18,6 +20,9 @@
 | `/` | Start search |
 | `↑`/`↓` | Navigate list |
 | `Enter` | Open selected item |
+| `a` | Add a credential |
+| `Tab` / `Shift-Tab` | Move through form fields |
+| `Ctrl-G` | Generate a password in a form |
 | `c` | Copy password in detail view |
 | `t` | Copy current TOTP code |
 | `r` | Reveal password for 10 seconds |
@@ -47,6 +52,9 @@
   unreliable on WSL/Windows-Terminal combos; idle-timeout is the
   uniform floor.
 - No secret ever rendered in the search box or list rows.
+- Add-form password and TOTP input is masked. Cancelling or locking drops and
+  zeroizes the form. A failed save cannot be retried against the same in-memory
+  vault; `Esc` discards the form and locks so the vault must be reopened.
 - Clipboard countdown shown as a status-bar timer; the process holds the
   timeout exactly as the CLI does (ADR-0003) — no daemon.
 - Warns at startup if Windows Clipboard History is detected enabled.

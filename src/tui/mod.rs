@@ -1,16 +1,15 @@
 //! TUI (ADR-0007: ratatui + crossterm; TUI_GUIDE.md for behavior).
 //!
-//! Scope for this skeleton: fuzzy search over the decrypted index
-//! (secrets untouched until selection), single-item detail view with
-//! masked secrets, copy with countdown, idle auto-lock at 10 minutes
-//! (RPASS_TUI_LOCK_MINS), explicit `L`-lock, reveal (`r`) with
-//! auto-re-mask after 10 s of no input.
+//! Fuzzy search over the decrypted index, detail view with masked secrets,
+//! credential creation, clipboard copy/countdown, idle auto-lock at 10 minutes
+//! (`RPASS_TUI_LOCK_MINS`), explicit `L`-lock, and reveal (`r`) with
+//! auto-re-mask after 10 seconds of no input.
 
 use std::io::Stdout;
 use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
-use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, MouseEventKind};
+use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseEventKind};
 use crossterm::terminal::{
     disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
@@ -23,20 +22,116 @@ use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
 use crate::cli::passwords;
-use crate::cli::resolve;
 use crate::crypto::kdf::SecretVec;
+use crate::gen::GenerateSpec;
+use crate::ops::{self, NewEntry};
+use crate::vault::shape::{TotpAlgorithm, TotpSubRecord};
 use crate::vault::vault_impl::Vault;
 use crate::{clip, totp};
+use zeroize::Zeroize;
 
 /// Idle auto-lock, minutes (TUI_GUIDE "Security behaviors").
 const DEFAULT_LOCK_MINS: u64 = 10;
 /// Re-mask a revealed secret after this much input silence.
 const RE_MASK_AFTER: Duration = Duration::from_secs(10);
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Zeroize)]
+enum FormField {
+    Title,
+    Username,
+    Password,
+    Url,
+    Notes,
+    Totp,
+}
+
+const FORM_FIELDS: [FormField; 6] = [
+    FormField::Title,
+    FormField::Username,
+    FormField::Password,
+    FormField::Url,
+    FormField::Notes,
+    FormField::Totp,
+];
+
+impl FormField {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Title => "Title",
+            Self::Username => "Username",
+            Self::Password => "Password",
+            Self::Url => "URL",
+            Self::Notes => "Notes",
+            Self::Totp => "TOTP base32 or otpauth:// URI",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Zeroize)]
+#[zeroize(drop)]
+struct EntryForm {
+    title: String,
+    username: String,
+    password: String,
+    url: String,
+    notes: String,
+    totp: String,
+    field: usize,
+}
+
+impl EntryForm {
+    fn empty() -> Self {
+        Self {
+            title: String::new(),
+            username: String::new(),
+            password: String::new(),
+            url: String::new(),
+            notes: String::new(),
+            totp: String::new(),
+            field: 0,
+        }
+    }
+
+    fn current_field(&self) -> FormField {
+        FORM_FIELDS[self.field]
+    }
+
+    fn current_value_mut(&mut self) -> &mut String {
+        match self.current_field() {
+            FormField::Title => &mut self.title,
+            FormField::Username => &mut self.username,
+            FormField::Password => &mut self.password,
+            FormField::Url => &mut self.url,
+            FormField::Notes => &mut self.notes,
+            FormField::Totp => &mut self.totp,
+        }
+    }
+
+    fn value(&self, field: FormField) -> &str {
+        match field {
+            FormField::Title => &self.title,
+            FormField::Username => &self.username,
+            FormField::Password => &self.password,
+            FormField::Url => &self.url,
+            FormField::Notes => &self.notes,
+            FormField::Totp => &self.totp,
+        }
+    }
+
+    fn next(&mut self) {
+        self.field = (self.field + 1).min(FORM_FIELDS.len() - 1);
+    }
+
+    fn previous(&mut self) {
+        self.field = self.field.saturating_sub(1);
+    }
+}
+
 enum Mode {
     Locked,
     List,
     Detail { item_id: u32 },
+    Add,
 }
 
 struct App {
@@ -45,6 +140,7 @@ struct App {
     mode: Mode,
     search: String,
     list_state: ListState,
+    searching: bool,
     /// item_id of the currently-revealed secret, and when it was revealed.
     revealed: Option<(u32, Instant)>,
     last_input: Instant,
@@ -52,6 +148,8 @@ struct App {
     clip_until: Option<Instant>,
     clip_task: Option<JoinHandle<crate::clip::Result<()>>>,
     status: String,
+    form: Option<EntryForm>,
+    save_failed: bool,
 }
 
 impl App {
@@ -66,6 +164,7 @@ impl App {
             mode: Mode::Locked,
             search: String::new(),
             list_state: ListState::default(),
+            searching: false,
             revealed: None,
             last_input: Instant::now(),
             lock_after: if lock_mins == 0 {
@@ -76,6 +175,8 @@ impl App {
             clip_until: None,
             clip_task: None,
             status: String::new(),
+            form: None,
+            save_failed: false,
         }
     }
 
@@ -84,9 +185,12 @@ impl App {
         // open item with it.
         self.vault = None;
         self.mode = Mode::Locked;
+        self.searching = false;
         self.search.clear();
         self.revealed = None;
         self.clip_until = None;
+        self.form = None;
+        self.save_failed = false;
         self.status = "locked — enter master password".into();
     }
 
@@ -233,12 +337,13 @@ fn event_loop(terminal: &mut TuiTerminal, app: &mut App) -> Result<i32, String> 
         terminal.draw(|f| draw(f, app)).map_err(|e| e.to_string())?;
         if crossterm::event::poll(Duration::from_millis(250)).map_err(|e| e.to_string())? {
             match crossterm::event::read().map_err(|e| e.to_string())? {
-                Event::Key(k) => {
+                Event::Key(k) if k.kind != KeyEventKind::Release => {
                     app.last_input = Instant::now();
                     if let Some(code) = handle_key(app, k) {
                         return Ok(code);
                     }
                 }
+                Event::Key(_) => {}
                 Event::Mouse(m) => {
                     app.last_input = Instant::now();
                     if let MouseEventKind::ScrollUp = m.kind {
@@ -278,49 +383,7 @@ fn handle_key(app: &mut App, k: KeyEvent) -> Option<i32> {
             }
             _ => None,
         },
-        Mode::List => match k.code {
-            KeyCode::Char('q') | KeyCode::Esc => Some(0),
-            KeyCode::Char('L') => {
-                app.lock();
-                None
-            }
-            KeyCode::Up => {
-                scroll(app, -1);
-                None
-            }
-            KeyCode::Down => {
-                scroll(app, 1);
-                None
-            }
-            KeyCode::PageUp => {
-                scroll(app, -10);
-                None
-            }
-            KeyCode::PageDown => {
-                scroll(app, 10);
-                None
-            }
-            KeyCode::Enter => {
-                if let Some(e) = app.selected() {
-                    app.mode = Mode::Detail { item_id: e.item_id };
-                    app.status.clear();
-                }
-                None
-            }
-            KeyCode::Backspace => {
-                app.search.pop();
-                None
-            }
-            KeyCode::Char(c) => {
-                // '/' focuses search, but any typing goes into search anyway
-                // (TUI_GUIDE: no secret ever rendered in the search box —
-                // it only filters the index).
-                app.search.push(c);
-                app.list_state.select(Some(0));
-                None
-            }
-            _ => None,
-        },
+        Mode::List => handle_list_key(app, k),
         Mode::Detail { item_id } => {
             let item_id = *item_id;
             match k.code {
@@ -348,7 +411,205 @@ fn handle_key(app: &mut App, k: KeyEvent) -> Option<i32> {
                 _ => None,
             }
         }
+        Mode::Add => {
+            handle_add_key(app, k);
+            None
+        }
     }
+}
+
+fn handle_list_key(app: &mut App, k: KeyEvent) -> Option<i32> {
+    if app.searching {
+        match k.code {
+            KeyCode::Esc | KeyCode::Enter => app.searching = false,
+            KeyCode::Backspace => {
+                app.search.pop();
+                app.list_state.select(Some(0));
+            }
+            KeyCode::Char(c) if !k.modifiers.contains(KeyModifiers::CONTROL) => {
+                app.search.push(c);
+                app.list_state.select(Some(0));
+            }
+            _ => {}
+        }
+        return None;
+    }
+
+    match k.code {
+        KeyCode::Char('q') | KeyCode::Esc => Some(0),
+        KeyCode::Char('L') => {
+            app.lock();
+            None
+        }
+        KeyCode::Char('/') => {
+            app.searching = true;
+            None
+        }
+        KeyCode::Char('a') => {
+            app.form = Some(EntryForm::empty());
+            app.save_failed = false;
+            app.mode = Mode::Add;
+            app.status.clear();
+            None
+        }
+        KeyCode::Up => {
+            scroll(app, -1);
+            None
+        }
+        KeyCode::Down => {
+            scroll(app, 1);
+            None
+        }
+        KeyCode::PageUp => {
+            scroll(app, -10);
+            None
+        }
+        KeyCode::PageDown => {
+            scroll(app, 10);
+            None
+        }
+        KeyCode::Enter => {
+            if let Some(entry) = app.selected() {
+                app.mode = Mode::Detail {
+                    item_id: entry.item_id,
+                };
+                app.status.clear();
+            }
+            None
+        }
+        KeyCode::Backspace => {
+            app.search.pop();
+            None
+        }
+        _ => None,
+    }
+}
+
+fn handle_add_key(app: &mut App, k: KeyEvent) {
+    if app.save_failed {
+        if k.code == KeyCode::Esc {
+            app.lock();
+            app.status = "save failed — vault re-open required".into();
+        }
+        return;
+    }
+    match k.code {
+        KeyCode::Esc => {
+            app.form = None;
+            app.mode = Mode::List;
+            app.status = "add cancelled".into();
+        }
+        KeyCode::Tab | KeyCode::Down => {
+            if let Some(form) = app.form.as_mut() {
+                form.next();
+            }
+        }
+        KeyCode::BackTab | KeyCode::Up => {
+            if let Some(form) = app.form.as_mut() {
+                form.previous();
+            }
+        }
+        KeyCode::Enter => {
+            if app
+                .form
+                .as_ref()
+                .is_some_and(|form| form.field == FORM_FIELDS.len() - 1)
+            {
+                submit_add(app);
+            } else if let Some(form) = app.form.as_mut() {
+                form.next();
+            }
+        }
+        KeyCode::Char('g') if k.modifiers.contains(KeyModifiers::CONTROL) => {
+            match GenerateSpec::default().generate() {
+                Ok(generated) => {
+                    if let Some(form) = app.form.as_mut() {
+                        form.password = generated.value;
+                        app.status = format!(
+                            "generated password (~{} bits)",
+                            generated.entropy_bits as u64
+                        );
+                    }
+                }
+                Err(error) => app.status = format!("generate: {error}"),
+            }
+        }
+        KeyCode::Backspace => {
+            if let Some(form) = app.form.as_mut() {
+                form.current_value_mut().pop();
+            }
+        }
+        KeyCode::Char(c) if !k.modifiers.contains(KeyModifiers::CONTROL) => {
+            if let Some(form) = app.form.as_mut() {
+                form.current_value_mut().push(c);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn submit_add(app: &mut App) {
+    let Some(mut form) = app.form.as_ref().cloned() else {
+        return;
+    };
+    if form.title.trim().is_empty() {
+        app.status = "title is required".into();
+        return;
+    }
+    let totp = match parse_form_totp(&form.totp) {
+        Ok(value) => value,
+        Err(error) => {
+            app.status = format!("TOTP: {error}");
+            return;
+        }
+    };
+    let password =
+        (!form.password.is_empty()).then(|| std::mem::take(&mut form.password).into_bytes());
+    let notes = (!form.notes.is_empty()).then(|| std::mem::take(&mut form.notes).into_bytes());
+    let input = NewEntry {
+        title: std::mem::take(&mut form.title),
+        username: std::mem::take(&mut form.username),
+        password,
+        url: std::mem::take(&mut form.url),
+        notes,
+        totp,
+    };
+    let Some(vault) = app.vault.as_mut() else {
+        return;
+    };
+    match ops::add_entry(vault, input) {
+        Ok(item_id) => {
+            app.form = None;
+            app.mode = Mode::Detail { item_id };
+            app.status = format!("added item {item_id}");
+            app.save_failed = false;
+        }
+        Err(error) => {
+            app.save_failed = true;
+            app.status = format!("save failed: {error} — Esc to reload");
+        }
+    }
+}
+
+fn parse_form_totp(input: &str) -> crate::crypto::error::Result<Option<TotpSubRecord>> {
+    if input.is_empty() {
+        return Ok(None);
+    }
+    if input.starts_with("otpauth://") {
+        let mut params = totp::parse_otpauth_uri(input)?;
+        return Ok(Some(TotpSubRecord {
+            secret: std::mem::take(&mut params.secret),
+            period: params.period,
+            digits: params.digits,
+            algorithm: params.algorithm,
+        }));
+    }
+    Ok(Some(TotpSubRecord {
+        secret: totp::validate_secret(input, TotpAlgorithm::Sha1)?,
+        period: 30,
+        digits: 6,
+        algorithm: TotpAlgorithm::Sha1,
+    }))
 }
 fn start_clipboard(app: &mut App, secret: zeroize::Zeroizing<Vec<u8>>) {
     if let Some(handle) = app.clip_task.take() {
@@ -436,6 +697,7 @@ fn draw(f: &mut Frame, app: &mut App) {
         Mode::Locked => draw_locked(f, app, chunks[1]),
         Mode::List => draw_list(f, app, chunks[1]),
         Mode::Detail { item_id } => draw_detail(f, app, item_id, chunks[1]),
+        Mode::Add => draw_form(f, app, chunks[1]),
     }
 
     draw_status(f, app, chunks[2]);
@@ -478,8 +740,16 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect) {
 
     let list = List::new(list_items)
         .block(Block::default().borders(Borders::ALL).title(vec![
-            Span::styled(" /", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                if app.searching {
+                    " search: "
+                } else {
+                    " / search: "
+                },
+                Style::default().fg(Color::Cyan),
+            ),
             search,
+            Span::styled("   a add ", Style::default().fg(Color::DarkGray)),
         ]))
         .highlight_style(Style::default().bg(Color::Blue).fg(Color::White))
         .highlight_symbol("> ");
@@ -552,11 +822,63 @@ fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
     );
 }
 
+fn draw_form(f: &mut Frame, app: &App, area: Rect) {
+    let Some(form) = app.form.as_ref() else {
+        return;
+    };
+    let lines: Vec<Line> = FORM_FIELDS
+        .iter()
+        .enumerate()
+        .map(|(index, field)| {
+            let focused = index == form.field;
+            let raw = form.value(*field);
+            let value = if matches!(field, FormField::Password | FormField::Totp) {
+                if raw.is_empty() {
+                    "(optional)".to_string()
+                } else {
+                    "•".repeat(raw.chars().count().max(8))
+                }
+            } else if raw.is_empty() {
+                if matches!(field, FormField::Title) {
+                    "(required)".to_string()
+                } else {
+                    "(empty)".to_string()
+                }
+            } else {
+                raw.to_string()
+            };
+            Line::from(vec![
+                Span::styled(
+                    format!("{:>30}: ", field.label()),
+                    if focused {
+                        Style::default()
+                            .fg(Color::Yellow)
+                            .add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default()
+                    },
+                ),
+                Span::raw(value),
+            ])
+        })
+        .collect();
+    f.render_widget(
+        Paragraph::new(lines).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" add credential "),
+        ),
+        area,
+    );
+}
+
 fn draw_status(f: &mut Frame, app: &App, area: Rect) {
-    let mut spans = vec![Span::styled(
-        " L lock   q quit ",
-        Style::default().fg(Color::DarkGray),
-    )];
+    let help = if matches!(app.mode, Mode::Add) {
+        " Tab fields   Enter next/save   Ctrl-G generate   Esc cancel "
+    } else {
+        " L lock   q quit "
+    };
+    let mut spans = vec![Span::styled(help, Style::default().fg(Color::DarkGray))];
 
     if let Some(until) = app.clip_until {
         let left = until.saturating_duration_since(Instant::now()).as_secs();
@@ -584,9 +906,53 @@ fn draw_status(f: &mut Frame, app: &App, area: Rect) {
     );
 }
 
-// `resolve` is used by CLI-side title disambiguation; referenced here so the
-// module dependency is explicit (the TUI itself resolves by list selection).
-#[allow(unused)]
-fn _resolve_marker() {
-    let _ = resolve::resolve_title as fn(&Vault, &str, Option<u32>) -> _;
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::crypto::ciphers::Algorithm;
+    use crate::crypto::kdf::KdfParams;
+
+    #[test]
+    fn add_form_persists_all_fields() {
+        let path = std::env::temp_dir().join(format!("rpass_tui_add_{}.bin", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+        let password = SecretVec::new(b"test-password".to_vec().into_boxed_slice());
+        let vault = Vault::create(
+            &path,
+            &password,
+            KdfParams::new(8, 1, 1).unwrap(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        let mut app = App::new(path.clone());
+        app.vault = Some(vault);
+        app.mode = Mode::Add;
+        app.form = Some(EntryForm {
+            title: "example.com".into(),
+            username: "alice".into(),
+            password: "secret".into(),
+            url: "https://example.com".into(),
+            notes: "note".into(),
+            totp: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".into(),
+            field: FORM_FIELDS.len() - 1,
+        });
+
+        submit_add(&mut app);
+        assert!(matches!(app.mode, Mode::Detail { .. }));
+        assert!(app.form.is_none());
+        drop(app);
+
+        let mut reopened = Vault::open(&path, &password).unwrap();
+        let entry = reopened.entries[0].clone();
+        reopened.open_item(entry.item_id).unwrap();
+        let record = &reopened.open_items[&entry.slot];
+        assert_eq!(entry.title, "example.com");
+        assert_eq!(entry.username, "alice");
+        assert_eq!(record.password.as_deref(), Some(b"secret".as_slice()));
+        assert_eq!(record.url, "https://example.com");
+        assert_eq!(record.notes.as_deref(), Some(b"note".as_slice()));
+        assert!(record.totp.is_some());
+        let _ = std::fs::remove_file(path);
+    }
 }

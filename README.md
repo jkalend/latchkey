@@ -86,6 +86,7 @@ $ rpass backup --out /mnt/c/Backups/vault-backup.bin
 | `rpass check` | ✅ implemented — authenticates every vault record without writing |
 | `rpass tui` (or bare `rpass`) | ✅ implemented — search, add/edit/delete, detail view, idle lock |
 | `rpass import` | ✅ implemented — native JSON, Bitwarden JSON, KeePassXC CSV; preview + confirm |
+| `rpass completions <shell>` | ✅ implemented — Bash, Zsh, Fish, PowerShell |
 
 Full contract per command: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md).
 

@@ -9,7 +9,7 @@ pub mod vault_path;
 pub use error::{CliError, ExitCode, Result};
 pub use vault_path::default_vault_path;
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use secrecy::SecretBox;
 use zeroize::Zeroizing;
 
@@ -213,6 +213,11 @@ enum Command {
         #[arg(long, value_name = "FILE")]
         out: Option<std::path::PathBuf>,
     },
+    /// Generate shell completion definitions
+    Completions {
+        #[arg(value_enum)]
+        shell: clap_complete::Shell,
+    },
     /// Authenticate every record without modifying the vault
     Check,
     /// Interactive interface (fuzzy search, detail view, copy)
@@ -345,6 +350,7 @@ fn dispatch(cli: Cli) -> Result<()> {
         } => cmd_import(&vault_path, &format, &file, dry_run, yes),
         Command::Backup { out } => cmd_backup(&vault_path, out),
         Command::Check => cmd_check(&vault_path),
+        Command::Completions { shell } => cmd_completions(shell),
         Command::Tui => match crate::tui::run(vault_path, quiet) {
             0 => Ok(()),
             code => Err(CliError::Other(format!("TUI exited with status {code}"))),
@@ -731,6 +737,13 @@ fn cmd_check(path: &std::path::Path) -> Result<()> {
         "records: {} live, {} tombstone",
         report.live_items, report.tombstones
     );
+    Ok(())
+}
+
+fn cmd_completions(shell: clap_complete::Shell) -> Result<()> {
+    let mut command = Cli::command();
+    let binary_name = command.get_name().to_string();
+    clap_complete::generate(shell, &mut command, binary_name, &mut std::io::stdout());
     Ok(())
 }
 

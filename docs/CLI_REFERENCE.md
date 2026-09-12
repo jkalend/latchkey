@@ -48,6 +48,7 @@ copy-history warnings every time; errors must still reach a human.
 | `rpass check` | Authenticate every record without modifying the vault |
 | `rpass export` | Plaintext export; requires `--format json` + explicit `--yes-i-mean-it` |
 | `rpass import` | Import from JSON export / other managers |
+| `rpass completions <shell>` | Generate Bash, Zsh, Fish, or PowerShell completions |
 | `rpass tui` | Interactive interface (docs/TUI_GUIDE.md) |
 
 ## Details
@@ -240,6 +241,16 @@ copy-history warnings every time; errors must still reach a human.
 - Read-only: a successful or failed check never writes the vault. Validate an
   encrypted backup before relying on it with
   `rpass --vault <backup-path> check`.
+
+### `rpass completions <bash|zsh|fish|powershell>`
+
+- Generates completion definitions directly from clap's live command tree, so
+  every subcommand and global option matches the installed binary.
+- Writes to stdout. Load it for the current session, for example:
+  `source <(rpass completions bash)` or
+  `rpass completions powershell | Out-String | Invoke-Expression`.
+- For persistent installation, redirect the output to the completion directory
+  used by the selected shell.
 
 ## Exit codes
 

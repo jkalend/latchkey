@@ -1,8 +1,8 @@
 # rust_password_manager — Documentation Proposal
 
-**Status:** Draft v0.1
+**Status:** Historical — initial documentation plan (completed)
 **Date:** 2026-09-09
-**Scope:** Proposed documentation set for a local-first password manager written in Rust.
+**Current release proposal:** [NEXT_RELEASE.md](NEXT_RELEASE.md)
 **Platforms:** Windows 10/11 (native) and Linux under WSL2. macOS is out of scope for v1.
 
 ---

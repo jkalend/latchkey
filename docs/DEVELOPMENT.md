@@ -1,6 +1,6 @@
 # Development Guide
 
-**Status:** Draft v0.1 — pre-implementation
+**Status:** Current pre-release implementation (`rpass` 0.1.0)
 **Platforms:** Windows 10/11 (native), Linux under WSL2 — both are
 first-class; CI runs both.
 
@@ -24,10 +24,11 @@ casually broken doc line (PROPOSAL §5.5's point).
 docs/           specs and ADRs — read THREAT_MODEL, CRYPTO_SPEC,
                 VAULT_FORMAT before writing code that touches crypto
 src/            binary + library
-  crypto/       KDF, AEAD wrappers, key hierarchy
+  crypto/       KDF, AEAD wrappers, CSPRNG key/salt generation
   vault/        file format reader/writer, index, items
   gen/          password generator (ADR-0006); embeds the EFF wordlist
-  clip/         platform clipboard (Win32; clip.exe interop for WSL)
+  clip/         platform clipboard (Win32 delayed render; PowerShell
+                interop on WSL; wl-copy/xclip/xsel on plain Linux)
   cli/          command parsing and dispatch
   tui/          interactive interface
 tests/          integration tests over real vault files
@@ -64,7 +65,15 @@ CRYPTO_SPEC.md or VAULT_FORMAT.md in the same PR.**
 
 ## Release checklist
 
+Pushing a `v*` tag runs `.github/workflows/release.yml`, builds locked
+Windows and Linux artifacts, writes `SHA256SUMS`, and publishes a GitHub
+release with generated notes.
+
 - [ ] `Cargo.lock` committed; build with `--locked`
+- [ ] `cargo check --target x86_64-unknown-linux-gnu` passes — the
+      `cfg(not(windows))` tree (clipboard backends, platform probe) must
+      compile even though day-to-day dev is on Windows; CI's ubuntu job
+      gates this, catching it pre-push is cheaper
 - [ ] `cargo audit` clean
 - [ ] Test vectors regenerated and cross-checked against a second
       implementation of the format (even a quick Python reader) —
@@ -73,4 +82,4 @@ CRYPTO_SPEC.md or VAULT_FORMAT.md in the same PR.**
       assumptions changed
 - [ ] GitHub private vulnerability reporting enabled on the repository
       (SECURITY.md's reporting path depends on it)
-- [ ] Version bump; changelog entry
+- [ ] `Cargo.toml` version matches the tag; review generated release notes

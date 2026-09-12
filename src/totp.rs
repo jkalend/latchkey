@@ -7,16 +7,30 @@
 
 use hmac::{Hmac, Mac};
 use sha1::Sha1;
+use std::fmt;
+use zeroize::Zeroize;
 
 use crate::crypto::error::{Error, Result};
 use crate::vault::shape::{TotpAlgorithm, TotpSubRecord};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq, Zeroize)]
+#[zeroize(drop)]
 pub struct TotpParams {
     pub secret: Vec<u8>,
     pub period: u32,
     pub digits: u32,
+    #[zeroize(skip)]
     pub algorithm: TotpAlgorithm,
+}
+impl fmt::Debug for TotpParams {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("TotpParams")
+            .field("secret_len", &self.secret.len())
+            .field("period", &self.period)
+            .field("digits", &self.digits)
+            .field("algorithm", &self.algorithm)
+            .finish()
+    }
 }
 
 impl From<&TotpSubRecord> for TotpParams {
@@ -38,9 +52,7 @@ pub struct TotpNow {
 
 /// Compute the TOTP for `unix_now`.
 pub fn totp_at(p: &TotpParams, unix_now: u64) -> Result<String> {
-    if p.period == 0 {
-        return Err(Error::Encrypt("TOTP period must be > 0".into()));
-    }
+    validate_params(p.period, p.digits)?;
     let counter = unix_now / p.period as u64;
     hotp(p, counter)
 }
@@ -72,10 +84,22 @@ fn hotp(p: &TotpParams, counter: u64) -> Result<String> {
     dynamic_truncate(&mac, p.digits)
 }
 
-fn dynamic_truncate(mac: &[u8], digits: u32) -> Result<String> {
-    if mac.is_empty() {
-        return Err(Error::Encrypt("empty hmac".into()));
+fn validate_digits(digits: u32) -> Result<()> {
+    if matches!(digits, 6 | 8) {
+        Ok(())
+    } else {
+        Err(Error::Encrypt("TOTP digits must be 6 or 8".into()))
     }
+}
+
+fn validate_params(period: u32, digits: u32) -> Result<()> {
+    if period == 0 {
+        return Err(Error::Encrypt("TOTP period must be > 0".into()));
+    }
+    validate_digits(digits)
+}
+fn dynamic_truncate(mac: &[u8], digits: u32) -> Result<String> {
+    validate_digits(digits)?;
     let offset = (mac[mac.len() - 1] & 0x0f) as usize;
     if offset + 4 > mac.len() {
         return Err(Error::Encrypt(
@@ -182,6 +206,7 @@ pub fn parse_otpauth_uri(uri: &str) -> Result<TotpParams> {
     let secret_b32 = percent_decode(
         secret_b32.ok_or_else(|| Error::Encrypt("otpauth URI has no secret parameter".into()))?,
     )?;
+    validate_params(period, digits)?;
     let secret = validate_secret(&secret_b32, algorithm)?;
     Ok(TotpParams {
         secret,
@@ -223,12 +248,15 @@ fn percent_decode(s: &str) -> Result<String> {
 mod tests {
     use super::*;
 
-    // RFC 6238 Appendix B test vectors (SHA1, 20-byte secret "1234567890...").
-    const RFC_SECRET: &[u8] = b"12345678901234567890";
+    // RFC 6238 Appendix B secrets. Each hash uses the prescribed key length.
+    const RFC_SHA1_SECRET: &[u8] = b"12345678901234567890";
+    const RFC_SHA256_SECRET: &[u8] = b"12345678901234567890123456789012";
+    const RFC_SHA512_SECRET: &[u8] =
+        b"1234567890123456789012345678901234567890123456789012345678901234";
 
     fn params() -> TotpParams {
         TotpParams {
-            secret: RFC_SECRET.to_vec(),
+            secret: RFC_SHA1_SECRET.to_vec(),
             period: 30,
             digits: 8,
             algorithm: TotpAlgorithm::Sha1,
@@ -248,11 +276,41 @@ mod tests {
     }
 
     #[test]
+    fn rfc6238_vectors_sha256_and_sha512() {
+        let sha256 = TotpParams {
+            secret: RFC_SHA256_SECRET.to_vec(),
+            period: 30,
+            digits: 8,
+            algorithm: TotpAlgorithm::Sha256,
+        };
+        let sha512 = TotpParams {
+            secret: RFC_SHA512_SECRET.to_vec(),
+            period: 30,
+            digits: 8,
+            algorithm: TotpAlgorithm::Sha512,
+        };
+        let cases = [
+            (59, "46119246", "90693936"),
+            (1_111_111_109, "68084774", "25091201"),
+            (1_111_111_111, "67062674", "99943326"),
+            (1_234_567_890, "91819424", "93441116"),
+            (2_000_000_000, "90698825", "38618901"),
+            (20_000_000_000, "77737706", "47863826"),
+        ];
+        for (time, expected_sha256, expected_sha512) in cases {
+            assert_eq!(totp_at(&sha256, time).unwrap(), expected_sha256);
+            assert_eq!(totp_at(&sha512, time).unwrap(), expected_sha512);
+        }
+    }
+
+    #[test]
     fn six_digit_mode() {
         // RFC 4226 Appendix D reference vectors with the same secret.
         let p = TotpParams {
+            secret: RFC_SHA1_SECRET.to_vec(),
+            period: 30,
             digits: 6,
-            ..params()
+            algorithm: TotpAlgorithm::Sha1,
         };
         // counter 0 → 755224, counter 1 → 287082 (HOTP vectors)
         assert_eq!(hotp(&p, 0).unwrap(), "755224");
@@ -298,6 +356,13 @@ mod tests {
         let err =
             parse_otpauth_uri("otpauth://totp/x?secret=GEZDGNBVGY3TQOJQ&period=abc").unwrap_err();
         assert!(err.to_string().contains("period"));
+    }
+
+    #[test]
+    fn otpauth_rejects_invalid_period_and_digits() {
+        let base = "otpauth://totp/x?secret=GEZDGNBVGY3TQOJQ";
+        assert!(parse_otpauth_uri(&format!("{base}&period=0")).is_err());
+        assert!(parse_otpauth_uri(&format!("{base}&digits=7")).is_err());
     }
 
     #[test]

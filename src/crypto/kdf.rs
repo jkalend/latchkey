@@ -5,6 +5,10 @@ use crate::crypto::error::{Error, Result};
 
 pub const SALT_LEN: usize = 16;
 pub const KEK_LEN: usize = 32;
+const MAX_ARGON2_M_MIB: u32 = 1024;
+const MAX_ARGON2_T: u32 = 64;
+const MAX_ARGON2_P: u8 = 8;
+const MAX_ARGON2_WORK_MIB: u32 = 8192;
 
 pub type SecretVec = SecretBox<[u8]>;
 
@@ -44,7 +48,10 @@ impl Default for KdfParams {
 
 impl KdfParams {
     pub fn new(m_mib: u32, t: u32, p: u8) -> Result<Self> {
-        Params::new(m_mib * 1024, t, p as u32, Some(KEK_LEN))
+        let kib = m_mib
+            .checked_mul(1024)
+            .ok_or_else(|| Error::Kdf("memory parameter overflow".into()))?;
+        Params::new(kib, t, p as u32, Some(KEK_LEN))
             .map_err(|e| Error::Kdf(format!("invalid params: {e}")))?;
         Ok(Self {
             argon2_m_mib: m_mib,
@@ -52,20 +59,47 @@ impl KdfParams {
             argon2_p: p,
         })
     }
+
+    pub fn validate_policy(self) -> Result<()> {
+        if self.argon2_m_mib < 8 || self.argon2_t < 1 || self.argon2_p < 1 {
+            return Err(Error::Kdf(
+                "KDF parameters below the minimum policy (8 MiB, t=1, p=1)".into(),
+            ));
+        }
+        let work_mib = self
+            .argon2_m_mib
+            .checked_mul(self.argon2_t)
+            .ok_or_else(|| Error::Kdf("KDF work parameter overflow".into()))?;
+        if self.argon2_m_mib > MAX_ARGON2_M_MIB
+            || self.argon2_t > MAX_ARGON2_T
+            || self.argon2_p > MAX_ARGON2_P
+            || work_mib > MAX_ARGON2_WORK_MIB
+        {
+            return Err(Error::Kdf(format!(
+                "KDF parameters above the maximum policy \
+                 ({MAX_ARGON2_M_MIB} MiB memory, t={MAX_ARGON2_T}, \
+                 p={MAX_ARGON2_P}, {MAX_ARGON2_WORK_MIB} MiB-passes)"
+            )));
+        }
+        Ok(())
+    }
 }
 
 pub struct Kdf {
     params: KdfParams,
 }
-
 impl Kdf {
     pub fn new(params: KdfParams) -> Self {
         Self { params }
     }
-
     pub fn derive(&self, password: &SecretVec, salt: &[u8; SALT_LEN]) -> Result<SecretVec> {
+        let kib = self
+            .params
+            .argon2_m_mib
+            .checked_mul(1024)
+            .ok_or_else(|| Error::Kdf("memory parameter overflow".into()))?;
         let params = Params::new(
-            self.params.argon2_m_mib * 1024,
+            kib,
             self.params.argon2_t,
             self.params.argon2_p as u32,
             Some(KEK_LEN),
@@ -115,25 +149,37 @@ mod tests {
     }
 
     #[test]
-    fn argon2_correctness_via_cross_validation() {
-        // Official Argon2 test vectors from RFC 9106 are ~wordy; this test
-        // verifies our wrapper by checking cross-implementation consistency
-        // (deterministic for (params, password, salt) triple) and two
-        // implementations of the same parameters.
-        let params = KdfParams::new(8, 3, 1).unwrap(); // small memory for speed
-        let kdf = Kdf::new(params);
+    fn argon2id_matches_independent_vector() {
+        // Generated independently with argon2-cffi 25.1.0:
+        // hash_secret_raw(b"password", b"\x42" * 16, t=3, m=8192, p=1,
+        //                 hash_len=32, type=ID, version=19)
+        let kdf = Kdf::new(KdfParams::new(8, 3, 1).unwrap());
         let password = SecretVec::new(b"password".to_vec().into_boxed_slice());
         let salt = [0x42u8; SALT_LEN];
+        let expected = [
+            0x48, 0xeb, 0x43, 0xac, 0x09, 0x0d, 0x66, 0x19, 0x46, 0x85, 0x0e, 0x68, 0x2d, 0x2d,
+            0x05, 0xb1, 0xfe, 0x7a, 0x37, 0xcd, 0x2b, 0x96, 0xae, 0x88, 0xe9, 0xce, 0xc5, 0xc2,
+            0xc7, 0xa6, 0x8c, 0x38,
+        ];
 
-        let out1 = kdf.derive(&password, &salt).unwrap();
-        let out2 = kdf.derive(&password, &salt).unwrap();
+        let actual = kdf.derive(&password, &salt).unwrap();
+        assert_eq!(actual.expose_secret(), &expected);
+    }
 
-        assert_eq!(out1.expose_secret(), out2.expose_secret());
-        assert_eq!(out1.expose_secret().len(), KEK_LEN);
-        // At least one byte must differ between outputs for different params.
-        let params2 = KdfParams::new(8, 4, 1).unwrap();
-        let kdf2 = Kdf::new(params2);
-        let out3 = kdf2.derive(&password, &salt).unwrap();
-        assert_ne!(out1.expose_secret(), out3.expose_secret());
+    #[test]
+    fn policy_rejects_weak_memory() {
+        assert!(KdfParams::new(4, 1, 1).unwrap().validate_policy().is_err());
+    }
+
+    #[test]
+    fn policy_rejects_excessive_resource_cost() {
+        assert!(KdfParams::new(MAX_ARGON2_M_MIB + 1, 1, 1)
+            .unwrap()
+            .validate_policy()
+            .is_err());
+        assert!(KdfParams::new(512, 17, 1)
+            .unwrap()
+            .validate_policy()
+            .is_err());
     }
 }

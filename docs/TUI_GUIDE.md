@@ -1,6 +1,6 @@
 # TUI Guide
 
-**Status:** v1 — implemented with ratatui (ADR-0001-consistent, pure Rust)
+**Status:** Current pre-release implementation (`rpass` 0.1.0)
 
 ## Scope
 
@@ -8,19 +8,20 @@
   same thing (the TUI is the interactive default).
 - Fuzzy search over titles/usernames (index-only decryption — secrets
   stay untouched until selection, VAULT_FORMAT §5).
-- Single-item detail view with masked secrets, `Enter` to copy with the
-  ADR-0003 auto-clear countdown displayed in the UI.
+- Single-item detail view with masked secrets; `c` copies the password and
+  `t` copies the current TOTP code with the ADR-0003 countdown.
 
-## Keybindings (proposal)
+## Keybindings
 
 | Key | Action |
 |---|---|
-| `/` | Focus search |
+| `/` | Start search |
 | `↑`/`↓` | Navigate list |
-| `Enter` | Open item / copy secret |
-| `e` | Edit item |
-| `d` | Delete item (confirmation) |
-| `g` | Generate password into item |
+| `Enter` | Open selected item |
+| `c` | Copy password in detail view |
+| `t` | Copy current TOTP code |
+| `r` | Reveal password for 10 seconds |
+| `L` | Lock immediately |
 | `q` / `Esc` | Back / quit |
 
 ## Security behaviors
@@ -36,22 +37,12 @@
   in the tool; THREAT_MODEL §5.3's mitigations are designed around
   short unlock lifetimes).
 
-- **Grace period for pending clipboard operations (60 s):** when the
-  lock point arrives with a `rpass copy` clipboard wait still pending,
-  the TUI delays the actual secret-drop by up to 60 s. Three cases:
-  - The copy's auto-clear timeout fires during the grace window →
-    lock proceeds normally at the end of the copy, secret dropped as
-    soon as it's safe.
-  - The user pastes during the grace window → clipboard wait
-    completes on demand; lock proceeds immediately (no waiting around
-    for them to finish typing — the clipboard cleared on paste).
-  - Neither happens within 60 s → lock fires anyway, the pending
-    clipboard promise becomes dead-on-arrival; the user re-enters a
-    master password to continue.
-  The grace is bounded (never "hold the copy forever") because an
-  unbounded grace would let a forgotten copy hold the vault open
-  indefinitely. Bound: 60 s.
-- Explicit `L` keybinding locks immediately — bypasses any grace.
+- **Pending clipboard operation:** copy runs in a worker and calls the
+  platform auto-clear path. Locking drops the vault immediately; the worker
+  retains only the copied secret until the bounded 30-second clear completes.
+  The status bar reports completion or a clipboard error.
+- Explicit `L` keybinding locks immediately; the pending clipboard clear still
+  runs to completion.
 - No focus-loss lock — cross-platform terminal focus events are
   unreliable on WSL/Windows-Terminal combos; idle-timeout is the
   uniform floor.

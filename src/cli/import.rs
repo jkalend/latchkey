@@ -5,15 +5,28 @@
 //! confirm only for pure adds with zero collisions — anything that would
 //! overwrite existing secrets requires a human.
 //!
-//! Identity rule: `<item_id>` keys whose *title* matches a live vault entry
-//! update that entry (its item_id is preserved); everything else creates a
-//! new entry with a generated item_id — the file never owns identity
-//! allocation.
+//! Identity rule: `<item_id>` keys whose *title* matches exactly one live
+//! vault entry update that entry (its item_id is preserved); everything
+//! else creates a new entry with a generated item_id — the file never owns
+//! identity allocation. A title appearing MULTIPLE times in the import
+//! file never updates (two queued updates on one entry would apply in
+//! file order with the last silently winning) — all copies become adds
+//! and the preview flags the collision.
+
+use std::fs::File;
+use std::io::Read;
 
 use crate::cli::error::{CliError, Result};
 use crate::json::{self, Json};
-use crate::vault::shape::{ItemRecord, TotpAlgorithm, TotpSubRecord};
+use crate::vault::shape::{ItemRecord, TotpAlgorithm, TotpSubRecord, LIVE_STATE};
 use crate::vault::vault_impl::Vault;
+use zeroize::Zeroizing;
+
+#[cfg(not(test))]
+const MAX_IMPORT_BYTES: u64 = 64 * 1024 * 1024;
+#[cfg(test)]
+const MAX_IMPORT_BYTES: u64 = 1024 * 1024;
+const MAX_IMPORT_ITEMS: usize = 10_000;
 
 pub struct ImportArgs<'a> {
     pub format: &'a str,
@@ -29,16 +42,31 @@ pub fn run(path: &std::path::Path, a: ImportArgs<'_>) -> Result<()> {
             a.format
         )));
     }
-    let text = std::fs::read_to_string(a.file)
-        .map_err(|e| CliError::Other(format!("read {}: {e}", a.file.display())))?;
+    let text = read_import_text(a.file)?;
     let (mut vault, _pw) = super::open_vault(path)?;
     import_into(&mut vault, &text, a.dry_run, a.yes)
+}
+
+fn read_import_text(path: &std::path::Path) -> Result<Zeroizing<String>> {
+    let file =
+        File::open(path).map_err(|e| CliError::Other(format!("read {}: {e}", path.display())))?;
+    let mut text = Zeroizing::new(String::new());
+    file.take(MAX_IMPORT_BYTES + 1)
+        .read_to_string(&mut text)
+        .map_err(|e| CliError::Other(format!("read {}: {e}", path.display())))?;
+    if text.len() as u64 > MAX_IMPORT_BYTES {
+        return Err(CliError::Other(format!(
+            "import exceeds the {} MiB size limit",
+            MAX_IMPORT_BYTES / 1024 / 1024
+        )));
+    }
+    Ok(text)
 }
 
 /// Core import over an already-open vault (CLI wrapper handles the password;
 /// tests call this directly so nothing prompts).
 pub fn import_into(vault: &mut Vault, export_text: &str, dry_run: bool, yes: bool) -> Result<()> {
-    let doc = json::parse(export_text).map_err(|e| CliError::Other(e.to_string()))?;
+    let doc = Zeroizing::new(json::parse(export_text).map_err(|e| CliError::Other(e.to_string()))?);
     let plan = build_plan(vault, &doc)?;
 
     // Preview (always — even with --yes, the user should see the shape).
@@ -72,8 +100,8 @@ pub fn import_into(vault: &mut Vault, export_text: &str, dry_run: bool, yes: boo
         return Ok(());
     }
 
-    // --yes only bypasses the prompt when nothing gets overwritten.
-    let pure_adds = plan.updates.is_empty();
+    // --yes only bypasses the prompt for pure adds with zero collisions.
+    let pure_adds = plan.updates.is_empty() && plan.collisions.is_empty();
     if !(yes && pure_adds) {
         if !std::io::IsTerminal::is_terminal(&std::io::stdin()) {
             return Err(CliError::Other(
@@ -127,26 +155,60 @@ struct Plan {
 }
 
 fn build_plan(vault: &Vault, doc: &Json) -> Result<Plan> {
+    validate_format_version(doc)?;
     let items = doc
         .get("items")
         .and_then(|v| v.as_obj())
         .ok_or_else(|| CliError::Other("import: missing 'items' object".into()))?;
+    if items.len() > MAX_IMPORT_ITEMS {
+        return Err(CliError::Other(format!(
+            "import has {} items; maximum is {MAX_IMPORT_ITEMS}",
+            items.len()
+        )));
+    }
+
+    // First pass: per-title counts within the FILE.
+    let mut file_counts: std::collections::HashMap<String, usize> =
+        std::collections::HashMap::new();
+    for (_id, value) in items {
+        *file_counts
+            .entry(required_str(value, "title")?)
+            .or_default() += 1;
+    }
 
     let mut adds = Vec::new();
     let mut updates = Vec::new();
     let mut collisions = Vec::new();
+    let mut collided: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut note_collision = |title: &str, n: usize, collisions: &mut Vec<(String, usize)>| {
+        if collided.insert(title.to_string()) {
+            collisions.push((title.to_string(), n));
+        }
+    };
 
     for (_file_id, value) in items {
         let title = required_str(value, "title")?;
         let username = optional_str(value, "username")?;
         let record = parse_record(value)?;
 
+        // Intra-file duplicates: never an update (see module docs).
+        if file_counts.get(&title).copied().unwrap_or(0) > 1 {
+            let n = file_counts[&title];
+            note_collision(&title, n, &mut collisions);
+            adds.push(PlannedAdd {
+                title,
+                username,
+                record,
+            });
+            continue;
+        }
+
         // Identity: a title matching exactly one live vault entry updates it;
         // 0 or ≥2 matches → add (with the collision recorded for the preview).
         let live: Vec<_> = vault
             .entries
             .iter()
-            .filter(|e| e.state != 0xFF && e.title == title)
+            .filter(|e| e.state == LIVE_STATE && e.title == title)
             .collect();
         match live.len() {
             0 => adds.push(PlannedAdd {
@@ -161,7 +223,7 @@ fn build_plan(vault: &Vault, doc: &Json) -> Result<Plan> {
                 record,
             }),
             n => {
-                collisions.push((title.clone(), n));
+                note_collision(&title, n, &mut collisions);
                 adds.push(PlannedAdd {
                     title,
                     username,
@@ -187,7 +249,7 @@ fn apply(vault: &mut Vault, plan: &Plan) -> Result<()> {
         let entry = vault
             .entries
             .iter()
-            .find(|e| e.item_id == upd.item_id && e.state != 0xFF)
+            .find(|e| e.item_id == upd.item_id && e.state == LIVE_STATE)
             .ok_or_else(|| CliError::Other("entry vanished mid-import".into()))?;
         let slot = entry.slot;
         // Open first so unmodified fields (created_unix) survive the update.
@@ -262,6 +324,18 @@ fn parse_record(obj: &Json) -> Result<ItemRecord> {
     })
 }
 
+fn validate_format_version(doc: &Json) -> Result<()> {
+    match doc.get("format_version").and_then(Json::as_num) {
+        Some(1.0) => Ok(()),
+        Some(version) => Err(CliError::Other(format!(
+            "import: unsupported format_version {version}; expected 1"
+        ))),
+        None => Err(CliError::Other(
+            "import: missing or invalid 'format_version'; expected 1".into(),
+        )),
+    }
+}
+
 fn parse_totp(t: &Json) -> Result<TotpSubRecord> {
     let secret_b32 = t
         .get("secret")
@@ -278,6 +352,11 @@ fn parse_totp(t: &Json) -> Result<TotpSubRecord> {
     }?;
     let period = uint_field(t, "period", 30)?;
     let digits = uint_field(t, "digits", 6)?;
+    if period == 0 || !matches!(digits, 6 | 8) {
+        return Err(CliError::Other(
+            "import: TOTP period must be >0 and digits must be 6 or 8".into(),
+        ));
+    }
 
     // Same write-time validation as add/edit: the decoded secret must meet
     // the RFC 6238 length floor for the algorithm.
@@ -314,6 +393,18 @@ mod tests {
     use crate::json::parse;
 
     #[test]
+    fn oversized_import_is_rejected_before_parsing() {
+        let path = std::env::temp_dir().join(format!("rpass_import_big_{}", std::process::id()));
+        let file = File::create(&path).unwrap();
+        file.set_len(MAX_IMPORT_BYTES + 1).unwrap();
+        drop(file);
+
+        let err = read_import_text(&path).unwrap_err().to_string();
+        assert!(err.contains("size limit"), "{err}");
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
     fn record_decoding() {
         let doc = parse(
             r#"{"title":"t","username":"u","password":"pw","url":"https://x",
@@ -325,7 +416,7 @@ mod tests {
         assert_eq!(rec.password.as_deref(), Some(b"pw".as_ref()));
         assert_eq!(rec.url, "https://x");
         assert_eq!(rec.notes.as_deref(), Some(b"n".as_ref()));
-        let t = rec.totp.unwrap();
+        let t = rec.totp.clone().unwrap();
         assert_eq!(t.secret.len(), 10);
         assert_eq!(t.period, 60);
         assert_eq!(t.digits, 8);
@@ -361,6 +452,13 @@ mod tests {
         assert!(parse_record(&doc).is_err());
         let doc = parse(r#"{"title":"t","totp":{"algorithm":"MD5"}}"#).unwrap();
         assert!(parse_record(&doc).is_err());
+    }
+
+    #[test]
+    fn format_version_is_required_and_pinned() {
+        assert!(validate_format_version(&parse(r#"{"format_version":1}"#).unwrap()).is_ok());
+        assert!(validate_format_version(&parse(r#"{"format_version":2}"#).unwrap()).is_err());
+        assert!(validate_format_version(&parse(r#"{"items":{}}"#).unwrap()).is_err());
     }
 
     #[test]
@@ -424,6 +522,53 @@ mod tests {
         assert_eq!(v.entries.iter().filter(|e| e.title == "dup").count(), 3);
         // next_item_id never reused a file id (9/10/11 are ignored).
         assert!(v.next_item_id >= 4);
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Two same-titled items in ONE import file must never queue two updates
+    /// on the same live entry (the second would silently overwrite the
+    /// first). Both become adds; the collision is reported exactly once.
+    #[test]
+    fn plan_intra_file_duplicates_become_adds() {
+        let dir = std::env::temp_dir().join(format!("rpass_imp_dup_{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("v.bin");
+        let secret = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
+        let kdf = crate::crypto::kdf::KdfParams::new(8, 1, 1).unwrap();
+
+        let v = {
+            use crate::crypto::ciphers::Algorithm as Alg;
+            let mut v = Vault::create(&path, &secret, kdf, Alg::Aes256Gcm, Alg::Aes256Gcm).unwrap();
+            v.add_item(
+                "solo".into(),
+                "u".into(),
+                ItemRecord {
+                    password: Some(b"old".to_vec()),
+                    url: String::new(),
+                    notes: None,
+                    totp: None,
+                    created_unix: 1,
+                    modified_unix: 1,
+                },
+            )
+            .unwrap();
+            v.save().unwrap();
+            v
+        };
+
+        let doc = parse(
+            r#"{"format_version":1,"items":{
+                "1": {"title":"solo","username":"a","password":"pw-a"},
+                "2": {"title":"solo","username":"b","password":"pw-b"}
+            }}"#,
+        )
+        .unwrap();
+        let plan = build_plan(&v, &doc).unwrap();
+        assert_eq!(plan.updates.len(), 0, "file duplicates must not update");
+        assert_eq!(plan.adds.len(), 2);
+        assert_eq!(plan.collisions.len(), 1);
+        assert_eq!(plan.collisions[0], ("solo".to_string(), 2));
 
         let _ = std::fs::remove_dir_all(&dir);
     }

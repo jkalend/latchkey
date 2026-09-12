@@ -1,13 +1,8 @@
-//! Win32 clipboard backend (ADR-0003 §3): synchronous primitives.
+//! Win32 clipboard primitives: global allocation, snapshot, restore.
 //!
-//! `copy_and_hold`/`copy_now` set the data eagerly. The hardened path —
-//! delayed rendering via `SetClipboardData(NULL)` plus a message-only
-//! window answering `WM_RENDERFORMAT` — lives in `win32_delayed.rs` and
-//! is what the CLI routes to; this module keeps the shared primitives
-//! (global allocation, snapshot, restore) and the immediate-copy path
-//! the TUI uses.
-
-use std::time::{Duration, Instant};
+//! The copy/hold paths live in `win32_delayed.rs` (delayed rendering —
+//! the only path the CLI and TUI route to). This module owns the FFI
+//! helpers both it and the clipboard round-trip test need.
 
 use crate::clip::error::{ClipError, Result};
 
@@ -15,8 +10,25 @@ use windows::Win32::Foundation::{HANDLE, HGLOBAL};
 use windows::Win32::System::DataExchange::{
     CloseClipboard, EmptyClipboard, GetClipboardData, OpenClipboard, SetClipboardData,
 };
-use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalUnlock, GMEM_MOVEABLE};
+use windows::Win32::System::Memory::{
+    GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE,
+};
 use windows::Win32::System::Ole::CF_UNICODETEXT;
+
+// windows-rs 0.62 does not expose GlobalFree — its NULL-on-success return
+// doesn't map onto its error-wrapper conventions (same reason
+// win32_delayed.rs declares SetClipboardData itself). Declare it directly.
+#[link(name = "kernel32")]
+extern "system" {
+    #[link_name = "GlobalFree"]
+    fn global_free_raw(hmem: *mut core::ffi::c_void) -> *mut core::ffi::c_void;
+}
+
+fn global_free(h: HGLOBAL) {
+    unsafe {
+        let _ = global_free_raw(h.0);
+    }
+}
 
 fn last_err(what: &'static str) -> ClipError {
     ClipError::Other(format!(
@@ -25,7 +37,7 @@ fn last_err(what: &'static str) -> ClipError {
     ))
 }
 
-fn to_utf16(s: &[u8]) -> Vec<u16> {
+pub(super) fn to_utf16(s: &[u8]) -> Vec<u16> {
     // Secrets enter the vault as validated UTF-8; lossy only as a defensive fallback.
     String::from_utf8_lossy(s).encode_utf16().collect()
 }
@@ -38,6 +50,9 @@ pub(super) fn render_into_global(text: &[u16]) -> Result<HGLOBAL> {
         let h = GlobalAlloc(GMEM_MOVEABLE, bytes).map_err(|_| last_err("GlobalAlloc"))?;
         let dst = GlobalLock(h) as *mut u16;
         if dst.is_null() {
+            // The allocation is ours until handed over — free on every
+            // failure path or the HGLOBAL leaks for the process lifetime.
+            global_free(h);
             return Err(last_err("GlobalLock"));
         }
         for (i, c) in text.iter().enumerate() {
@@ -49,7 +64,25 @@ pub(super) fn render_into_global(text: &[u16]) -> Result<HGLOBAL> {
     }
 }
 
+/// Hand an HGLOBAL to the clipboard. On SetClipboardData failure the system
+/// does NOT take ownership — free it here so callers can't leak it.
+pub(super) fn set_clipboard_hglobal(h: HGLOBAL) -> Result<()> {
+    unsafe {
+        match SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(h.0))) {
+            Ok(_) => Ok(()),
+            Err(_) => {
+                global_free(h);
+                Err(last_err("SetClipboardData"))
+            }
+        }
+    }
+}
+
 /// Read the current CF_UNICODETEXT, if any (for restore-on-clear).
+///
+/// The clipboard payload belongs to *another, arbitrary* process: it is
+/// not guaranteed NUL-terminated, so the scan is bounded by the actual
+/// allocation (GlobalSize) rather than searching for NUL into the void.
 pub(super) fn snapshot_clipboard() -> Result<Option<Vec<u16>>> {
     unsafe {
         OpenClipboard(None).map_err(|_| ClipError::Open)?;
@@ -58,19 +91,19 @@ pub(super) fn snapshot_clipboard() -> Result<Option<Vec<u16>>> {
                 Ok(h) => h,
                 Err(_) => return Ok(None), // no text on it — fine
             };
-            let ptr = GlobalLock(HGLOBAL(h.0)) as *const u16;
+            let h = HGLOBAL(h.0);
+            let ptr = GlobalLock(h) as *const u16;
             if ptr.is_null() {
                 return Ok(None);
             }
+            let alloc_units = GlobalSize(h) / std::mem::size_of::<u16>();
             let mut len = 0usize;
-            while *ptr.add(len) != 0 {
+            while len < alloc_units && *ptr.add(len) != 0 {
                 len += 1;
-                if len > 1 << 20 {
-                    break; // paranoid cap: 2 MiB of UTF-16
-                }
             }
+            // If no NUL exists inside the allocation, take the whole span.
             let text = std::slice::from_raw_parts(ptr, len).to_vec();
-            let _ = GlobalUnlock(HGLOBAL(h.0));
+            let _ = GlobalUnlock(h);
             Ok(Some(text))
         })();
         let _ = CloseClipboard();
@@ -92,7 +125,7 @@ pub(super) fn restore_clipboard(prev: &Option<Vec<u16>>) {
             let _ = EmptyClipboard();
             if let Some(prev) = prev {
                 if let Ok(h) = render_into_global(prev) {
-                    let _ = SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(h.0)));
+                    let _ = set_clipboard_hglobal(h);
                 }
             }
             let _ = CloseClipboard();
@@ -100,49 +133,23 @@ pub(super) fn restore_clipboard(prev: &Option<Vec<u16>>) {
     }
 }
 
-/// Copy `secret`, hold for `timeout_secs`, then restore the pre-copy
-/// clipboard (or blank if there was none).
-pub fn copy_and_hold(secret: &[u8], timeout_secs: u64) -> Result<()> {
-    let text = to_utf16(secret);
-    let restore = snapshot_best_effort();
+// Note for future design changes: GetClipboardSequenceNumber is NOT usable
+// for the restore-ownership check — serving a WM_RENDERFORMAT paste re-runs
+// SetClipboardData and bumps the sequence, so it can't distinguish "still
+// ours" from "user copied something else". win32_delayed compares content.
 
-    unsafe {
-        OpenClipboard(None).map_err(|_| ClipError::Open)?;
-        let result = (|| {
-            EmptyClipboard().map_err(|_| last_err("EmptyClipboard"))?;
-            let h = render_into_global(&text)?;
-            SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(h.0)))
-                .map_err(|_| last_err("SetClipboardData"))?;
-            Ok(())
-        })();
-        let _ = CloseClipboard();
-        result?;
-    }
-
-    // Hold. On expiry, clear and restore.
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
-    while Instant::now() < deadline {
-        std::thread::sleep(Duration::from_millis(100).min(deadline - Instant::now()));
-    }
-
-    restore_clipboard(&restore);
-    Ok(())
-}
-
-/// Immediate copy without holding — for the TUI, which manages its own clear.
-pub fn copy_now(secret: &[u8]) -> Result<()> {
+#[cfg(test)]
+pub(crate) fn copy_now(secret: &[u8]) -> Result<()> {
     let text = to_utf16(secret);
     unsafe {
         OpenClipboard(None).map_err(|_| ClipError::Open)?;
         let result = (|| {
             EmptyClipboard().map_err(|_| last_err("EmptyClipboard"))?;
             let h = render_into_global(&text)?;
-            SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(h.0)))
-                .map_err(|_| last_err("SetClipboardData"))?;
-            Ok(())
+            set_clipboard_hglobal(h)
         })();
         let _ = CloseClipboard();
-        result.map(|_| ())
+        result
     }
 }
 
@@ -161,10 +168,7 @@ mod tests {
         // Only safe to run where we may touch the user's clipboard: it saves
         // and restores whatever was there. Serialized against the
         // delayed-render tests via the same lock (they share the clipboard).
-        let _guard = super::super::win32_delayed::CLIPBOARD_TEST_LOCK
-            .get_or_init(|| std::sync::Mutex::new(()))
-            .lock()
-            .unwrap_or_else(|p| p.into_inner());
+        let _guard = crate::clip::win32_delayed::lock_clipboard();
         let before = super::snapshot_best_effort();
         super::copy_now(b"rpass-test-123").unwrap();
         let got = super::snapshot_best_effort().unwrap();

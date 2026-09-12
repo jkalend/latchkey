@@ -1,5 +1,8 @@
 //! Platform detection and routing (ADR-0008).
 
+#[cfg(not(windows))]
+use std::path::Path;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Platform {
     Windows,

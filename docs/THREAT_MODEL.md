@@ -1,7 +1,7 @@
 # Threat Model
 
-**Status:** Draft v0.1 — pre-implementation
-**Covers:** rust_password_manager v1
+**Status:** Current pre-release implementation (`rpass` 0.1.0)
+**Covers:** Current `main` branch
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
 ---
@@ -67,9 +67,9 @@ boundaries above are where threats live.
 5. **Naive backup/sync tooling.** The user may place the vault in a synced
    or backed-up folder. The vault file must be safe to leak *as a file*
    (it is — AEAD-encrypted), and concurrent-write corruption must be
-   prevented (atomic replace, §6.4).
+   prevented (atomic replace, §5.5).
 6. **Ourselves.** Accidental plaintext-to-disk (logs, temp files, debug
-   prints) is the most likely real-world failure. Mitigations in §6.5.
+   prints) is the most likely real-world failure. Mitigations in §5.6.
 
 ## 4. Explicit non-goals
 
@@ -113,37 +113,38 @@ These are **not defended against**, stated plainly so nobody relies on them:
   `powershell.exe Set-Clipboard`), which puts plaintext on the Windows side
   and into a process argument observed by WSL interop logging.
 - **Mitigations:**
-  - Auto-clear timeout (default **30 s**, CLI-configurable) restores
-    the pre-copy clipboard content where the platform API allows, else
-    clears.
+  - Auto-clear timeout (default **30 s**, CLI-configurable). On expiry
+    the pre-copy clipboard content is restored — but **only if the
+    clipboard still holds our value** (content compare in every
+    backend); anything the user copied in the meantime is left alone.
   - **Native Windows: delayed rendering** (`SetClipboardData` with NULL)
     — the clipboard holds only a promise to render. Two consequences: the
     secret isn't a static clipboard value while the timer runs (a paste
-    target pulls it on demand), and **process death clears the entry
-    automatically** — a dead process can't render, so the OS treats the
-    clipboard as empty. Terminal close, kill, or sleep does not strand
-    the secret.
-  - **WSL: hard copy via `clip.exe`** — delayed rendering is not
-    available across the WSL boundary. If the `rpass copy` process dies
-    on WSL before the timeout fires, the secret stays in the clipboard
-    until the 30 s auto-clear fires — bounded by design, not an
-    unbounded leak as the 15 s-default version of this risk was.
-    Accepted and documented; the mitigation advice is to run rpass
-    natively on Windows or manually clear (`echo. | clip.exe`).
+    target pulls it on demand), and **process death before the first
+    paste clears the entry** — a dead process can't render, so the OS
+    treats the clipboard as empty. After a paste has been served, the
+    rendered value is static and survives death; clearing then depends
+    on the timeout restore (or Ctrl-C, below).
+  - **Windows Ctrl-C:** a console control handler runs the normal
+    close + restore path and exits (status 130).
+  - **WSL: hard copy via PowerShell `Set-Clipboard`** (secret piped as
+    UTF-16LE-in-base64 over stdin — Unicode-exact, never on a command
+    line) — delayed rendering is not available across the WSL boundary.
+    If the `rpass copy` process dies on WSL before the timeout fires,
+    the secret stays in the clipboard **until the next copy overwrites
+    it** — not bounded by the timeout. Accepted and documented; the
+    mitigation advice is to run rpass natively on Windows, or use a
+    shorter `--timeout`.
   - **Plain Linux: best-effort.** Detected by the absence of WSL env
     vars (ADR-0008), then clipboard via `wl-copy` (Wayland) or
-    `xclip`/`xsel` (X11), probed at runtime. Auto-clear parity:
-    the X11 selection model means process-exit clears the clipboard
-    — *better* than Windows native, not a regression; Wayland's
-    clear-blank-on-timeout also applies. If no Linux clipboard tool is
-    found, `copy`/`totp --copy` fails with a clear error. Linux
-    clipboard parity is documented in the README; we do not claim it as
-    a supported platform.
+    `xclip`/`xsel` (X11), probed at runtime. The helper tool owns the
+    selection; if rpass dies before the timeout, the helper keeps
+    serving the secret until the next copy — same residual as WSL. If
+    no Linux clipboard tool is found, `copy`/`totp --copy` fails with a
+    clear error. Linux clipboard parity is not claimed as supported.
   - Print a warning at copy time if Windows Clipboard History appears
     enabled (detectable via registry
     `HKCU\Software\Microsoft\Clipboard` — probe only, never write).
-  - WSL copy goes through `clip.exe` stdin (never a command-line argument),
-    so the secret does not appear in process listings or WSL interop logs.
   - Document, don't hide: the TUI guide tells users Clipboard History
     defeats auto-clear and how to exclude the app or disable history.
 - **Residual risk:** Clipboard History users; WSL users whose process
@@ -155,14 +156,15 @@ These are **not defended against**, stated plainly so nobody relies on them:
 - **Threat:** secrets in process memory leak via swap, crash dumps,
   hibernation files, or `/proc/<pid>/mem` access by same-user processes.
 - **Mitigations:**
-  - Zeroize all key and plaintext buffers on drop (`zeroize` crate); typed
-    secret wrappers (`secrecy`) so no accidental `Debug`/`Display` leaks.
-  - Decrypt one item at a time; never hold the whole vault plaintext.
-  - Windows: attempt to opt out of crash reporting for the process;
-    best-effort.
-  - `mlock` equivalent: best-effort (`VirtualLock` on Windows, `mlock` on
-    Linux) with honest caveats — limits are small and the OS may refuse.
-    Not a guarantee; documented as such.
+  - Zeroize key and plaintext buffers on drop where their owning types
+    permit it; typed secret wrappers prevent accidental key formatting.
+  - Normal lookup decrypts one item at a time. Export and DEK rotation
+    intentionally materialize all live items for the duration of the
+    operation.
+  - Keep unlock lifetimes short; the TUI drops its vault on idle lock.
+  - Page locking and crash-dump suppression are not implemented. The
+    project does not claim protection from swap, hibernation, or crash
+    artifacts.
 - **WSL-specific:**
   - Linux swap under WSL2 lives in a swap file the Windows host controls
     (`%USERPROFILE%\AppData\Local\Temp\swap.vhdx` on the Windows side —
@@ -176,26 +178,30 @@ These are **not defended against**, stated plainly so nobody relies on them:
 
 ### 5.4 Metadata leakage
 
-- **Threat:** the vault file's unencrypted header reveals item count, and —
-  if item titles/usernames are only body-encrypted but length-ordered — an
-  observer of the *file* learns little, but an observer of *synchronized
-  copies over time* could correlate sizes/counts.
-- **Mitigation:** header contains only crypto parameters, salt, and a
-  MAC. Item count and all item metadata are inside the encrypted body.
-  Per-item ciphertext lengths leak plaintext length bounds — accepted,
-  standard (same as TLS records).
-- **Residual:** length-based correlation against sync history. Accepted.
+- **Threat:** the plaintext item framing exposes slot count and ciphertext
+  lengths. An observer of synchronized copies can correlate additions,
+  removals, and approximate field-size changes over time.
+- **Mitigation:** titles, usernames, timestamps, and secret values remain
+  inside authenticated ciphertext. Only the structural values needed to
+  walk the file are visible.
+- **Residual:** item count and length-based correlation against sync
+  history. Accepted.
 
 ### 5.5 Vault file corruption / torn writes
 
 - **Threat:** crash mid-write, or two invocations writing concurrently
   (including a Windows-side process touching the file via `\\wsl$`).
-- **Mitigation:** write-to-temp + fsync + atomic rename; a lock is
-  *advisory only* (fcntl on Linux; on Windows, opened with share modes
-  that conflict — noting the WSL boundary means the Windows side can still
-  bypass it). AEAD tags make silent corruption detectable — a torn write
-  fails authentication rather than yielding garbage plaintext.
-- **Residual:** last-write-wins between concurrent invocations (no merge);
+- **Mitigation:** write-to-temp + fsync + atomic rename. A sibling
+  `${vault}.lock` is acquired exclusively for the complete read/modify/write
+  cycle, preventing same-tool concurrent writes. Cross-boundary writers
+  (Windows-side processes editing via `\\wsl$`) can bypass it. AEAD tags make
+  silent corruption detectable — a torn write fails authentication rather than
+  yielding garbage plaintext. Additionally, `save` refuses to write when the
+  on-disk trailer CRC no longer matches what this session last read or
+  wrote — a long-lived session (e.g. the TUI) cannot silently clobber
+  another session's committed changes (multi-session lost-update guard).
+- **Residual:** the staleness guard covers same-tool sessions; writers that
+  bypass the lock entirely can still force last-write-wins (no merge) —
   documented, single-user tool.
 
 ### 5.6 Accidental plaintext on disk
@@ -225,9 +231,8 @@ These are **not defended against**, stated plainly so nobody relies on them:
   after parsing. Codes generated on demand and printed/copied only with
   the same reveal discipline as passwords.
 - **Clipboard nuance:** a 6-digit code is short-lived (30 s window), so
-  the ADR-0003 15 s auto-clear is more than sufficient — the code is
-  typically expired by the time the clipboard clears. Residual risk:
-  negligible.
+  the 30 s auto-clear is aligned with the TOTP period. Residual risk:
+  clipboard history can retain the code.
 - **Clock:** TOTP validity depends on local clock accuracy; skewed
   clocks generate rejected codes (an availability nuisance, not a
   confidentiality threat). No network time sync by design
@@ -245,19 +250,21 @@ These are **not defended against**, stated plainly so nobody relies on them:
 
 | # | Threat | Mitigation | Residual |
 |---|--------|------------|----------|
-| 5.1 | Stolen vault file | Argon2id ≥1s, 128-bit salt | Weak master password |
-| 5.2 | Clipboard persistence | 15 s auto-clear, history detection warning, stdin-based WSL copy | Clipboard History users |
-| 5.3 | Memory/swap/dumps | zeroize, secrecy, one-item-at-a-time, best-effort locking | Funded local attacker |
-| 5.4 | Metadata | All item data inside encrypted body; header is params only | Ciphertext lengths |
-| 5.5 | Torn writes | Atomic replace + fsync; AEAD integrity | Concurrent last-write-wins |
-| 5.6 | Plaintext to disk | No secret logging; ciphertext-only temp files | — |
+| 5.1 | Stolen vault file | Argon2id ≥1s, bounded header parameters, 128-bit salt | Weak master password |
+| 5.2 | Clipboard persistence | 30 s auto-clear, history detection warning, stdin-based WSL copy | Clipboard History users |
+| 5.3 | Memory/swap/dumps | zeroization, redacted formatting, short unlock lifetime | Swap, hibernation, crash artifacts |
+| 5.4 | Metadata | Titles, usernames, timestamps, and secrets encrypted | Item count and ciphertext lengths |
+| 5.5 | Torn/stale writes | Atomic replace + fsync + write lock + stale-session guard | Lock-bypassing external writers |
+| 5.6 | Plaintext to disk | No secret logging; ciphertext-only temp files; restrictive permissions | Explicit plaintext exports |
 | 5.7 | CLI arg leakage | No secret arguments, ever | — |
 | 5.8 | Generator bias | OS CSPRNG + rejection sampling | — |
 
-## 7. Out-of-scope decisions deferred to ADRs
+## 7. Deferred decisions
 
-- Unlock model: per-process vs. agent daemon (leaning **per-process** for
-  v1 — smallest attack surface; revisit if UX demands).
-- Sync: explicitly *bring-your-own*; the format is designed to be safe as
-  an opaque file under naive sync (atomic writes, no partial states).
-- Import from other managers: desired for v1.x, post-v1.
+- The unlock model remains per-process for 0.2.0. A resident agent or daemon
+  would enlarge the memory-exposure and IPC attack surfaces.
+- Sync remains explicitly bring-your-own; the format is safe as an opaque file
+  under naive sync (atomic writes, no partial states).
+- Bitwarden JSON and KeePassXC CSV imports are proposed for 0.2.0 through the
+  existing local, preview-and-confirm path
+  ([next-release proposal](NEXT_RELEASE.md#43-imports-from-established-managers)).

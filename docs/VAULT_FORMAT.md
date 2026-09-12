@@ -1,7 +1,7 @@
 # Vault File Format
 
-**Status:** Draft v0.1 — pre-implementation
-**Covers:** format version 1 (`RPV1`)
+**Status:** Implemented; not yet publicly released
+**Covers:** Format version 1 (`RPv1`)
 **Companion specs:** [CRYPTO_SPEC.md](CRYPTO_SPEC.md), [THREAT_MODEL.md](THREAT_MODEL.md)
 
 > This is a byte-level specification. The success criterion: an
@@ -16,9 +16,9 @@
 1. **Per-item encryption** — each item is an independent AEAD ciphertext.
    Rationale: item-level nonces (CRYPTO_SPEC §5), partial decryption for
    `list`/TUI without touching secrets, and crash-safe single-item rewrites.
-2. **Metadata is encrypted** — item count and titles live inside
-   ciphertext (THREAT_MODEL §5.4). The header contains crypto parameters
-   only.
+2. **Sensitive metadata is encrypted** — titles and usernames live in the
+   encrypted index (THREAT_MODEL §5.4). Slot count and ciphertext lengths
+   remain visible as framing metadata.
 3. **Safe as an opaque file under naive sync** — a partially-synced file
    must fail authentication cleanly, never yield garbage.
 4. **Upgradable parameters** — KDF params and algorithm IDs live in the
@@ -28,18 +28,21 @@
 
 ```
 ┌───────────────────────────┐  offset 0
-│  Magic + version ("RPv1") │  4 bytes — the ONLY unauthenticated data
+│  Magic + version ("RPv1") │  4-byte parser selector
 ├───────────────────────────┤
-│  Header (length-prefixed) │  plaintext, self-authenticating via §4.3
+│  Fixed header             │  crypto parameters + wrapped DEK, 117 total
 ├───────────────────────────┤
 │  Index (encrypted)        │  one AEAD ciphertext; maps ids → slots
 ├───────────────────────────┤
-│  Items (encrypted)        │  N independent AEAD ciphertexts, fixed
-│                            │  ordering, tombstone-capable
+│  Items (encrypted)        │  N independent AEAD ciphertexts
 ├───────────────────────────┤
-│  Trailer                  │  32-byte file hash + item count
+│  Trailer                  │  u32 slot count + u32 CRC32C
 └───────────────────────────┘
 ```
+
+Readers refuse vault files larger than 64 MiB before parsing. v1 targets
+hundreds of credentials; this bound prevents a corrupt or hostile file
+from causing unbounded allocation.
 
 ## 3. Magic and version
 
@@ -53,9 +56,10 @@ Offset  Length  Value
 - The version byte selects the parser. Readers must reject versions they
   don't know with a specific, actionable error ("vault is version N, this
   build supports 1").
-- The magic is the only field not covered by authentication. It is parsed
-  defensively and used solely to select the parser — nothing derived from
-  it is security-relevant.
+- Magic, version, and `future_pad` are outside the wrapped-DEK AAD.
+  Magic/version select the parser; unknown values are rejected.
+  `future_pad` must be all zero, so unauthenticated extensions are never
+  silently accepted.
 
 ## 4. Header
 
@@ -72,13 +76,13 @@ Offset  Length  Field
 4       1       kdf_id       (0x01 = Argon2id)
 5       1       wrap_alg_id  (0x01 = AES-256-GCM, 0x02 = ChaCha20-Poly1305)
 6       1       item_alg_id  (same encoding as wrap_alg_id)
-7       3       reserved     (zero; readers must ignore, not reject)
+7       3       reserved     (byte 0 = 0xA5 for v2 item framing; zero means legacy framing)
 10      4       argon2_m     (MiB, u32; must be ≥ 8)
 14      4       argon2_t     (iterations, u32; must be ≥ 1)
 18      1       argon2_p     (lanes, u8; must be ≥ 1)
 19      16      kdf_salt     (random per vault)
 35      4       enc_counter  (u32 — encryptions under current DEK; §5)
-39      12      wrap_nonce   (96-bit; zero for KEK-wrapped DEK, see CRYPTO_SPEC §5)
+39      12      wrap_nonce   (96-bit random nonce for KEK-wrapped DEK)
 51      32      wrapped_dk   (DEK ciphertext — 32-byte DEK)
 83      16      wrap_tag     (AEAD tag over the wrapped-DEK record)
 99      18      future_pad   (zero; reserved for v1.x fields without a bump)
@@ -86,23 +90,22 @@ Offset  Length  Field
 
 `wrapped_dk` holds the 32-byte DEK ciphertext; `wrap_tag` is the separate
 16-byte AEAD tag over the wrapped-DEK record (the tag is not appended to
-`wrapped_dk`). Total header size: **117 bytes** — this is the exact range
-§4.3 authenticates.
+`wrapped_dk`). Total header size is **117 bytes**; §4.3 defines the
+authenticated subset.
 
 ### 4.2 Field semantics
 
 - `argon2_m/t/p` — the exact parameters used to derive the KEK from the
   master password. Stored plaintext deliberately: needed before any key
-  exists. A floor is enforced on read (CRYPTO_SPEC §3).
+  exists. Read-time floors and resource ceilings are enforced before
+  Argon2 runs (CRYPTO_SPEC §3).
 - `kdf_salt` — 128-bit, CSPRNG, generated at `init`, never reused across
   vaults.
 - `enc_counter` — incremented on every item encryption under the current
   DEK. When it reaches 2^24, writers must refuse and instruct the user to
   run `rotate` (CRYPTO_SPEC §5 backstop).
-- `wrap_nonce` — reserved field. For v1 it is written as 32 zero bytes
-  (a 96-bit zero nonce) because the KEK-wrapped-DEK operation is
-  one-per-KEK. The field exists so a future version can move to
-  randomized wrapping without a format break.
+- `wrap_nonce` — 96-bit nonce for the KEK-wrapped DEK. Legacy v1 writers
+  zeroed this field; v2 writers generate it randomly.
 - `wrap_alg_id` / `item_alg_id` — wrap algorithm for the DEK record, and
   the algorithm all items are encrypted with. Independent choices,
   recorded separately (CRYPTO_SPEC §4).
@@ -114,10 +117,11 @@ byte range from offset 4 through `wrap_nonce` inclusive (everything the
 reader must consume *before* attempting the unwrap). Consequences, all
 normative:
 
-- Flipping any KDF parameter, algorithm ID, or the salt → unwrap fails.
-- Truncating or extending the header → unwrap fails.
-- The header needs no separate MAC — its integrity is transitive through
-  the wrapped-DEK tag (this resolves CRYPTO_SPEC §12.2: **folded in**).
+- Flipping any KDF parameter, algorithm ID, salt, counter, or wrap nonce
+  causes wrapped-DEK authentication to fail.
+- The wrapped DEK is authenticated as AEAD ciphertext. The zero-only
+  `future_pad` policy covers the remaining reserved bytes without
+  claiming they are AEAD-authenticated.
 
 ## 5. Index
 
@@ -155,9 +159,9 @@ uniqueness.
 - **AAD:** vault version + a domain-separation byte `0x49` (`'I'`) so an
   index ciphertext can never be replayed as an item ciphertext or vice
   versa (see §6.2).
-- Tombstones exist so `item_id`s remain unique across deletions without
-  renumbering. The writer compacts tombstones away when they exceed half
-  the live entries (a rewrite, atomic per §8).
+- Tombstones remain serialized as state `0x02`; they are never filtered or compacted,
+  so `item_id` allocation stays monotonic across deletes. Rotation rewrites
+  tombstone frames under the new DEK.
 
 ## 6. Items
 
@@ -166,51 +170,45 @@ uniqueness.
 The items region is a slot count followed by fixed-structure slots.
 Slot addressing comes from the index (§5); the region itself is:
 
-```
 u32                        slot_count
 repeated slot_count:
   12       nonce           (stored plaintext; nonces are not secret)
-  u32      ct_len
-  [ct_len] ciphertext      (encrypted ItemRecord)
-  16       tag
+  u32      ct_len          (ciphertext bytes only)
+  [ct_len] ciphertext
+  16       tag             (separate AEAD tag)
 ```
 
-A rejected alternative — nonce-less slots with a shared nonce stored once
-per region — was discarded because per-slot stored nonces make each slot
-independently rewriteable (§6.3 compaction, single-item edits).
+The v2 framing keeps the tag separate from the ciphertext length. Readers accept
+legacy v1 frames whose `ct_len` included the tag, then migrate them on the next
+write.
 
 ### 6.2 ItemRecord (plaintext schema)
 
-```
-str       password        (length-prefixed UTF-8, max 1024 bytes)
-str       url             (length-prefixed UTF-8, max 2048 bytes, may be empty)
-str       notes           (length-prefixed UTF-8, max 8 KiB)
-opt       totp            (optional, length-prefixed; see below)
+opt-bytes password        (1-byte presence, then u32 length + raw bytes; max 1024)
+str       url              (u16 length-prefixed UTF-8, max 2048 bytes, may be empty)
+opt-bytes notes            (1-byte presence, then u32 length + raw bytes; max 8 KiB)
+opt       totp              (1-byte presence; see below)
 u64       created_unix
 u64       modified_unix
 u32       item_id         (mirrors the index entry — cross-checked on read)
+
+Optional byte fields use `0x00` absent or `0x01` followed by a big-endian
+`u32` byte length and raw bytes. URL and all index strings use a big-endian
+`u16` byte length.
+
+**TOTP field:** present only when the item has an authenticator secret:
+
+```
+u32       totp_secret_len (max 128)
+[len]     raw decoded secret bytes
+u32       totp_period    (seconds; must be > 0)
+u32       totp_digits    (6 or 8)
+u8        totp_alg       (0x01 SHA1, 0x02 SHA256, 0x03 SHA512)
 ```
 
-**TOTP field:** present only when the item has an authenticator secret
-(optional fields use a 1-byte presence tag — `0x00` absent, `0x01`
-present followed by the length-prefixed payload). The payload is the
-base32-encoded TOTP shared secret plus parameters, stored as its own
-length-prefixed sub-record:
+The secret is decoded from base32 before serialization; base32 text never
+appears in the item plaintext.
 
-```
-str       totp_secret     (base32, max 128 bytes plaintext-decoded)
-u32       totp_period    (seconds; default 30)
-u32       totp_digits     (6 or 8; default 6)
-str       totp_alg        ("SHA1" | "SHA256" | "SHA512"; default SHA1)
-```
-
-- `totp_secret` is a secret at the same level as `password` — same
-  ItemRecord encryption, same memory-hygiene rules.
-- Non-default parameter values are always written explicitly; defaults
-  are assumed on read so most records stay small.
-- The base32 is decoded to raw bytes before the sub-record is
-  serialized (the stored form is raw key bytes, not the base32
-  string), so `str` here means raw bytes with a length prefix.
 
 - **AAD for each item:** vault version + domain byte `0x53` (`'S'` for
   secret) + the item's `item_id` from the index. Domain separation means:
@@ -222,11 +220,11 @@ str       totp_alg        ("SHA1" | "SHA256" | "SHA512"; default SHA1)
   `bincode`, whose output is Rust-implementation-defined. (Serde may be
   used internally, but the on-disk bytes are defined by this document.)
 
-### 6.3 Compaction
+### 6.3 Slot stability
 
-Deletes tombstone slots and their ciphertexts during a full rewrite when
-the tombstone ratio (§5) or `enc_counter` limits are hit. Compaction and
-rotation renumber slots and rewrite the index atomically (§8).
+Deletes retain tombstone slots and encrypted placeholder frames. There is no
+automatic compaction in v1; rotation rewrites every slot atomically while
+preserving the tombstone records and monotonic item IDs.
 
 ## 7. Trailer
 
@@ -252,13 +250,12 @@ u32    crc32c          (over the whole preceding file)
 3. Atomically rename over the old vault.
 4. `fsync` the containing directory.
 
-- On crash before step 3: old vault intact, temp orphaned — the next run
-  deletes stale temp files matching the `rpass` prefix pattern in the
-  vault directory.
-- Advisory locking (Windows share modes; `fcntl` locks on Linux) prevents
-  same-tool concurrent writes. Cross-boundary writers (Windows-side
-  processes editing via `\\wsl$`) can bypass locks — accepted
-  (THREAT_MODEL §5.5, last-write-wins).
+- On crash before step 3: old vault intact; the deterministic temp path is
+  safely overwritten by the next write.
+- A sibling `${vault}.lock` is opened and held with an exclusive OS file lock
+  for the complete read/modify/write cycle, preventing same-tool concurrent
+  writes. Cross-boundary writers (Windows-side processes editing via `\\wsl$`)
+  can bypass the lock; this is accepted (THREAT_MODEL §5.5, last-write-wins).
 - **Sync-safety:** because rename is atomic, a sync tool observes either
   the complete old file or the complete new file — never a hybrid.
 
@@ -266,8 +263,9 @@ u32    crc32c          (over the whole preceding file)
 
 1. ~~Header length-prefix encoding~~ — **resolved:** fixed-size 117-byte
    header (§4.1).
-2. Confirm per-slot stored nonce framing (§6.1) once a reference
-   implementation round-trips it.
+2. ~~Per-slot stored nonce framing~~ — **resolved:** v2 separates the
+   ciphertext length from the 16-byte AEAD tag; readers migrate legacy
+   inline-tag frames (§6.1).
 3. Should the index be split per-page for large vaults? v1 says no —
    hundreds of items in one AEAD ciphertext is fine; revisit above ~10k.
 4. Keyfile support (a second factor file)? Deferred post-v1; the header's

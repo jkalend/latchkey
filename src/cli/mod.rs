@@ -41,6 +41,24 @@ pub struct Cli {
     command: Option<Command>,
 }
 
+/// `--totp-alg` choices; maps to the vault's `TotpAlgorithm`.
+#[derive(Clone, Copy, Debug, clap::ValueEnum)]
+enum TotpAlgArg {
+    Sha1,
+    Sha256,
+    Sha512,
+}
+
+impl TotpAlgArg {
+    fn algorithm(self) -> crate::vault::shape::TotpAlgorithm {
+        match self {
+            TotpAlgArg::Sha1 => crate::vault::shape::TotpAlgorithm::Sha1,
+            TotpAlgArg::Sha256 => crate::vault::shape::TotpAlgorithm::Sha256,
+            TotpAlgArg::Sha512 => crate::vault::shape::TotpAlgorithm::Sha512,
+        }
+    }
+}
+
 #[derive(Subcommand)]
 enum Command {
     /// Create a new vault; prompts for the master password twice
@@ -56,17 +74,20 @@ enum Command {
         username: Option<String>,
         #[arg(long)]
         url: Option<String>,
-        /// Notes on the command line (not classified as secrets — documented trade-off)
-        #[arg(long)]
-        notes: Option<String>,
+        /// Notes; without a value, open $EDITOR.
+        #[arg(long, num_args = 0..=1, default_missing_value = "")]
+        notes: Option<Option<String>>,
         /// Generate the password per ADR-0006 instead of prompting
         #[arg(long)]
         generate: bool,
         /// Prompt for a TOTP secret (base32, hidden)
         #[arg(long)]
         totp: bool,
+        /// TOTP algorithm for --totp (SHA1 with 30s/6 digits by default)
+        #[arg(long, value_enum, requires = "totp")]
+        totp_alg: Option<TotpAlgArg>,
         /// Take the TOTP secret from an otpauth:// URI instead (prompted hidden)
-        #[arg(long)]
+        #[arg(long, conflicts_with_all = ["totp", "totp_alg"])]
         totp_uri: bool,
     },
     /// List titles + usernames; never decrypts secrets
@@ -80,9 +101,9 @@ enum Command {
         #[arg(long)]
         reveal: bool,
         /// Copy to clipboard instead of printing (default behavior)
-        #[arg(long)]
+        #[arg(long, conflicts_with = "reveal")]
         copy: bool,
-        #[arg(long, default_value = "30")]
+        #[arg(long, default_value_t = clip::env_timeout_default())]
         timeout: u64,
     },
     /// Copy a secret to the clipboard; auto-clears (ADR-0003)
@@ -90,20 +111,20 @@ enum Command {
         title: String,
         #[arg(long)]
         id: Option<u32>,
-        #[arg(long, default_value = "30")]
+        #[arg(long, default_value_t = clip::env_timeout_default())]
         timeout: u64,
     },
     /// Generate a password (ADR-0006 presets)
     Generate {
         #[arg(long)]
         length: Option<usize>,
-        #[arg(long)]
+        #[arg(long, conflicts_with_all = ["passphrase", "hex"])]
         symbols: bool,
-        #[arg(long)]
+        #[arg(long, conflicts_with_all = ["symbols", "hex"])]
         passphrase: bool,
         #[arg(long)]
         words: Option<usize>,
-        #[arg(long)]
+        #[arg(long, conflicts_with_all = ["symbols", "passphrase"])]
         hex: bool,
         /// Exclude 0/O/o/I/l/1 (reduces entropy slightly)
         #[arg(long)]
@@ -111,7 +132,7 @@ enum Command {
         /// Copy to clipboard instead of printing
         #[arg(long)]
         copy: bool,
-        #[arg(long, default_value = "30")]
+        #[arg(long, default_value_t = clip::env_timeout_default())]
         timeout: u64,
     },
     /// Show the current TOTP code for an item
@@ -140,16 +161,20 @@ enum Command {
         username: Option<String>,
         #[arg(long)]
         url: Option<String>,
-        #[arg(long)]
-        notes: Option<String>,
+        /// Notes; without a value, open $EDITOR.
+        #[arg(long, num_args = 0..=1, default_missing_value = "")]
+        notes: Option<Option<String>>,
         /// Generate a new password per ADR-0006 instead of prompting
         #[arg(long)]
         generate: bool,
         /// Replace the TOTP secret (base32, prompted hidden)
         #[arg(long)]
         totp: bool,
+        /// TOTP algorithm for --totp (SHA1 with 30s/6 digits by default)
+        #[arg(long, value_enum, requires = "totp")]
+        totp_alg: Option<TotpAlgArg>,
         /// Replace the TOTP secret from an otpauth:// URI (prompted hidden)
-        #[arg(long)]
+        #[arg(long, conflicts_with_all = ["totp", "totp_alg"])]
         totp_uri: bool,
     },
     /// Raise KDF params to current policy and rotate the DEK
@@ -221,6 +246,7 @@ pub fn run(args: std::env::Args) -> i32 {
 }
 
 fn dispatch(cli: Cli) -> Result<()> {
+    let quiet = cli.quiet;
     let vault_path = vault_path::resolve(cli.vault.as_deref());
     // Bare `rpass` → the TUI (CLI_REFERENCE: tui is the interactive default).
     let command = cli.command.unwrap_or(Command::Tui);
@@ -233,6 +259,7 @@ fn dispatch(cli: Cli) -> Result<()> {
             notes,
             generate,
             totp: want_totp,
+            totp_alg,
             totp_uri,
         } => cmd_add(
             &vault_path,
@@ -243,6 +270,7 @@ fn dispatch(cli: Cli) -> Result<()> {
                 notes,
                 generate,
                 want_totp,
+                totp_alg,
                 want_totp_uri: totp_uri,
             },
         ),
@@ -253,8 +281,8 @@ fn dispatch(cli: Cli) -> Result<()> {
             reveal,
             copy,
             timeout,
-        } => cmd_get(&vault_path, &title, id, reveal, copy, timeout),
-        Command::Copy { title, id, timeout } => cmd_copy(&vault_path, &title, id, timeout),
+        } => cmd_get(&vault_path, &title, id, reveal, copy, timeout, quiet),
+        Command::Copy { title, id, timeout } => cmd_copy(&vault_path, &title, id, timeout, quiet),
         Command::Generate {
             length,
             symbols,
@@ -273,8 +301,9 @@ fn dispatch(cli: Cli) -> Result<()> {
             no_ambiguous,
             copy,
             timeout,
+            quiet,
         }),
-        Command::Totp { title, id, copy } => cmd_totp(&vault_path, &title, id, copy),
+        Command::Totp { title, id, copy } => cmd_totp(&vault_path, &title, id, copy, quiet),
         Command::Rm { title, id, purge } => cmd_rm(&vault_path, &title, id, purge),
         Command::Edit {
             title,
@@ -284,6 +313,7 @@ fn dispatch(cli: Cli) -> Result<()> {
             notes,
             generate,
             totp,
+            totp_alg,
             totp_uri,
         } => cmd_edit(
             &vault_path,
@@ -295,6 +325,7 @@ fn dispatch(cli: Cli) -> Result<()> {
                 notes,
                 generate,
                 want_totp: totp,
+                totp_alg,
                 want_totp_uri: totp_uri,
             },
         ),
@@ -311,10 +342,10 @@ fn dispatch(cli: Cli) -> Result<()> {
             yes,
         } => cmd_import(&vault_path, &format, &file, dry_run, yes),
         Command::Backup { out } => cmd_backup(&vault_path, out),
-        Command::Tui => {
-            crate::tui::run(vault_path);
-            Ok(())
-        }
+        Command::Tui => match crate::tui::run(vault_path, quiet) {
+            0 => Ok(()),
+            code => Err(CliError::Other(format!("TUI exited with status {code}"))),
+        },
     }
 }
 
@@ -387,9 +418,10 @@ struct AddArgs {
     title: String,
     username: Option<String>,
     url: Option<String>,
-    notes: Option<String>,
+    notes: Option<Option<String>>,
     generate: bool,
     want_totp: bool,
+    totp_alg: Option<TotpAlgArg>,
     want_totp_uri: bool,
 }
 
@@ -401,8 +433,10 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
         notes,
         generate,
         want_totp,
+        totp_alg,
         want_totp_uri,
     } = a;
+    let notes = resolve_notes(notes)?;
     let (mut vault, _pw) = open_vault(path)?;
 
     let username = match username {
@@ -432,16 +466,8 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
     let totp_rec = if want_totp_uri {
         Some(prompt_totp_uri()?)
     } else if want_totp {
-        let s = rpassword::prompt_password("TOTP secret (base32): ")
-            .map_err(|e| CliError::Other(format!("read totp secret: {e}")))?;
-        let secret = totp::validate_secret(&s, crate::vault::shape::TotpAlgorithm::Sha1)
-            .map_err(|e| CliError::Other(e.to_string()))?;
-        Some(crate::vault::shape::TotpSubRecord {
-            secret,
-            period: 30,
-            digits: 6,
-            algorithm: crate::vault::shape::TotpAlgorithm::Sha1,
-        })
+        let alg = totp_alg.unwrap_or(TotpAlgArg::Sha1).algorithm();
+        Some(prompt_totp_secret(alg)?)
     } else {
         None
     };
@@ -470,7 +496,7 @@ fn cmd_list(path: &std::path::Path) -> Result<()> {
         return Ok(());
     }
     for e in &vault.entries {
-        if e.state == 0xFF {
+        if e.state != crate::vault::shape::LIVE_STATE {
             continue;
         }
         println!("{:<6} {:<40} {}", e.item_id, e.title, e.username);
@@ -483,8 +509,9 @@ fn cmd_get(
     title: &str,
     id: Option<u32>,
     reveal: bool,
-    copy: bool,
+    _copy: bool,
     timeout: u64,
+    quiet: bool,
 ) -> Result<()> {
     let (mut vault, _pw) = open_vault(path)?;
     let entry = resolve::resolve_title(&vault, title, id)?;
@@ -495,28 +522,40 @@ fn cmd_get(
         .open_items
         .get(&entry.slot)
         .ok_or_else(|| CliError::Other("item not open".into()))?;
-    let pw = rec
-        .password
-        .clone()
-        .ok_or_else(|| CliError::Other("item has no password".into()))?;
-    let pw_str =
-        String::from_utf8(pw).map_err(|_| CliError::Other("password is not UTF-8".into()))?;
+    let pw = Zeroizing::new(
+        rec.password
+            .clone()
+            .ok_or_else(|| CliError::Other("item has no password".into()))?,
+    );
 
     if reveal {
-        eprintln!(
-            "warning: the secret is now in your terminal scrollback; clear it (or close the terminal) when done"
-        );
-        println!("{pw_str}");
+        // Printing must be UTF-8 text; copying is byte-exact and has no
+        // such requirement.
+        if std::str::from_utf8(&pw).is_err() {
+            return Err(CliError::Other(
+                "password is not UTF-8 — use `rpass copy` for a byte-exact copy".into(),
+            ));
+        }
+        let pw_str = Zeroizing::new(String::from_utf8(pw.to_vec()).expect("validated UTF-8"));
+        if !quiet {
+            eprintln!(
+                "warning: the secret is now in your terminal scrollback; clear it (or close the terminal) when done"
+            );
+        }
+        println!("{}", pw_str.as_str());
         Ok(())
-    } else if copy {
-        clip::copy_and_hold(pw_str.as_bytes(), timeout).map_err(|e| CliError::Other(e.to_string()))
     } else {
-        // Default per CLI_REFERENCE `rpass get`: clipboard, not stdout.
-        clip::copy_and_hold(pw_str.as_bytes(), timeout).map_err(|e| CliError::Other(e.to_string()))
+        clip::copy_and_hold_quiet(&pw, timeout, quiet).map_err(|e| CliError::Other(e.to_string()))
     }
 }
 
-fn cmd_copy(path: &std::path::Path, title: &str, id: Option<u32>, timeout: u64) -> Result<()> {
+fn cmd_copy(
+    path: &std::path::Path,
+    title: &str,
+    id: Option<u32>,
+    timeout: u64,
+    quiet: bool,
+) -> Result<()> {
     let (mut vault, _pw) = open_vault(path)?;
     let entry = resolve::resolve_title(&vault, title, id)?;
     vault
@@ -526,11 +565,12 @@ fn cmd_copy(path: &std::path::Path, title: &str, id: Option<u32>, timeout: u64) 
         .open_items
         .get(&entry.slot)
         .ok_or_else(|| CliError::Other("item not open".into()))?;
-    let pw = rec
-        .password
-        .clone()
-        .ok_or_else(|| CliError::Other("item has no password".into()))?;
-    clip::copy_and_hold(&pw, timeout).map_err(|e| CliError::Other(e.to_string()))
+    let pw = Zeroizing::new(
+        rec.password
+            .clone()
+            .ok_or_else(|| CliError::Other("item has no password".into()))?,
+    );
+    clip::copy_and_hold_quiet(&pw, timeout, quiet).map_err(|e| CliError::Other(e.to_string()))
 }
 
 /// All `rpass generate` flags in one struct (keeps cmd_generate at one arg).
@@ -543,6 +583,7 @@ struct GenerateArgs {
     no_ambiguous: bool,
     copy: bool,
     timeout: u64,
+    quiet: bool,
 }
 
 fn cmd_generate(a: GenerateArgs) -> Result<()> {
@@ -555,9 +596,10 @@ fn cmd_generate(a: GenerateArgs) -> Result<()> {
         no_ambiguous,
         copy,
         timeout,
+        quiet,
     } = a;
-    // Mutual exclusion is not enforced by clap here — last flag wins is bad;
-    // be explicit: hex > passphrase > symbols > default.
+    // Presets conflict at the clap level, so this precedence can never
+    // actually trigger for two flags at once — keep it as documentation.
     let preset = if hex {
         Preset::Hex
     } else if passphrase {
@@ -567,6 +609,24 @@ fn cmd_generate(a: GenerateArgs) -> Result<()> {
     } else {
         Preset::Alphanumeric
     };
+    // Flag sanity — not every preset accepts every knob; refuse silently
+    // ignored input instead of surprising the user.
+    if preset == Preset::Passphrase {
+        if length.is_some() {
+            return Err(CliError::Usage(
+                "--length only applies to character presets, not --passphrase".into(),
+            ));
+        }
+        if no_ambiguous {
+            return Err(CliError::Usage(
+                "--no-ambiguous only applies to character presets, not --passphrase".into(),
+            ));
+        }
+    } else if words.is_some() {
+        return Err(CliError::Usage(
+            "--words only applies with --passphrase".into(),
+        ));
+    }
     let spec = GenerateSpec {
         preset,
         length,
@@ -576,21 +636,30 @@ fn cmd_generate(a: GenerateArgs) -> Result<()> {
     let g = spec
         .generate()
         .map_err(|e| CliError::Other(e.to_string()))?;
+    let entropy_bits = g.entropy_bits;
+    let value = Zeroizing::new(g.value);
     if copy {
-        clip::copy_and_hold(g.value.as_bytes(), timeout)
-            .map_err(|e| CliError::Other(e.to_string()))?;
+        // Say it BEFORE the ~30s hold; printing after the clear reads like a lie.
         eprintln!(
-            "copied ({} bits); clipboard clears in {timeout}s",
-            g.entropy_bits as u64
+            "copying (~{} bits); clipboard clears in {timeout}s",
+            entropy_bits as u64
         );
+        clip::copy_and_hold_quiet(value.as_bytes(), timeout, quiet)
+            .map_err(|e| CliError::Other(e.to_string()))?;
     } else {
-        println!("{}", g.value);
-        eprintln!("~{} bits of entropy", g.entropy_bits as u64);
+        println!("{}", value.as_str());
+        eprintln!("~{} bits of entropy", entropy_bits as u64);
     }
     Ok(())
 }
 
-fn cmd_totp(path: &std::path::Path, title: &str, id: Option<u32>, copy: bool) -> Result<()> {
+fn cmd_totp(
+    path: &std::path::Path,
+    title: &str,
+    id: Option<u32>,
+    copy: bool,
+    quiet: bool,
+) -> Result<()> {
     let (mut vault, _pw) = open_vault(path)?;
     let entry = resolve::resolve_title(&vault, title, id)?;
     vault
@@ -607,7 +676,7 @@ fn cmd_totp(path: &std::path::Path, title: &str, id: Option<u32>, copy: bool) ->
     let now =
         totp::totp_now(&totp::TotpParams::from(t)).map_err(|e| CliError::Other(e.to_string()))?;
     if copy {
-        clip::copy_and_hold(now.code.as_bytes(), clip::DEFAULT_TIMEOUT_SECS)
+        clip::copy_and_hold_quiet(now.code.as_bytes(), clip::DEFAULT_TIMEOUT_SECS, quiet)
             .map_err(|e| CliError::Other(e.to_string()))
     } else {
         println!("{} ({}s remaining)", now.code, now.remaining);
@@ -633,29 +702,14 @@ fn cmd_rm(path: &std::path::Path, title: &str, id: Option<u32>, purge: bool) -> 
             return Err(CliError::Cancelled);
         }
     }
-    // Tombstone the entry and drop the item from the items region.
     let entry_idx = vault
         .entries
         .iter()
         .position(|e| e.item_id == entry.item_id)
         .ok_or_else(|| CliError::Other("entry vanished".into()))?;
-    vault.entries[entry_idx].state = 0xFF;
+    // Keep a tombstone so item IDs are never reused and slot counts remain stable.
+    vault.entries[entry_idx].state = crate::vault::shape::TOMBSTONE_STATE;
     vault.open_items.remove(&entry.slot);
-
-    // Compact tombstones when they exceed half the live entries (VAULT_FORMAT §5).
-    let live = vault.entries.iter().filter(|e| e.state != 0xFF).count();
-    let dead = vault.entries.len() - live;
-    if live > 0 && dead * 2 > vault.entries.len() {
-        vault.entries.retain(|e| e.state != 0xFF);
-        // Renumber slots densely.
-        for (i, e) in vault.entries.iter_mut().enumerate() {
-            let old_slot = e.slot;
-            if let Some(rec) = vault.open_items.remove(&old_slot) {
-                vault.open_items.insert(i as u32, rec);
-            }
-            e.slot = i as u32;
-        }
-    }
     vault.save().map_err(|e| CliError::Other(e.to_string()))?;
     println!("deleted item {}", entry.item_id);
     Ok(())
@@ -712,6 +766,65 @@ fn cmd_backup(path: &std::path::Path, out: Option<std::path::PathBuf>) -> Result
 fn _secret_box_marker(_: SecretBox<[u8]>) {}
 
 // ─── shared prompt helpers ──────────────────────────────────────────────────
+fn resolve_notes(value: Option<Option<String>>) -> Result<Option<String>> {
+    match value {
+        None => Ok(None),
+        Some(Some(text)) => Ok(Some(text)),
+        Some(None) => {
+            let editor = std::env::var_os("EDITOR")
+                .ok_or_else(|| CliError::Other("$EDITOR is not set".into()))?;
+            // Exclusive-create with retry: a predictable name in a shared
+            // temp dir is a pre-creation/symlink-clobber vector (CWE-377).
+            let mut path = std::env::temp_dir();
+            let mut opened = false;
+            for attempt in 0..100u32 {
+                path = std::env::temp_dir().join(format!(
+                    "rpass-notes-{}-{}-{}.txt",
+                    std::process::id(),
+                    unix_now(),
+                    attempt
+                ));
+                let mut opts = std::fs::OpenOptions::new();
+                opts.write(true).create_new(true);
+                #[cfg(unix)]
+                {
+                    // Owner-only: the buffer holds an unencrypted secret.
+                    use std::os::unix::fs::OpenOptionsExt;
+                    opts.mode(0o600);
+                }
+                match opts.open(&path) {
+                    Ok(_) => {
+                        opened = true;
+                        break;
+                    }
+                    Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                    Err(e) => {
+                        return Err(CliError::Other(format!("create editor buffer: {e}")));
+                    }
+                }
+            }
+            if !opened {
+                return Err(CliError::Other(
+                    "could not create a unique editor buffer in the temp dir".into(),
+                ));
+            }
+            let status = std::process::Command::new(editor)
+                .arg(&path)
+                .status()
+                .map_err(|e| CliError::Other(format!("launch $EDITOR: {e}")))?;
+            if !status.success() {
+                let _ = std::fs::remove_file(&path);
+                return Err(CliError::Other(format!("$EDITOR exited with {status}")));
+            }
+            let read = std::fs::read_to_string(&path);
+            let _ = std::fs::remove_file(&path);
+            let text = Zeroizing::new(
+                read.map_err(|e| CliError::Other(format!("read editor buffer: {e}")))?,
+            );
+            Ok(Some(text.to_string()))
+        }
+    }
+}
 
 /// Prompt for one line of (non-secret) text; empty input → empty string.
 fn prompt_line(label: &str) -> Result<String> {
@@ -734,26 +847,30 @@ fn prompt_totp_uri() -> Result<crate::vault::shape::TotpSubRecord> {
     );
     let p = totp::parse_otpauth_uri(&uri).map_err(|e| CliError::Other(e.to_string()))?;
     Ok(crate::vault::shape::TotpSubRecord {
-        secret: p.secret,
         period: p.period,
         digits: p.digits,
+        secret: p.secret.clone(),
         algorithm: p.algorithm,
     })
 }
 
-/// Prompt (hidden) for a base32 TOTP secret, SHA1 defaults.
-fn prompt_totp_secret() -> Result<crate::vault::shape::TotpSubRecord> {
+/// Prompt (hidden) for a base32 TOTP secret, validated against the selected
+/// algorithm's RFC 6238 length floor (SHA1 ≥ 10, SHA256 ≥ 16, SHA512 ≥ 32
+/// bytes — CLI_REFERENCE totp section).
+fn prompt_totp_secret(
+    algorithm: crate::vault::shape::TotpAlgorithm,
+) -> Result<crate::vault::shape::TotpSubRecord> {
     let s = Zeroizing::new(
         rpassword::prompt_password("TOTP secret (base32): ")
             .map_err(|e| CliError::Other(format!("read totp secret: {e}")))?,
     );
-    let secret = totp::validate_secret(&s, crate::vault::shape::TotpAlgorithm::Sha1)
-        .map_err(|e| CliError::Other(e.to_string()))?;
+    let secret =
+        totp::validate_secret(&s, algorithm).map_err(|e| CliError::Other(e.to_string()))?;
     Ok(crate::vault::shape::TotpSubRecord {
         secret,
         period: 30,
         digits: 6,
-        algorithm: crate::vault::shape::TotpAlgorithm::Sha1,
+        algorithm,
     })
 }
 
@@ -784,9 +901,10 @@ struct EditArgs {
     id: Option<u32>,
     username: Option<String>,
     url: Option<String>,
-    notes: Option<String>,
+    notes: Option<Option<String>>,
     generate: bool,
     want_totp: bool,
+    totp_alg: Option<TotpAlgArg>,
     want_totp_uri: bool,
 }
 
@@ -799,8 +917,10 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         notes,
         generate,
         want_totp,
+        totp_alg,
         want_totp_uri,
     } = a;
+    let notes = resolve_notes(notes)?;
     let (mut vault, _pw) = open_vault(path)?;
     let entry = resolve::resolve_title(&vault, &title, id)?;
     vault
@@ -859,7 +979,8 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
     let new_totp = if want_totp_uri {
         Some(prompt_totp_uri()?)
     } else if want_totp {
-        Some(prompt_totp_secret()?)
+        let alg = totp_alg.unwrap_or(TotpAlgArg::Sha1).algorithm();
+        Some(prompt_totp_secret(alg)?)
     } else {
         rec.totp.clone()
     };
@@ -952,11 +1073,11 @@ fn cmd_export(
     }
 
     let (mut vault, _pw) = open_vault(path)?;
-    let mut items = Vec::new();
+    let mut items: Zeroizing<Vec<String>> = Zeroizing::new(Vec::new());
     let live: Vec<crate::vault::shape::IndexEntry> = vault
         .entries
         .iter()
-        .filter(|e| e.state != 0xFF)
+        .filter(|e| e.state == crate::vault::shape::LIVE_STATE)
         .cloned()
         .collect();
 
@@ -973,7 +1094,7 @@ fn cmd_export(
     }
 
     let now = unix_now();
-    let mut body = String::with_capacity(items.len() * 256);
+    let mut body = Zeroizing::new(String::with_capacity(items.len() * 256));
     body.push_str("{\n  \"format_version\": 1,\n  \"exported_at\": ");
     body.push_str(&now.to_string());
     body.push_str(",\n  \"items\": {\n");
@@ -993,7 +1114,19 @@ fn cmd_export(
                 out.display()
             )));
         }
-        std::fs::write(&out, body.as_bytes())
+        let mut opts = std::fs::OpenOptions::new();
+        opts.write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            // Plaintext secrets on disk — owner-only, never the umask default.
+            use std::os::unix::fs::OpenOptionsExt;
+            opts.mode(0o600);
+        }
+        let mut f = opts
+            .open(&out)
+            .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
+        use std::io::Write as _;
+        f.write_all(body.as_bytes())
             .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
         eprintln!(
             "plaintext export written to {} — handle it carefully",

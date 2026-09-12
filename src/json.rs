@@ -11,10 +11,11 @@
 //! ("unrecognized top-level keys = ignored, forward-compat").
 
 use crate::crypto::error::{Error, Result};
+use zeroize::Zeroize;
 
 /// Parsed JSON value. Numbers are kept as f64 — the schema's numbers are
 /// item ids, unix timestamps, and TOTP parameters, all far below 2^53.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Zeroize)]
 pub enum Json {
     Null,
     Bool(bool),
@@ -58,6 +59,7 @@ pub fn parse(input: &str) -> Result<Json> {
     let mut p = Parser {
         bytes: input.as_bytes(),
         pos: 0,
+        depth: 0,
     };
     p.skip_ws();
     let v = p.value()?;
@@ -68,9 +70,16 @@ pub fn parse(input: &str) -> Result<Json> {
     Ok(v)
 }
 
+/// Hard nesting cap: `object`/`array` recurse, so unbounded depth on a
+/// hostile import file means stack exhaustion, not a clean error. 128 is
+/// far past any real export.
+const MAX_DEPTH: u32 = 128;
+const MAX_COLLECTION_LEN: usize = 10_000;
+
 struct Parser<'a> {
     bytes: &'a [u8],
     pos: usize,
+    depth: u32,
 }
 
 impl<'a> Parser<'a> {
@@ -89,9 +98,23 @@ impl<'a> Parser<'a> {
     }
 
     fn value(&mut self) -> Result<Json> {
+        if self.depth >= MAX_DEPTH {
+            return Err(self.err("nesting too deep (max 128 levels)"));
+        }
+        // Depth is bumped around the recursive call only; scalars don't nest.
         match self.peek() {
-            Some(b'{') => self.object(),
-            Some(b'[') => self.array(),
+            Some(b'{') => {
+                self.depth += 1;
+                let r = self.object();
+                self.depth -= 1;
+                r
+            }
+            Some(b'[') => {
+                self.depth += 1;
+                let r = self.array();
+                self.depth -= 1;
+                r
+            }
             Some(b'"') => Ok(Json::Str(self.string()?)),
             Some(b't') => self.literal("true", Json::Bool(true)),
             Some(b'f') => self.literal("false", Json::Bool(false)),
@@ -119,6 +142,9 @@ impl<'a> Parser<'a> {
             return Ok(Json::Obj(fields));
         }
         loop {
+            if fields.len() >= MAX_COLLECTION_LEN {
+                return Err(self.err("object has too many fields"));
+            }
             self.skip_ws();
             if self.peek() != Some(b'"') {
                 return Err(self.err("expected object key"));
@@ -159,6 +185,9 @@ impl<'a> Parser<'a> {
             return Ok(Json::Arr(items));
         }
         loop {
+            if items.len() >= MAX_COLLECTION_LEN {
+                return Err(self.err("array has too many items"));
+            }
             self.skip_ws();
             items.push(self.value()?);
             self.skip_ws();
@@ -348,6 +377,23 @@ mod tests {
         assert!(parse("tru").is_err());
         assert!(parse("1 2").is_err()); // trailing characters
         assert!(parse(r#"-x"#).is_err());
+    }
+
+    #[test]
+    fn nesting_depth_capped() {
+        // 100 levels parse fine; 500 levels error instead of overflowing the stack.
+        let ok = "[".repeat(100) + &"]".repeat(100);
+        assert!(parse(&ok).is_ok());
+        let too_deep = "[".repeat(500) + &"]".repeat(500);
+        let err = parse(&too_deep).unwrap_err().to_string();
+        assert!(err.contains("nesting too deep"), "{err}");
+    }
+
+    #[test]
+    fn collection_length_capped() {
+        let too_many = "[".to_string() + &"0,".repeat(MAX_COLLECTION_LEN) + "0]";
+        let err = parse(&too_many).unwrap_err().to_string();
+        assert!(err.contains("too many items"), "{err}");
     }
 
     /// The importer's realistic shape: an export schema v1 file.

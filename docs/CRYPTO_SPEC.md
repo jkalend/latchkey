@@ -1,7 +1,7 @@
 # Cryptography Specification
 
-**Status:** Draft v0.1 — pre-implementation
-**Covers:** rust_password_manager v1
+**Status:** Current pre-release implementation (`rpass` 0.1.0)
+**Covers:** Vault format 1 (`RPv1`)
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
 > This document is written to be reviewable without reading the code.
@@ -37,9 +37,9 @@ no C build friction on either of our platforms.
 random Data-Encryption-Key encrypts the actual items.
 
 - **Why:** changing the master password re-derives the KEK and re-wraps the
-  DEK (one small AEAD operation) instead of re-encrypting every item.
-  Also allows future key-rotation or multi-credential unlock without a
-  format break.
+  DEK without re-encrypting item frames. An explicit `rotate` operation
+  generates a new DEK and re-encrypts every slot under it.
+  This separation permits both operations without a format break.
 - The DEK is 256 bits, generated from the OS CSPRNG at vault creation.
 - The wrapped DEK is stored in the vault header, encrypted with the
   KEK under AEAD, with the header parameters as associated data (§7).
@@ -59,9 +59,12 @@ random Data-Encryption-Key encrypts the actual items.
   upgrades re-derive with new params and re-wrap the DEK — no vault
   re-encryption.
 - The `rotate` command raises KDF parameters to current policy.
-- A minimum-parameter floor is enforced on read: vaults with params below
-  the floor still open (with a warning) but cannot be re-saved without
-  upgrading.
+- Parameter **bounds are enforced on read**: below the floor (8 MiB,
+  t=1, p=1), above the individual ceiling (1024 MiB, t=64, p=8), or
+  above 8192 MiB-passes (`m × t`), the vault refuses to open. These
+  values apply before authentication can be checked, so both memory and
+  aggregate-work ceilings are required to keep a crafted header from
+  exhausting the machine.
 
 ## 4. AEAD algorithms
 
@@ -100,10 +103,9 @@ Per-item encryption, 96-bit nonces.
   milliseconds, and the write is atomic per VAULT_FORMAT §8. There is no
   multi-DEK or per-version mechanism — the format has exactly one
   `wrapped_dk` record.
-- The wrapped-DEK encryption uses a **fixed all-zero nonce**. This is safe
-  because the KEK is unique per master password (salted KDF) and the
-  wrapped-DEK operation happens exactly once per KEK — the (key, nonce)
-  pair is never reused.
+- The wrapped-DEK encryption uses a **fresh random 96-bit nonce** for each
+  header write. Reusing a nonce would be safe only with a fresh KEK, but
+  randomizing it keeps the invariant simple.
 
 ### Why not counters?
 
@@ -121,29 +123,27 @@ time-seeded anything.
 
 ## 6. Key memory hygiene
 
-- `zeroize` on every buffer holding a password, key, or plaintext item;
-  custom Drop where needed.
-- `secrecy` typed wrappers (`SecretVec<u8>`) — no `Debug`/`Display` for
-  secrets by construction.
-- Passwords are read into `SecretVec<u8>` and never into `String`.
-- One item decrypted at a time; the vault body is never fully materialized
-  in plaintext (see VAULT_FORMAT §4 — item-level addressing).
-- Best-effort page locking: `VirtualLock` (Windows) / `mlock` (Linux/WSL).
-  Small limits and OS refusal are expected; logged, not fatal. Never
-  claimed as a guarantee.
+- `zeroize` on buffers holding passwords, keys, or plaintext items;
+  custom `Debug` implementations redact secret fields.
+- `secrecy` typed wrappers for KEKs and DEKs.
+- Password prompts are converted immediately into zeroizing byte buffers.
+- Normal lookup decrypts one item at a time. Full export and DEK rotation
+  necessarily materialize every live item until the operation completes.
+- Page locking and crash-dump suppression are **not implemented**. The OS
+  may copy process memory into swap, hibernation, or crash artifacts; this
+  remains an explicit residual risk in THREAT_MODEL §5.3.
 
 ## 7. Integrity & authenticity — what the AEAD tag covers
 
-- **Authenticated (per item):** the entire plaintext item (title, username,
-  password, notes, metadata) + per-item AAD = vault version + item index.
-- **Authenticated (header):** the header MAC covers the full header
-  fields: version, salt, KDF params, algorithm IDs, and the wrapped-DEK
-  record (the wrapped DEK is itself AEAD-encrypted with the header fields
-  as its AAD — so tampering with any parameter fails at unwrap time, not
-  at item-decrypt time).
-- **Not authenticated:** nothing security-relevant. Unauthenticated data
-  is limited to the file magic + version byte, which are parsed
-  defensively and only select a parser.
+- **Authenticated (per item):** the entire plaintext item plus per-item
+  AAD = vault version + item ID. Titles and usernames are authenticated
+  separately inside the encrypted index.
+- **Authenticated (header):** bytes 4..51 are AAD for the wrapped-DEK
+  record; the wrapped DEK is authenticated as that record's ciphertext.
+- **Not authenticated by AEAD:** magic, version, and `future_pad`.
+  Readers use magic/version only for parser selection and require every
+  `future_pad` byte to be zero. The trailer CRC detects incomplete writes
+  but is not a cryptographic authenticator.
 
 **Tampering behavior (normative):** any authentication failure yields the
 same generic error — `vault corrupt or wrong password` — and no partial
@@ -155,9 +155,9 @@ vs. in an item, so an attacker cannot use failures as an oracle.
 | Op | Primitive | Key | Nonce |
 |---|---|---|---|
 | Derive KEK | Argon2id(m=64MiB, t≥1s, p=1, salt) | — | — |
-| Wrap DEK | AES-256-GCM (or ChaCha20-Poly1305) | KEK | zero nonce (§5) |
+| Wrap DEK | AES-256-GCM (or ChaCha20-Poly1305) | KEK | random 96-bit nonce |
 | Encrypt item | AES-256-GCM (or ChaCha20-Poly1305) | DEK | random 96-bit, per encryption |
-| Wrap DEK on rotation | same as wrap | new KEK | zero nonce (safe — fresh KEK) |
+| Wrap DEK on rotation | same as wrap | new KEK | random 96-bit nonce |
 | Password generation | OS CSPRNG + rejection sampling | — | — |
 | TOTP code generation | HMAC-SHA1/256/512 (RFC 6238), time-steped | TOTP secret (stored in ItemRecord) | counter = floor(unix/period) |
 
@@ -180,10 +180,11 @@ vs. in an item, so an attacker cannot use failures as an oracle.
   parameter in tests — never read from the wall clock in a test.
 - **Tamper tests:** flip a bit in header, wrapped-DEK ciphertext, item
   ciphertext, and tag — each must fail with the generic error.
-- **Cross-algorithm tests:** vault created with AES-GCM migrates to
-  ChaCha20-Poly1305 via `rotate`, then round-trips.
-- **KDF sanity:** NIST-style official Argon2 test vectors for the chosen
-  parameter set (from the PHC winner spec) pin the KDF implementation.
+- **Cross-algorithm tests:** vaults using AES-GCM and
+  ChaCha20-Poly1305 each round-trip. Algorithm migration is not exposed
+  by v1.
+- **KDF sanity:** a pinned Argon2id output produced by an independent
+  implementation verifies the wrapper's parameter and version mapping.
 - **Fuzzing:** the vault parser and the decrypt path get dedicated fuzz
   targets (corpus: valid vaults + single-bit mutations).
 - **Test vectors in-repo:** a `test-vectors/` directory with a small set

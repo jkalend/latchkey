@@ -11,6 +11,12 @@ vault is a single encrypted file on your own disk.
 > [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) for exactly what it does
 > and does not defend against.
 
+## Project status
+
+No public release has shipped. The crate is currently `0.1.0`; the proposed
+first public preview is [`0.2.0`](docs/NEXT_RELEASE.md). The package version,
+vault format version, and export schema version are tracked independently.
+
 ## Features
 
 - 🔒 **Encrypted vault** — a single file, protected with Argon2id key
@@ -21,8 +27,11 @@ vault is a single encrypted file on your own disk.
 - 📋 **Clipboard with auto-clear** — secrets copy to the clipboard and
   clear themselves after 30 seconds. On native Windows the copy uses
   **delayed rendering**: the secret is only handed to a paste target on
-  request, and process death clears the entry automatically; the pre-copy
-  clipboard contents are restored after the timeout
+  request (process death *before the first paste* clears the entry
+  automatically). After the timeout, the pre-copy clipboard contents are
+  restored — but only if the clipboard still holds our value, so anything
+  you copied in the meantime is never clobbered. Ctrl-C (native Windows)
+  clears and exits
   ([docs/adr/ADR-0003-clipboard-strategy.md](docs/adr/ADR-0003-clipboard-strategy.md)).
 - 🎲 **Password generation** — cryptographically secure, rejection-sampled
   from the OS CSPRNG, entropy-documented presets.
@@ -91,9 +100,9 @@ $ cargo build --release
 
 | Platform | Notes |
 |---|---|
-| Windows | Works natively; clipboard uses Win32 delayed rendering (the secret is served on WM_RENDERFORMAT, so process death clears it automatically) and restores the pre-copy clipboard after the timeout. Warns if Windows Clipboard History is enabled, since it defeats auto-clear. |
-| Linux (WSL2) | Clipboard goes through `clip.exe` stdin; secret never appears in process listings or interop logs. Auto-clear works while `rpass copy` lives; process death strands the secret (mitigation: run natively on Windows, or `echo. \| clip.exe`). See ADR-0008 for detection details. |
-| Plain Linux | **Best-effort** — clipboard via `wl-copy` (Wayland) or `xclip`/`xsel` (X11), probed at runtime. Auto-clear parity: X11's selection model clears the clipboard when the process exits; Wayland clears on timeout. Not a supported platform in the strict sense; X11/Wayland behavior is engineered but not release-tested. |
+| Windows | Works natively; clipboard uses Win32 delayed rendering (the secret is served on WM_RENDERFORMAT, so process death *before the first paste* clears it automatically). After the timeout the pre-copy clipboard is restored — only if the clipboard still holds our value (interim copies are left alone). Ctrl-C clears and exits. Warns if Windows Clipboard History is enabled, since it defeats auto-clear. |
+| Linux (WSL2) | Clipboard goes through PowerShell `Set-Clipboard` with the secret piped as UTF-16-in-base64 over stdin — Unicode-exact and never visible in process listings. Auto-clear restores prior text only if the clipboard still holds our value. Interrupting rpass mid-hold leaves the clipboard set until the next copy; prefer a shorter `--timeout` if that concerns you. |
+| Plain Linux | **Best-effort** — clipboard via `wl-copy` (Wayland) or `xclip`/`xsel` (X11), probed at runtime. Auto-clear overwrites the selection after the timeout, again only if it still holds our value. If rpass dies before the timeout, the helper tool keeps serving the secret until the next copy — clearing requires rpass to stay alive. Not a supported platform in the strict sense; X11/Wayland behavior is engineered but not release-tested. |
 | macOS | Out of scope for v1. |
 
 ## Vault location
@@ -132,4 +141,5 @@ decisions written down before the code.
 
 ## License
 
-TBD
+Dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE),
+at your option (matching `Cargo.toml`'s `license = "MIT OR Apache-2.0"`).

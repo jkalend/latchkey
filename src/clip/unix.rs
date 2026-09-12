@@ -1,4 +1,15 @@
 //! Plain-Linux clipboard backend — best-effort wl-copy → xclip/xsel (ADR-0003 §7).
+//!
+//! Ownership model (shared with the other backends since the review): the
+//! pre-copy clipboard is snapshotted; after the timeout the restore happens
+//! ONLY if the clipboard still holds our value (normalized content compare).
+//! If the user copied something else in the meantime, their clipboard is
+//! left alone.
+//!
+//! Honest limit, documented in clip/mod.rs and README: on X11/Wayland the
+//! helper tool owns the selection as a background process. If rpass dies
+//! before the timeout, that helper keeps serving the secret until the next
+//! copy — there is no signal handler on this platform.
 
 use std::io::Write;
 use std::process::{Command, Stdio};
@@ -21,6 +32,25 @@ impl Tool {
             Tool::XSel => "xsel",
         }
     }
+
+    /// Args to claim the CLIPBOARD selection from stdin.
+    fn set_args(&self) -> &'static [&'static str] {
+        match self {
+            Tool::WlCopy => &[],
+            Tool::XClip => &["-selection", "clipboard", "-in"],
+            Tool::XSel => &["--clipboard", "--input"],
+        }
+    }
+
+    /// Binary + args to print the CLIPBOARD selection on stdout.
+    fn paste_cmd(&self) -> (&'static str, &'static [&'static str]) {
+        match self {
+            // --no-newline keeps the byte stream exact for the ownership compare.
+            Tool::WlCopy => ("wl-paste", &["--no-newline"]),
+            Tool::XClip => ("xclip", &["-selection", "clipboard", "-out"]),
+            Tool::XSel => ("xsel", &["--clipboard", "--output"]),
+        }
+    }
 }
 
 fn probe() -> Result<Tool> {
@@ -39,9 +69,40 @@ fn probe() -> Result<Tool> {
     ))
 }
 
-fn spawn(tool: &Tool, args: &[&str], secret: &[u8]) -> Result<()> {
-    let mut child = Command::new(tool.name())
+/// Tool output differs on whether the selection is echoed with a trailing
+/// newline; compare and restore a normalized form (one trailing \n stripped).
+fn normalize(bytes: &[u8]) -> Vec<u8> {
+    match bytes {
+        [rest @ .., b'\n'] => rest.to_vec(),
+        _ => bytes.to_vec(),
+    }
+}
+
+/// Current clipboard text per the selected tool, or None when it can't be
+/// read (no content, spawn failure — both treated as "unknown; don't touch").
+fn read_clipboard(tool: &Tool) -> Option<Vec<u8>> {
+    let (bin, args) = tool.paste_cmd();
+    let output = Command::new(bin)
         .args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    if output.stdout.is_empty() {
+        return None;
+    }
+    Some(normalize(&output.stdout))
+}
+
+/// Write `data` to the clipboard, closing stdin immediately so the helper
+/// claims the selection NOW (holding stdin open merely delays ownership —
+/// xclip/xsel buffer until EOF, which broke paste during the hold window).
+fn write_clipboard(tool: &Tool, data: &[u8]) -> Result<()> {
+    let mut child = Command::new(tool.name())
+        .args(tool.set_args())
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
@@ -56,7 +117,7 @@ fn spawn(tool: &Tool, args: &[&str], secret: &[u8]) -> Result<()> {
             detail: "no stdin".into(),
         })?;
         stdin
-            .write_all(secret)
+            .write_all(data)
             .and_then(|_| stdin.flush())
             .map_err(|e| ClipError::Tool {
                 tool: tool.name(),
@@ -78,112 +139,45 @@ fn spawn(tool: &Tool, args: &[&str], secret: &[u8]) -> Result<()> {
 
 pub fn copy_and_hold(secret: &[u8], timeout_secs: u64) -> Result<()> {
     let tool = probe()?;
-    match tool {
-        Tool::WlCopy => {
-            // wl-copy forks a child that owns the selection and exits when
-            // cleared; `--forever`-less default also works with our timeout:
-            // we copy, sleep, then overwrite the selection with empty.
-            spawn(&tool, &[], secret)?;
-        }
-        Tool::XClip => {
-            // -selection clipboard, keep stdin open for the timeout (xclip
-            // owns the selection while alive; closing stdin = disown).
-            let mut child = Command::new(tool.name())
-                .args(["-selection", "clipboard", "-in"])
-                .stdin(Stdio::piped())
-                .spawn()
-                .map_err(|e| ClipError::Tool {
-                    tool: tool.name(),
-                    detail: e.to_string(),
-                })?;
-            {
-                let stdin = child.stdin.as_mut().ok_or_else(|| ClipError::Tool {
-                    tool: tool.name(),
-                    detail: "no stdin".into(),
-                })?;
-                stdin
-                    .write_all(secret)
-                    .and_then(|_| stdin.flush())
-                    .map_err(|e| ClipError::Tool {
-                        tool: tool.name(),
-                        detail: e.to_string(),
-                    })?;
-                // Hold stdin open for the timeout; xclip exits on EOF.
-                let deadline = Instant::now() + Duration::from_secs(timeout_secs);
-                while Instant::now() < deadline {
-                    std::thread::sleep(
-                        Duration::from_millis(200)
-                            .min(deadline.saturating_duration_since(Instant::now())),
-                    );
-                }
-            } // stdin drops → xclip sees EOF → selection disowned → clipboard empty
-            let _ = child.wait();
-            return Ok(());
-        }
-        Tool::XSel => {
-            let mut child = Command::new(tool.name())
-                .args(["--clipboard", "--input"])
-                .stdin(Stdio::piped())
-                .spawn()
-                .map_err(|e| ClipError::Tool {
-                    tool: tool.name(),
-                    detail: e.to_string(),
-                })?;
-            {
-                let stdin = child.stdin.as_mut().ok_or_else(|| ClipError::Tool {
-                    tool: tool.name(),
-                    detail: "no stdin".into(),
-                })?;
-                stdin
-                    .write_all(secret)
-                    .and_then(|_| stdin.flush())
-                    .map_err(|e| ClipError::Tool {
-                        tool: tool.name(),
-                        detail: e.to_string(),
-                    })?;
-                let deadline = Instant::now() + Duration::from_secs(timeout_secs);
-                while Instant::now() < deadline {
-                    std::thread::sleep(
-                        Duration::from_millis(200)
-                            .min(deadline.saturating_duration_since(Instant::now())),
-                    );
-                }
-            }
-            let _ = child.wait();
-            return Ok(());
-        }
-    }
-    // wl-copy path: overwrite the selection with empty after the timeout.
+    let prev = read_clipboard(&tool);
+    write_clipboard(&tool, secret)?;
+
     let deadline = Instant::now() + Duration::from_secs(timeout_secs);
     while Instant::now() < deadline {
         std::thread::sleep(
             Duration::from_millis(200).min(deadline.saturating_duration_since(Instant::now())),
         );
     }
-    let _ = spawn(&tool, &[], b"");
-    Ok(())
-}
 
-pub fn copy_now(secret: &[u8]) -> Result<()> {
-    let tool = probe()?;
-    match tool {
-        Tool::WlCopy => spawn(&tool, &[], secret),
-        Tool::XClip => spawn(&tool, &["-selection", "clipboard", "-in"], secret),
-        Tool::XSel => spawn(&tool, &["--clipboard", "--input"], secret),
+    // Restore only if we still own the clipboard; never clobber whatever
+    // the user copied in the meantime. If we can't TELL whether it's ours
+    // (snapshot/read failed), clear to empty — the secure default for a
+    // secret we put there.
+    match read_clipboard(&tool) {
+        Some(current) if current != normalize(secret) => {
+            // Someone else owns the clipboard now — leave it alone.
+        }
+        _ => match &prev {
+            Some(p) => {
+                let _ = write_clipboard(&tool, p);
+            }
+            None => {
+                let _ = write_clipboard(&tool, b"");
+            }
+        },
     }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
-    fn no_backend_error_is_helpful() {
-        // On a CI runner without any clipboard tool, probe must fail with the
-        // named-tool error, not a panic. With a tool present it succeeds —
-        // either way this must not hang.
-        let r = super::probe();
-        match r {
-            Ok(_) => {}
-            Err(e) => assert!(e.to_string().contains("wl-copy") || e.to_string().contains("xclip")),
-        }
+    fn normalize_strips_one_trailing_newline() {
+        assert_eq!(normalize(b"abc"), b"abc");
+        assert_eq!(normalize(b"abc\n"), b"abc");
+        assert_eq!(normalize(b"abc\n\n"), b"abc\n");
+        assert_eq!(normalize(b""), b"");
     }
 }

@@ -22,7 +22,7 @@ defensible without hand-waving.
    | Preset | Alphabet | Length | Entropy |
    |---|---|---|---|
    | default | A-Za-z0-9 (62) | 20 | ~119 bits |
-   | `--symbols` | + 16 common safe symbols (78) | 20 | ~125 bits |
+   | `--symbols` | `!@#$%^&*()-_=+~?` (16; 78 total) | 20 | ~125 bits |
    | `--passphrase` | EFF short list 2.0 (1296 words) | 8 words | ~83 bits |
    | `--hex` | 0-9a-f (16) | 32 | 128 bits |
 
@@ -41,7 +41,7 @@ defensible without hand-waving.
    `src/gen/eff_short_2.txt`).
 
    The symbol set was also pinned to exactly 16 chars
-   (`!@#$%^&*()-_=+`, no `[]{}<>?,.;:`) so the 78-char alphabet and
+   (`!@#$%^&*()-_=+~?` — no `[]{}<>,.;:`) so the 78-char alphabet and
    ~125-bit figure are exact rather than approximate.
 
 4. **No ambiguous-character exclusion by default** (`0`/`O`, `l`/`1`) —

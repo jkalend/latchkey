@@ -35,11 +35,24 @@ pub fn query_enable_history() -> Option<bool> {
 
 #[cfg(not(windows))]
 pub fn query_enable_history() -> Option<bool> {
-    // On WSL a registry probe through interop is possible (reg.exe query) but
-    // the interop hop is slow and flaky; for v1 we skip it and let the
-    // Windows-side warning fire when the user runs the native binary.
-    // Documented in ADR-0008 §3.
-    None
+    let output = std::process::Command::new("reg.exe")
+        .args([
+            "query",
+            r"HKCU\Software\Microsoft\Clipboard",
+            "/v",
+            "EnableClipboardHistory",
+        ])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    text.lines()
+        .find(|line| line.contains("EnableClipboardHistory"))
+        .and_then(|line| line.split_whitespace().last())
+        .and_then(|value| u32::from_str_radix(value.trim_start_matches("0x"), 16).ok())
+        .map(|value| value != 0)
 }
 
 #[cfg(all(test, windows))]

@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    name: Build Linux artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --locked --target x86_64-unknown-linux-gnu
+      - name: Package
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          dir="rpass-${TAG}-x86_64-unknown-linux-gnu"
+          mkdir "$dir"
+          cp target/x86_64-unknown-linux-gnu/release/rpass README.md LICENSE-MIT LICENSE-APACHE "$dir/"
+          tar -czf "${dir}.tar.gz" "$dir"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: rpass-*.tar.gz
+          if-no-files-found: error
+
+  windows:
+    name: Build Windows artifact
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release --locked --target x86_64-pc-windows-msvc
+      - name: Package
+        shell: pwsh
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          $dir = "rpass-$env:TAG-x86_64-pc-windows-msvc"
+          New-Item -ItemType Directory $dir | Out-Null
+          Copy-Item target/x86_64-pc-windows-msvc/release/rpass.exe, README.md, LICENSE-MIT, LICENSE-APACHE $dir
+          Compress-Archive -Path $dir -DestinationPath "$dir.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: rpass-*.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Write checksums
+        working-directory: dist
+        run: sha256sum *.tar.gz *.zip > SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: dist/*

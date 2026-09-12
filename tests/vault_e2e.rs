@@ -142,16 +142,24 @@ fn delete_then_reopen_preserves_others() {
             .iter()
             .position(|e| e.item_id == victim.item_id)
             .unwrap();
-        v.entries[idx].state = 0xFF;
+        v.entries[idx].state = rpass::vault::shape::TOMBSTONE_STATE;
         v.open_items.remove(&victim.slot);
         v.save().unwrap();
     }
 
-    let v = Vault::open(&path, &password).unwrap();
-    let live: Vec<&IndexEntry> = v.entries.iter().filter(|e| e.state != 0xFF).collect();
+    let mut v = Vault::open(&path, &password).unwrap();
+    let live: Vec<&IndexEntry> = v
+        .entries
+        .iter()
+        .filter(|e| e.state == rpass::vault::shape::LIVE_STATE)
+        .collect();
     assert_eq!(live.len(), 1);
     assert_eq!(live[0].title, "keep");
-
+    let new_id = v
+        .add_item("new".into(), "u".into(), sample_item(false))
+        .unwrap();
+    assert_eq!(new_id, 3);
+    v.save().unwrap();
     let _ = std::fs::remove_file(&path);
 }
 
@@ -359,16 +367,12 @@ fn rotate_reencrypts_under_new_dek_and_kdf() {
         v.save().unwrap();
     }
 
-    // Rotate with everything open: all frames must re-encrypt under the new DEK.
+    // Rotate opens all live items internally before swapping the DEK.
     {
         let mut v = Vault::open(&path, &password).unwrap();
-        for e in &v.entries.clone() {
-            v.open_item(e.item_id).unwrap();
-        }
         let before = std::fs::read(&path).unwrap();
         v.rotate(&password).unwrap();
         let after = std::fs::read(&path).unwrap();
-        // Same plaintext content, completely different ciphertext.
         assert_ne!(before, after);
     }
 

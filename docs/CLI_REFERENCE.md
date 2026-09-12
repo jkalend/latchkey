@@ -1,6 +1,6 @@
 # CLI Reference
 
-**Status:** v1 — implemented (except where noted)
+**Status:** Current pre-release implementation (`rpass` 0.1.0)
 **Binary name:** `rpass`
 
 ---
@@ -10,7 +10,6 @@
 | Flag | Effect |
 |---|---|
 | `--vault <path>` | Override the vault location (ADR-0002) for this invocation |
-| `--no-color` | Disable colored output (also honored: `NO_COLOR` env var) |
 | `-q` / `--quiet` | Suppress **security warnings** (see §warning policy) — never suppresses errors or usability warnings |
 
 ### Warning policy
@@ -20,8 +19,8 @@ Three tiers:
 - **Errors** — never suppressible, always printed to stderr, exit code 1+.
 - **Security warnings** (Clipboard History active, `--reveal` to stdout,
   Vault History Cloud enabled, etc.) — printed to stderr by default;
-  the only tier `-q` hides. TUI: shown once per session as a status-bar
-  banner, dismissable with `Esc`.
+  the only tier `-q` hides. TUI: printed once to stderr before the
+  interface starts (a one-shot startup warning, not a banner).
 - **Usability warnings** (empty vault, vault not found, backup path
   collided with existing file) — printed once per invocation to stderr;
   `-q` doesn't silence them (they're one line, and the user *must* see
@@ -78,7 +77,9 @@ copy-history warnings every time; errors must still reach a human.
 
 - Default behavior: copies to clipboard (same as `copy`) — printing to
   stdout requires `--reveal`, which also prints a warning that the
-  terminal scrollback now contains the secret.
+  terminal scrollback now contains the secret. `--copy` and `--reveal`
+  are mutually exclusive. Copying is byte-exact even for secrets that
+  are not valid UTF-8; `--reveal` refuses those (use `copy` instead).
 - `<title>` resolves to **all** live entries with that title (VAULT_FORMAT
   §5: titles are not unique). One match → direct; several → an
   interactive fuzzy chooser lists each with username + `item_id` suffix
@@ -116,7 +117,9 @@ copy-history warnings every time; errors must still reach a human.
 - Prints the current code and remaining validity in seconds; `--copy`
   routes it to the clipboard instead (same ADR-0003 timeout).
 - `rpass add` / `rpass edit` accept a TOTP secret via `--totp`
-  (base32, prompted hidden — never a CLI argument) or `--totp-uri` for
+  (base32, prompted hidden — never a CLI argument; defaults to
+  SHA1/30 s/6 digits, select the algorithm with
+  `--totp-alg <sha1|sha256|sha512>`) or `--totp-uri` for
   pasting an `otpauth://` URI (parsed, parameters extracted, URI
   zeroized).
   **Validated at write-time:** base32 must decode cleanly, and the
@@ -186,10 +189,14 @@ copy-history warnings every time; errors must still reach a human.
   entry's secrets, preserving its `item_id`; non-matching `<item_id>`
   keys **create** a new entry with a generated `item_id` (never reusing
   one from the import file — the file doesn't own identity allocation).
-- Duplicate title in the import file is accepted; title-collision
-  policy is the CLI's fuzzy-select rule (Q7), not a write-time block.
+- Existing title collisions require interactive confirmation; `--yes` is
+  accepted only for a pure add with no collisions. Duplicate titles in the
+  import file are allowed and create separate items.
 - `null` TOTP = no authenticator; missing optional fields = empty
   string. Unrecognized top-level keys = ignored (forward-compat).
+- `format_version` is required and must be exactly `1`. Imports are
+  limited to 64 MiB, 10,000 items, 10,000 values per JSON collection,
+  and 128 nesting levels; larger inputs fail before mutating the vault.
 - Exit code 1 on malformed JSON, 0 on success, 4 on user-cancel at the
   confirm prompt.
 
@@ -236,12 +243,12 @@ an authentication-specific condition.
 | Variable | Effect |
 |---|---|
 | `RPASS_VAULT` | Default vault path (lowest precedence: flag > env > platform default) |
-| `RPASS_CLIPBOARD_TIMEOUT` | Default clipboard timeout in seconds |
+| `RPASS_CLIPBOARD_TIMEOUT` | Default clipboard timeout in seconds (default 30, max 300 as documented under `copy`) |
 | `RPASS_TUI_LOCK_MINS` | TUI idle-lock timeout in minutes (default 10; 0 disables) |
-| `NO_COLOR` | Disable color output |
 
 ## Configuration file
 
-Defer to v1.x — the three knobs above (vault path, timeout) don't justify
-a config format yet. When added: platform config dirs, TOML, documented
-here with the full key list.
+A configuration file is explicitly out of scope for 0.2.0: the three
+environment variables above do not justify another precedence layer or
+persisted plaintext settings. Revisit only when real settings outgrow them
+([next-release proposal](NEXT_RELEASE.md#5-explicit-non-goals-for-020)).

@@ -46,12 +46,16 @@ pub fn prompt_master() -> Result<Zeroizing<Vec<u8>>> {
 /// passwords (CLI_REFERENCE `rpass init`).
 pub fn prompt_new_master() -> Result<Zeroizing<Vec<u8>>> {
     loop {
-        let a = prompt_password("New master password: ")
-            .map_err(|e| CliError::Other(format!("could not read password: {e}")))?;
-        let b = prompt_password("Repeat master password: ")
-            .map_err(|e| CliError::Other(format!("could not read password: {e}")))?;
+        let a = Zeroizing::new(
+            prompt_password("New master password: ")
+                .map_err(|e| CliError::Other(format!("could not read password: {e}")))?,
+        );
+        let b = Zeroizing::new(
+            prompt_password("Repeat master password: ")
+                .map_err(|e| CliError::Other(format!("could not read password: {e}")))?,
+        );
 
-        if a != b {
+        if *a != *b {
             eprintln!("passwords do not match — try again");
             continue;
         }
@@ -63,7 +67,7 @@ pub fn prompt_new_master() -> Result<Zeroizing<Vec<u8>>> {
             eprintln!("{err} — try again");
             continue;
         }
-        return Ok(Zeroizing::new(a.into_bytes()));
+        return Ok(Zeroizing::new(a.as_bytes().to_vec()));
     }
 }
 

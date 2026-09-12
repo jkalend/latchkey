@@ -12,7 +12,7 @@ use std::sync::OnceLock;
 
 pub const ALPHANUMERIC: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 /// 16 common safe symbols (ADR-0006 preset table: 62 + 16 = 78-char alphabet).
-pub const SYMBOLS: &str = "!@#$%^&*()-_=+";
+pub const SYMBOLS: &str = "!@#$%^&*()-_=+~?";
 /// Characters removed by `--no-ambiguous`.
 pub const AMBIGUOUS: &str = "0OoIl1|";
 pub const HEX: &str = "0123456789abcdef";

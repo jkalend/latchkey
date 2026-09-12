@@ -3,10 +3,12 @@
 //! A write is: temp file → fsync → rename → fsync dir.
 //! The temp file lives in the same directory as the target so `rename(2)` is atomic
 //! on the same filesystem. On crash mid-write, the old vault is untouched; the
-//! temp file is orphaned and cleaned up by the next `open` (§7.2).
+//! deterministic temp path is safely overwritten by the next write.
 use crate::crypto::error::{Error, Result};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
+#[cfg(unix)]
+use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
 pub const TEMP_SUFFIX: &str = ".rpass-tmp";
@@ -19,35 +21,67 @@ fn temp_path(target: &Path) -> PathBuf {
     PathBuf::from(p)
 }
 
-/// Atomic write of `data` to `target`. Returns Err if fsync/rename fails — the
-/// caller's previous file is still on disk.
-pub fn atomic_write(target: &Path, data: &[u8]) -> Result<()> {
-    let tmp = temp_path(target);
+/// Exclusive OS file lock held for the complete vault read/modify/write cycle.
+pub struct WriteLock {
+    _file: File,
+}
 
-    let mut f = OpenOptions::new()
-        .write(true)
-        .create(true)
-        .truncate(true)
-        .open(&tmp)
-        .map_err(io_err("create temp"))?;
+pub fn acquire_write_lock(target: &Path) -> Result<WriteLock> {
+    let path = lock_path(target);
+    let mut opts = OpenOptions::new();
+    opts.write(true).create(true).truncate(false);
+    #[cfg(unix)]
+    opts.mode(0o600);
+    let file = opts.open(&path).map_err(io_err("open vault write lock"))?;
+    #[cfg(unix)]
+    file.set_permissions(std::fs::Permissions::from_mode(0o600))
+        .map_err(io_err("secure vault write lock"))?;
+    file.try_lock()
+        .map_err(|e| Error::Encrypt(format!("atomic write acquire vault write lock: {e}")))?;
+    Ok(WriteLock { _file: file })
+}
+
+/// Serialize a write, then atomically replace target.
+pub fn atomic_write(target: &Path, data: &[u8]) -> Result<()> {
+    let _lock = acquire_write_lock(target)?;
+    atomic_write_locked(target, data)
+}
+
+/// Atomically replace target while the caller holds `WriteLock`.
+pub fn atomic_write_locked(target: &Path, data: &[u8]) -> Result<()> {
+    let tmp = temp_path(target);
+    let mut opts = OpenOptions::new();
+    opts.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        // Owner-only from creation; set_permissions also repairs a stale
+        // deterministic temp file created by an older, permissive build.
+        opts.mode(0o600);
+    }
+    let mut f = opts.open(&tmp).map_err(io_err("create temp"))?;
+    #[cfg(unix)]
+    f.set_permissions(std::fs::Permissions::from_mode(0o600))
+        .map_err(io_err("secure temp"))?;
 
     f.write_all(data).map_err(io_err("write temp"))?;
     f.sync_all().map_err(io_err("fsync temp"))?;
     drop(f);
 
-    // fsync the parent dir so the temp file's dir entry is durable before rename.
-    if let Some(parent) = target.parent() {
+    let parent = target.parent().filter(|p| !p.as_os_str().is_empty());
+    if let Some(parent) = parent {
         fsync_dir(parent)?;
     }
-
     fs::rename(&tmp, target).map_err(io_err("rename temp→target"))?;
-
-    // fsync parent again so the rename is durable.
-    if let Some(parent) = target.parent() {
+    if let Some(parent) = parent {
         fsync_dir(parent)?;
     }
-
     Ok(())
+}
+
+fn lock_path(target: &Path) -> PathBuf {
+    let mut p = target.as_os_str().to_owned();
+    p.push(".lock");
+    PathBuf::from(p)
 }
 
 /// Best-effort fsync of a directory. On some platforms (Windows) directory fsync
@@ -135,6 +169,44 @@ mod tests {
         let got = fs::read(&target).unwrap();
         assert_eq!(got, b"short");
 
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn concurrent_lock_is_rejected() {
+        let dir = std::env::temp_dir().join(format!("rpass_awt_lock_{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("vault.rpass");
+        let lock = acquire_write_lock(&target).unwrap();
+        assert!(atomic_write(&target, b"blocked").is_err());
+        drop(lock);
+        atomic_write(&target, b"allowed").unwrap();
+        assert_eq!(fs::read(&target).unwrap(), b"allowed");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn vault_and_lock_are_owner_only() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let dir = std::env::temp_dir().join(format!("rpass_awt_mode_{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("vault.rpass");
+        atomic_write(&target, b"secret").unwrap();
+
+        assert_eq!(
+            fs::metadata(&target).unwrap().permissions().mode() & 0o777,
+            0o600
+        );
+        assert_eq!(
+            fs::metadata(lock_path(&target))
+                .unwrap()
+                .permissions()
+                .mode()
+                & 0o777,
+            0o600
+        );
         let _ = fs::remove_dir_all(&dir);
     }
 }

@@ -5,6 +5,10 @@ edition = "2021"
 rust-version = "1.98"
 license = "MIT OR Apache-2.0"
 description = "Local-first password manager for Windows and Linux/WSL"
+readme = "README.md"
+documentation = "https://docs.rs/rpass"
+keywords = ["password-manager", "cli", "tui", "security"]
+categories = ["command-line-utilities", "cryptography"]
 
 [dependencies]
 argon2 = { version = "0.5", features = ["std"], default-features = false }
@@ -31,6 +35,7 @@ windows = { version = "0.62", features = [
     "Win32_System_Memory",
     "Win32_System_SystemInformation",
     "Win32_System_Registry",
+    "Win32_System_Console",
     "Win32_System_Ole",
     "Win32_UI_WindowsAndMessaging",
     "Win32_Graphics_Gdi", # WNDCLASSW lives behind this gate

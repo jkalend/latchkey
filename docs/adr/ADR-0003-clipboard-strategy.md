@@ -86,15 +86,57 @@ weakest point of any password manager on our two platforms:
 
 ## Consequences
 
-- 15 s is long enough to alt-tab and paste, short enough to bound the
+- 30 s is long enough to alt-tab and paste, short enough to bound the
   exposure window against shoulder-surfing (THREAT_MODEL §5.2).
 - Restore works by saving the current clipboard content before
-  `SetClipboardData` and re-setting it on expiry (Win32); on WSL, by
-  best-effort re-set via `powershell.exe Set-Clipboard` only if the old
-  content was plain text. Text-only; binary clipboard content is cleared,
-  not restored.
+  `SetClipboardData` and re-setting it on expiry (Win32); on WSL, PowerShell
+  interop best-effort restores prior plain text and otherwise blanks it.
+  Binary clipboard content is cleared, not restored.
 - A user with Clipboard History enabled still leaks into history — we
   warn loudly, we don't pretend to prevent. Full mitigation is
   documented in the TUI guide (exclude the app or disable history).
-- No daemon: `rpass copy` holds the process open for 15 s; Ctrl-C skips
-  the wait and clears immediately.
+- No daemon: `rpass copy` holds the process open for 30 s; Ctrl-C skips the
+  wait and clears immediately.
+
+## Amendment (2026-09-12): review-driven corrections
+
+A full code review found several claims above to be wrong or
+unimplemented. Decisions 1, 3 (delayed rendering), 4, and 5 stand.
+Changes, by decision number:
+
+2. **WSL backend is PowerShell, not clip.exe.** `clip.exe` decodes stdin
+   through the console/OEM code page — any secret with bytes ≥ 0x80
+   pasted as mojibake, silently. The backend now pipes the secret as
+   UTF-16LE-in-base64 to `powershell.exe -Command "… Set-Clipboard …"`.
+   Base64 keeps the payload pure-ASCII end to end; still never on a
+   command line. Host executables resolve via fixed interop paths
+   (`/mnt/c/Windows/System32/WindowsPowerShell/v1.0/…`) with a PATH
+   fallback, not via a hijackable WSL PATH.
+6. **WSL bounded-leak claim corrected.** The old text said a killed
+   `rpass copy` leaves the secret bounded by the timeout. That was
+   wrong: once the process dies, nothing clears it. The honest bound on
+   WSL and plain Linux is "until the next copy overwrites the
+   clipboard," and the docs now say so.
+7. **X11 hold-and-buffer behavior rewritten.** xclip/xsel buffer stdin
+   to EOF before claiming the selection, so the old "hold stdin open
+   for the timeout" pattern made the secret un-pasteable during the
+   window, never cleared it, and could park the CLI past the timeout in
+   `wait()`. The backend now writes and closes immediately, sleeps,
+   then overwrites only if the clipboard still holds our value. The
+   "X11 selection model clears on process exit" claim was also wrong
+   (xclip daemonizes to keep serving the selection) and has been
+   removed from README and THREAT_MODEL §5.2.
+
+Two behavior decisions genuinely changed (not just prose):
+
+A. **Restore is ownership-checked.** Every backend now snapshots the
+   pre-copy clipboard and restores it on timeout *only if the clipboard
+   still holds our value* (content compare; the Win32 sequence number
+   was considered and rejected — serving a paste bumps it). Copying
+   something else during the timeout window is no longer clobbered by
+   the restore.
+B. **Ctrl-C clears on native Windows only.** A console control handler
+   (SetConsoleCtrlHandler) lets the hold loop run the normal close +
+   restore path and exit 130. No signal crate was added for WSL/Linux
+   (dependency-creep rule), so there Ctrl-C still abandons the
+   clipboard mid-window; README and clip/mod.rs document this bound.

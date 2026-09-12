@@ -3,7 +3,7 @@
 //! ALL live entries; several matches require interactive selection.
 
 use crate::cli::error::{CliError, Result};
-use crate::vault::shape::IndexEntry;
+use crate::vault::shape::{IndexEntry, LIVE_STATE};
 use crate::vault::vault_impl::Vault;
 
 /// Resolve a title to one entry. Errors list similar titles (up to 3) when
@@ -14,7 +14,7 @@ pub fn resolve_title(vault: &Vault, title: &str, item_id: Option<u32>) -> Result
         return vault
             .entries
             .iter()
-            .find(|e| e.item_id == id && e.state != 0xFF)
+            .find(|e| e.item_id == id && e.state == LIVE_STATE)
             .cloned()
             .ok_or_else(|| CliError::Other(format!("no live item with id {id}")));
     }
@@ -22,7 +22,7 @@ pub fn resolve_title(vault: &Vault, title: &str, item_id: Option<u32>) -> Result
     let matches: Vec<&IndexEntry> = vault
         .entries
         .iter()
-        .filter(|e| e.state != 0xFF && e.title == title)
+        .filter(|e| e.state == LIVE_STATE && e.title == title)
         .collect();
 
     match matches.len() {
@@ -37,7 +37,7 @@ fn no_match(vault: &Vault, title: &str) -> CliError {
     let mut similar: Vec<(usize, &str)> = vault
         .entries
         .iter()
-        .filter(|e| e.state != 0xFF)
+        .filter(|e| e.state == LIVE_STATE)
         .map(|e| e.title.as_str())
         .filter(|t| t != &title)
         .map(|t| {
@@ -101,13 +101,12 @@ fn interactive_select(matches: Vec<&IndexEntry>) -> Result<IndexEntry> {
 #[cfg(test)]
 mod tests {
 
-    use crate::vault::shape::IndexEntry;
-
+    use crate::vault::shape::{IndexEntry, LIVE_STATE};
     fn entry(id: u32, title: &str, user: &str) -> IndexEntry {
         IndexEntry {
             item_id: id,
             slot: id,
-            state: 0x01,
+            state: LIVE_STATE,
             title: title.to_string(),
             username: user.to_string(),
         }
@@ -118,7 +117,7 @@ mod tests {
     fn matches_for<'a>(entries: &'a [IndexEntry], title: &str) -> Vec<&'a IndexEntry> {
         entries
             .iter()
-            .filter(|e| e.state != 0xFF && e.title == title)
+            .filter(|e| e.state == LIVE_STATE && e.title == title)
             .collect()
     }
 

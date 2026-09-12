@@ -9,14 +9,16 @@ specifies, not merely the format it itself produces.
 
 Layout (VAULT_FORMAT §3-§7):
   [0    .. 117       ]  header
-  [117  ..           ]  index frame: 12B nonce || 4B ct_len || ct+tag
-  [..                ]  u32 slot_count || per-slot frames (same framing)
+  [117  ..           ]  index frame: 12B nonce || u32 ct_len || ct+tag
+  [..                ]  u32 slot_count || per-slot frames
+  [..                ]  v2 item frame: 12B nonce || u32 ct_len || ct || 16B tag
   [last 8            ]  u32 slot_count || u32 crc32c
 
 Header fields (offsets):
   0..3    magic "RPv"          3     version 0x01
   4       kdf_id (0x01)        5     wrap_alg_id   6     item_alg_id
-  7..10   reserved              10..14 argon2_m_mib (u32 BE)
+  7       frame layout marker (0x00 legacy, 0xA5 v2)
+  8..10   reserved             10..14 argon2_m_mib (u32 BE)
   14..18  argon2_t (u32 BE)    18    argon2_p (u8)
   19..35  kdf_salt (16B)       35..39 enc_counter (u32 BE)
   39..51  wrap_nonce (12B)     51..83 wrapped_dek (32B)
@@ -102,12 +104,16 @@ def header_bytes_for_aad(h):
     )
 
 
-def read_frames(data, off):
-    """One AEAD frame: 12B nonce || u32 ct_len || ct+tag. Returns (nonce, ct)."""
+def read_frame(data, off, separate_tag=False):
+    """Read one frame and return (nonce, ciphertext-with-tag, next offset)."""
     nonce = data[off : off + 12]
     ct_len = u32be(data, off + 12)
-    ct = data[off + 16 : off + 16 + ct_len]
-    return nonce, ct, off + 16 + ct_len
+    end = off + 16 + ct_len
+    if separate_tag:
+        ct = data[off + 16 : end]
+        tag = data[end : end + 16]
+        return nonce, ct + tag, end + 16
+    return nonce, data[off + 16 : end], end
 
 
 def decrypt_vault(path, password):
@@ -133,7 +139,7 @@ def decrypt_vault(path, password):
 
     # Index frame.
     off = HEADER_LEN
-    nonce, ct, off = read_frames(data, off)
+    nonce, ct, off = read_frame(data, off)
     index_pt = item_aead.decrypt(nonce, ct, bytes([0x01, 0x49]))
 
     entries = []
@@ -168,7 +174,7 @@ def decrypt_vault(path, password):
         raise VaultError("slot count mismatch between items region and trailer")
     items = {}
     for slot in range(items_count):
-        nonce, ct, off = read_frames(data, off)
+        nonce, ct, off = read_frame(data, off, separate_tag=data[7] == 0xA5)
         # The index tells us which item_id lives at this slot.
         entry = next(e for e in entries if e["slot"] == slot)
         aad = bytes([0x01, 0x53]) + struct.pack(">I", entry["item_id"])

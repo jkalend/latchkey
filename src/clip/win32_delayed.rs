@@ -7,24 +7,25 @@
 //!
 //! - The secret never sits statically in the clipboard while the timer
 //!   runs — a paste target receives it only when it actually asks.
-//! - Process death clears the entry automatically: a dead owner cannot
-//!   answer a render request, so the OS treats the format as empty. The
-//!   `rpass copy` timeout is a *restore* timer, not the only thing
-//!   standing between the secret and the clipboard.
+//! - Process death BEFORE the first paste clears the entry automatically:
+//!   a dead owner cannot answer a render request, so the OS treats the
+//!   format as empty. Once a paste has been served, the rendered HGLOBAL
+//!   is static and survives process death — clearing that copy depends on
+//!   the timeout restore below (or, on Ctrl-C, the console-handler path).
 //!
-//! On timeout the window thread is told to close; destroying the window
-//! drops clipboard ownership, and the pre-copy snapshot is restored (or
-//! the clipboard emptied). `WM_RENDERALLFORMATS` deliberately renders
-//! nothing — dropping the entry on exit is the desired behavior.
+//! On timeout (or Ctrl-C) the window thread is told to close; destroying
+//! the window drops clipboard ownership. The pre-copy snapshot is then
+//! restored ONLY if the clipboard still holds our value (content compare):
+//! if the user copied something else in the meantime, their clipboard is
+//! left untouched. `WM_RENDERALLFORMATS` deliberately renders nothing —
+//! dropping the entry on exit is the desired behavior.
 
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
 
 use windows::core::w;
-use windows::Win32::Foundation::{HANDLE, HWND, LPARAM, LRESULT, WPARAM};
-use windows::Win32::System::DataExchange::{
-    CloseClipboard, EmptyClipboard, OpenClipboard, SetClipboardData,
-};
+use windows::Win32::Foundation::{HWND, LPARAM, LRESULT, WPARAM};
+use windows::Win32::System::DataExchange::{CloseClipboard, EmptyClipboard, OpenClipboard};
 use windows::Win32::System::Ole::CF_UNICODETEXT;
 use windows::Win32::UI::WindowsAndMessaging::{
     CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetWindowLongPtrW,
@@ -35,7 +36,9 @@ use windows::Win32::UI::WindowsAndMessaging::{
 
 use crate::clip::error::{ClipError, Result};
 
-use super::win32::{render_into_global, snapshot_best_effort};
+use super::win32::{
+    render_into_global, restore_clipboard, set_clipboard_hglobal, snapshot_best_effort, to_utf16,
+};
 
 // The windows-rs `SetClipboardData` wrapper maps a NULL return to Err — but
 // the delayed-render announce passes NULL in and gets NULL back on SUCCESS,
@@ -67,12 +70,9 @@ unsafe fn announce_delayed() -> bool {
     }
 }
 
-/// Messages to the window thread.
 enum ToThread {
-    /// Announce CF_UNICODETEXT (delayed) as the new clipboard owner.
-    Announce,
-    /// Destroy the window; stop answering render requests.
-    Close,
+    Announce(mpsc::Sender<Result<()>>),
+    Close(mpsc::Sender<()>),
 }
 
 /// Per-window state, owned by the render thread and reached from the window
@@ -98,8 +98,9 @@ unsafe extern "system" fn wnd_proc(
                 let state = userdata::<RenderState>(hwnd);
                 if let Some(secret) = state.and_then(|s| s.secret.as_ref()) {
                     if let Ok(h) = render_into_global(secret) {
-                        // On success the system owns the HGLOBAL.
-                        let _ = SetClipboardData(CF_UNICODETEXT.0 as u32, Some(HANDLE(h.0)));
+                        // On success the system owns the HGLOBAL; on failure
+                        // set_clipboard_hglobal frees it (no leak).
+                        let _ = set_clipboard_hglobal(h);
                     }
                 }
             }
@@ -149,15 +150,12 @@ unsafe fn take_userdata<T>(hwnd: HWND) -> Option<Box<T>> {
     }
 }
 
-/// Spawn the render thread and announce `secret` with delayed rendering.
-/// Returns the control channel; `Close` (or dropping it) tears the window
-/// down and stops render requests from being answered.
 fn spawn_announcer(secret: &[u8]) -> Result<mpsc::Sender<ToThread>> {
     let (tx, rx) = mpsc::channel::<ToThread>();
+    let (ready_tx, ready_rx) = mpsc::channel::<Result<()>>();
     let secret_utf16: Vec<u16> = String::from_utf8_lossy(secret).encode_utf16().collect();
     let secret = zeroize::Zeroizing::new(secret_utf16);
 
-    let announce_tx = tx.clone();
     std::thread::Builder::new()
         .name("rpass-clip-render".into())
         .spawn(move || unsafe {
@@ -167,15 +165,14 @@ fn spawn_announcer(secret: &[u8]) -> Result<mpsc::Sender<ToThread>> {
                 lpszClassName: class_name,
                 ..Default::default()
             };
-            // Window classes are process-global: after the first copy the
-            // class exists and RegisterClassW fails with
-            // ERROR_CLASS_ALREADY_EXISTS. That's fine — the class points at
-            // the same wnd_proc. Any other failure is fatal.
             if RegisterClassW(&wc) == 0 {
                 const ERROR_CLASS_ALREADY_EXISTS: u32 = 1410;
                 if std::io::Error::last_os_error().raw_os_error()
                     != Some(ERROR_CLASS_ALREADY_EXISTS as i32)
                 {
+                    let _ = ready_tx.send(Err(ClipError::Other(
+                        "register clipboard window failed".into(),
+                    )));
                     return;
                 }
             }
@@ -188,46 +185,64 @@ fn spawn_announcer(secret: &[u8]) -> Result<mpsc::Sender<ToThread>> {
                 0,
                 0,
                 0,
-                Some(HWND_MESSAGE), // message-only: invisible, no z-order
+                Some(HWND_MESSAGE),
                 None,
                 None,
                 None,
             ) else {
+                let _ = ready_tx.send(Err(ClipError::Other(
+                    "create clipboard window failed".into(),
+                )));
                 return;
             };
 
-            let state = Box::new(RenderState { secret: None });
-            set_userdata(hwnd, state);
-
-            // The state box lives until teardown; keep a raw borrow of the
-            // secret outside it so the pump can stage it in after Announce.
+            set_userdata(hwnd, Box::new(RenderState { secret: None }));
             let mut staged_secret = Some(secret);
-
-            // Pump: dispatch window messages, poll the control channel.
-            // PeekMessage with PM_REMOVE (non-blocking) + a short sleep keeps
-            // control messages responsive on a quiet queue.
+            let _ = ready_tx.send(Ok(()));
             'pump: loop {
                 match rx.try_recv() {
-                    Ok(ToThread::Announce) => {
-                        // SAFETY: the raw pointer is the box we installed; on
-                        // this thread, access is exclusive (the pump is the
-                        // only reader/writer between messages).
+                    Ok(ToThread::Announce(done)) => {
                         let raw = GetWindowLongPtrW(hwnd, GWLP_USERDATA);
                         if raw != 0 {
                             let st_mut = &mut *(raw as *mut RenderState);
                             st_mut.secret = staged_secret.take();
                         }
-                        if OpenClipboard(Some(hwnd)).is_ok() {
+                        let result = if OpenClipboard(Some(hwnd)).is_ok() {
                             let _ = EmptyClipboard();
-                            // NULL handle = the delayed-render promise.
                             let ok = announce_delayed();
                             let _ = CloseClipboard();
-                            if !ok {
-                                break 'pump;
+                            if ok {
+                                Ok(())
+                            } else {
+                                Err(ClipError::Other("announce delayed clipboard failed".into()))
                             }
+                        } else {
+                            Err(ClipError::Other("open clipboard failed".into()))
+                        };
+                        let failed = result.is_err();
+                        let _ = done.send(result);
+                        if failed {
+                            // Same teardown as Close: zeroize the staged
+                            // secret and destroy the window — otherwise the
+                            // failure arm leaks both for the process lifetime.
+                            if let Some(mut state) = take_userdata::<RenderState>(hwnd) {
+                                state.secret = None;
+                                drop(state);
+                            }
+                            let _ = DestroyWindow(hwnd);
+                            break 'pump;
                         }
                     }
-                    Ok(ToThread::Close) | Err(mpsc::TryRecvError::Disconnected) => break 'pump,
+                    Ok(ToThread::Close(done)) => {
+                        if let Some(mut state) = take_userdata::<RenderState>(hwnd) {
+                            state.secret = None;
+                            drop(state);
+                        }
+                        let _ = DestroyWindow(hwnd);
+                        let _ = done.send(());
+                        break 'pump;
+                    }
+                    Err(mpsc::TryRecvError::Disconnected) => break 'pump,
                     Err(mpsc::TryRecvError::Empty) => {}
                 }
 
@@ -241,52 +256,67 @@ fn spawn_announcer(secret: &[u8]) -> Result<mpsc::Sender<ToThread>> {
                 }
                 std::thread::sleep(Duration::from_millis(10));
             }
-
-            // Teardown: drop the secret, then the window (which drops
-            // clipboard ownership — the promised format dies with it).
-            if let Some(mut state) = take_userdata::<RenderState>(hwnd) {
-                state.secret = None; // zeroize now, not on thread exit
-                drop(state);
-            }
-            let _ = DestroyWindow(hwnd);
-            // Keep the sender alive until teardown completes so a dropped
-            // handle (TUI paths) doesn't kill the thread mid-announcement.
-            drop(announce_tx);
         })
         .map_err(|e| ClipError::Other(format!("spawn render thread: {e}")))?;
 
-    tx.send(ToThread::Announce)
+    ready_rx
+        .recv()
+        .map_err(|_| ClipError::Other("render thread died during setup".into()))??;
+    let (announce_done, announce_result) = mpsc::channel();
+    tx.send(ToThread::Announce(announce_done))
         .map_err(|_| ClipError::Other("render thread died before announce".into()))?;
+    announce_result
+        .recv()
+        .map_err(|_| ClipError::Other("render thread died during announce".into()))??;
     Ok(tx)
 }
 
-/// Copy with delayed rendering, hold for `timeout_secs`, then stop answering
-/// render requests and restore the pre-copy clipboard.
+/// Copy with delayed rendering, hold for `timeout_secs` (or until Ctrl-C),
+/// then stop answering render requests. If the clipboard still holds our
+/// value, restore the pre-copy clipboard; if the user replaced it, leave
+/// their clipboard alone.
 pub fn copy_and_hold(secret: &[u8], timeout_secs: u64) -> Result<()> {
-    // Snapshot BEFORE announcing — the announce empties the clipboard.
+    let our_utf16 = zeroize::Zeroizing::new(to_utf16(secret));
     let restore = snapshot_best_effort();
-
-    let ctl = spawn_announcer(secret)?;
+    let ctl = match spawn_announcer(secret) {
+        Ok(c) => c,
+        Err(e) => {
+            // The failed announce may already have emptied the clipboard —
+            // put the user's contents back before reporting the failure.
+            restore_clipboard(&restore);
+            return Err(e);
+        }
+    };
 
     let deadline = Instant::now() + Duration::from_secs(timeout_secs);
+    let mut interrupted = false;
     while Instant::now() < deadline {
+        if crate::clip::ctrlc_requested() {
+            interrupted = true;
+            break;
+        }
         std::thread::sleep(Duration::from_millis(100).min(deadline - Instant::now()));
     }
 
-    // Stop answering render requests; WM_RENDERALLFORMATS renders nothing.
-    let _ = ctl.send(ToThread::Close);
-    // Give the thread a moment to destroy the window before restoring.
-    std::thread::sleep(Duration::from_millis(100));
+    let (closed, closed_ack) = mpsc::channel();
+    ctl.send(ToThread::Close(closed))
+        .map_err(|_| ClipError::Other("render thread died before close".into()))?;
+    closed_ack
+        .recv()
+        .map_err(|_| ClipError::Other("render thread died during close".into()))?;
 
-    // Restore the pre-copy clipboard (or blank).
-    super::win32::restore_clipboard(&restore);
+    // Ownership check: restore only when the clipboard still holds OUR value
+    // (covers both "never pasted" and "pasted" — a paste leaves our bytes in
+    // place). Any other content means the user copied something else since.
+    if snapshot_best_effort().as_deref() == Some(our_utf16.as_slice()) {
+        restore_clipboard(&restore);
+    }
+
+    if interrupted {
+        eprintln!("interrupted — clipboard cleared");
+        std::process::exit(130); // conventional SIGINT exit status
+    }
     Ok(())
-}
-
-/// Immediate copy without delayed rendering — for the TUI, which manages
-/// its own clear timer and needs data present right away.
-pub fn copy_now(secret: &[u8]) -> Result<()> {
-    super::win32::copy_now(secret)
 }
 
 /// Tests that use the REAL clipboard serialize on this lock — including the
@@ -296,11 +326,17 @@ pub(crate) static CLIPBOARD_TEST_LOCK: std::sync::OnceLock<std::sync::Mutex<()>>
     std::sync::OnceLock::new();
 
 #[cfg(test)]
-fn lock_clipboard() -> std::sync::MutexGuard<'static, ()> {
+pub(crate) fn lock_clipboard() -> std::sync::MutexGuard<'static, ()> {
     CLIPBOARD_TEST_LOCK
         .get_or_init(|| std::sync::Mutex::new(()))
         .lock()
         .unwrap_or_else(|p| p.into_inner())
+}
+#[cfg(test)]
+fn close(ctl: &std::sync::mpsc::Sender<ToThread>) {
+    let (done, ack) = std::sync::mpsc::channel();
+    ctl.send(ToThread::Close(done)).unwrap();
+    ack.recv().unwrap();
 }
 
 #[cfg(test)]
@@ -329,8 +365,7 @@ mod tests {
         );
 
         // Close and verify the clipboard no longer serves it.
-        let _ = ctl.send(super::ToThread::Close);
-        std::thread::sleep(std::time::Duration::from_millis(200));
+        super::close(&ctl);
         let after = super::super::win32::snapshot_best_effort();
         assert_ne!(
             after.map(|g| String::from_utf16_lossy(&g)),
@@ -351,8 +386,7 @@ mod tests {
         let before = super::super::win32::snapshot_best_effort();
         let ctl1 = super::spawn_announcer(b"rpass-dup-1").unwrap();
         std::thread::sleep(std::time::Duration::from_millis(200));
-        let _ = ctl1.send(super::ToThread::Close);
-        std::thread::sleep(std::time::Duration::from_millis(200));
+        super::close(&ctl1);
 
         let ctl2 = super::spawn_announcer(b"rpass-dup-2").unwrap();
         std::thread::sleep(std::time::Duration::from_millis(200));
@@ -362,8 +396,7 @@ mod tests {
             Some("rpass-dup-2".to_string()),
             "second copy must still announce (class already registered)"
         );
-        let _ = ctl2.send(super::ToThread::Close);
-        std::thread::sleep(std::time::Duration::from_millis(100));
+        super::close(&ctl2);
         super::super::win32::restore_clipboard(&before);
     }
 }

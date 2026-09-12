@@ -197,7 +197,7 @@ impl App {
     }
 
     fn unlock(&mut self) -> bool {
-        let pw = match passwords::prompt_master() {
+        let pw = match passwords::prompt_master(false) {
             Ok(p) => p,
             Err(_) => return false,
         };

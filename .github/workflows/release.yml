@@ -8,21 +8,53 @@ permissions:
   contents: read
 
 jobs:
+  metadata:
+    name: Verify release tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.98
+      - name: Match tag to Cargo package version
+        run: |
+          version="$(cargo metadata --locked --no-deps --format-version 1 |
+            jq -r '.packages[] | select(.name == "rpass") | .version')"
+          test "$GITHUB_REF_NAME" = "v${version}"
+
   linux:
     name: Build Linux artifact
     runs-on: ubuntu-latest
+    needs: metadata
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.98
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release --locked --target x86_64-unknown-linux-gnu
-      - name: Package
+      - name: Package and smoke copied binary
         env:
           TAG: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
           dir="rpass-${TAG}-x86_64-unknown-linux-gnu"
           mkdir "$dir"
           cp target/x86_64-unknown-linux-gnu/release/rpass README.md LICENSE-MIT LICENSE-APACHE "$dir/"
+
+          bin="$dir/rpass"
+          test "$("$bin" --version)" = "rpass ${TAG#v}"
+          smoke_dir="$(mktemp -d)"
+          trap 'rm -rf "$smoke_dir"' EXIT
+          vault="$smoke_dir/vault.bin"
+          printf '%s\n%s\n' artifact-smoke-master artifact-smoke-master |
+            "$bin" --vault "$vault" --from-stdin init
+          printf '%s\n' artifact-smoke-master |
+            "$bin" --vault "$vault" --from-stdin add artifact-smoke --username ci --generate
+          list_output="$(printf '%s\n' artifact-smoke-master |
+            "$bin" --vault "$vault" --from-stdin list)"
+          [[ "$list_output" == *artifact-smoke* ]]
+          check_output="$(printf '%s\n' artifact-smoke-master |
+            "$bin" --vault "$vault" --from-stdin check)"
+          [[ "$check_output" == *"vault check: ok"* ]]
+          [[ "$check_output" == *"records: 1 live, 0 tombstone"* ]]
+
           tar -czf "${dir}.tar.gz" "$dir"
       - uses: actions/upload-artifact@v4
         with:
@@ -33,19 +65,46 @@ jobs:
   windows:
     name: Build Windows artifact
     runs-on: windows-latest
+    needs: metadata
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.98
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release --locked --target x86_64-pc-windows-msvc
-      - name: Package
+      - name: Package and smoke copied binary
         shell: pwsh
         env:
           TAG: ${{ github.ref_name }}
         run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
           $dir = "rpass-$env:TAG-x86_64-pc-windows-msvc"
           New-Item -ItemType Directory $dir | Out-Null
           Copy-Item target/x86_64-pc-windows-msvc/release/rpass.exe, README.md, LICENSE-MIT, LICENSE-APACHE $dir
+
+          $binary = Join-Path $dir "rpass.exe"
+          $version = $env:TAG.TrimStart("v")
+          if ((& $binary --version) -ne "rpass $version") {
+            throw "packaged binary version does not match $env:TAG"
+          }
+          $vault = Join-Path $env:RUNNER_TEMP "rpass-artifact-smoke-$([guid]::NewGuid()).bin"
+          @("artifact-smoke-master", "artifact-smoke-master") |
+            & $binary --vault $vault --from-stdin init
+          "artifact-smoke-master" |
+            & $binary --vault $vault --from-stdin add artifact-smoke --username ci --generate
+          $listOutput = "artifact-smoke-master" |
+            & $binary --vault $vault --from-stdin list
+          if ($listOutput -notmatch "artifact-smoke") {
+            throw "packaged binary list smoke did not find the added item"
+          }
+          $checkOutput = "artifact-smoke-master" |
+            & $binary --vault $vault --from-stdin check
+          if ($checkOutput -notmatch "vault check: ok" -or
+              $checkOutput -notmatch "records: 1 live, 0 tombstone") {
+            throw "packaged binary check smoke failed"
+          }
+          Remove-Item $vault -Force
+
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
       - uses: actions/upload-artifact@v4
         with:

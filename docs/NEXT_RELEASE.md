@@ -1,6 +1,6 @@
 # Next Release Proposal: rpass 0.2.0
 
-**Status:** Proposed
+**Status:** Implemented; tag pending release-gate verification
 **Date:** 2026-09-12
 **Target:** First public preview
 **Package version:** `0.2.0`
@@ -11,14 +11,12 @@
 
 The next release should be **rpass 0.2.0**, not 1.5 or 2.0.
 
-The crate is currently `0.1.0`, no public release has shipped, and the project
-still identifies itself as unaudited hobby software. A 1.5 or 2.0 tag would
-imply a release history and compatibility record that do not exist. Version
-0.2.0 honestly communicates a usable preview while leaving room to adjust the
-command interface before 1.0.
+The crate now carries `0.2.0`, the first public-preview version. A 1.5 or 2.0
+tag would imply a release history and compatibility record that does not
+exist. Version 0.2.0 honestly communicates a usable preview while leaving room
+to adjust the command interface before 1.0.
 
-This proposal does not bump `Cargo.toml`. The version changes only when the
-release criteria in §8 are met.
+Create the `v0.2.0` tag only after every release criterion in §8 passes.
 
 Three version numbers are independent:
 

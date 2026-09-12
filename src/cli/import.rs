@@ -27,12 +27,20 @@ pub struct ImportArgs<'a> {
     pub file: &'a std::path::Path,
     pub dry_run: bool,
     pub yes: bool,
+    pub from_stdin: bool,
+    pub quiet: bool,
 }
 
 pub fn run(path: &std::path::Path, a: ImportArgs<'_>) -> Result<()> {
     let text = read_import_text(a.file)?;
-    let (mut vault, _pw) = super::open_vault(path)?;
-    import_format_into(&mut vault, a.format, &text, a.dry_run, a.yes)
+    let (mut vault, _pw) = super::open_vault(
+        path,
+        super::CommandContext {
+            quiet: a.quiet,
+            from_stdin: a.from_stdin,
+        },
+    )?;
+    import_format_into_with_quiet(&mut vault, a.format, &text, a.dry_run, a.yes, a.quiet)
 }
 
 fn read_import_text(path: &std::path::Path) -> Result<Zeroizing<String>> {
@@ -65,6 +73,17 @@ pub fn import_format_into(
     dry_run: bool,
     yes: bool,
 ) -> Result<()> {
+    import_format_into_with_quiet(vault, format, export_text, dry_run, yes, false)
+}
+
+fn import_format_into_with_quiet(
+    vault: &mut Vault,
+    format: &str,
+    export_text: &str,
+    dry_run: bool,
+    yes: bool,
+    quiet: bool,
+) -> Result<()> {
     let parsed = match format {
         "json" => parse_native(export_text)?,
         "bitwarden-json" => parse_bitwarden(export_text)?,
@@ -77,10 +96,12 @@ pub fn import_format_into(
     };
     let plan = build_plan(vault, parsed)?;
 
-    eprintln!(
-        "warning: '{}' is a plaintext export; secure or remove it after import",
-        format
-    );
+    if !quiet {
+        eprintln!(
+            "warning: '{}' is a plaintext export; secure or remove it after import",
+            format
+        );
+    }
     eprintln!(
         "import plan: {} add{}, {} update{}, {} title-collision{}, {} unsupported/skipped field{}",
         plan.adds.len(),

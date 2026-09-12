@@ -13,9 +13,9 @@ vault is a single encrypted file on your own disk.
 
 ## Project status
 
-No public release has shipped. The crate is currently `0.1.0`; the proposed
-first public preview is [`0.2.0`](docs/NEXT_RELEASE.md). The package version,
-vault format version, and export schema version are tracked independently.
+The package is `0.2.0`, the first public-preview release candidate. The vault
+format and native export schema remain version 1; package, vault, and export
+versions are tracked independently.
 
 ## Features
 
@@ -89,6 +89,29 @@ $ rpass backup --out /mnt/c/Backups/vault-backup.bin
 | `rpass completions <shell>` | ✅ implemented — Bash, Zsh, Fish, PowerShell |
 
 Full contract per command: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md).
+
+## Installation
+
+From crates.io:
+
+```console
+$ cargo install --locked rpass --version 0.2.0
+```
+
+Or download the archive for your platform from the repository's GitHub
+Releases page:
+
+- Windows: `rpass-v0.2.0-x86_64-pc-windows-msvc.zip`
+- Linux/WSL2: `rpass-v0.2.0-x86_64-unknown-linux-gnu.tar.gz`
+
+Download `SHA256SUMS` from the same release and verify the archive before
+unpacking (`sha256sum -c SHA256SUMS` on Linux/WSL2, or compare
+`Get-FileHash -Algorithm SHA256 <archive>` on Windows). Each archive contains
+only the binary, README, and MIT/Apache-2.0 license files. Put `rpass` or
+`rpass.exe` on `PATH`, then run `rpass --version`.
+
+Generate completions for the active shell with
+`rpass completions <bash|zsh|fish|powershell>`.
 
 ## Building
 

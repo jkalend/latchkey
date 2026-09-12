@@ -1,5 +1,7 @@
 //! Master-password prompting and quality checks (THREAT_MODEL §5.1).
 
+use std::io::BufRead;
+
 use rpassword::prompt_password;
 use zeroize::Zeroizing;
 
@@ -35,40 +37,58 @@ const DENY_LIST: &[&str] = &[
 
 const MIN_LEN: usize = 8;
 
-/// Prompt once (for unlock). Returns a zeroized buffer.
-pub fn prompt_master() -> Result<Zeroizing<Vec<u8>>> {
-    let pw = prompt_password("Master password: ")
-        .map_err(|e| CliError::Other(format!("could not read password: {e}")))?;
-    Ok(Zeroizing::new(pw.into_bytes()))
+/// Read once for unlock. `from_stdin` is explicit because redirected standard
+/// input is visible to any process that can read the producing pipe or file.
+pub fn prompt_master(from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
+    read_password("Master password: ", from_stdin)
 }
 
 /// Prompt twice and check they match; refuse empty, short, or deny-listed
 /// passwords (CLI_REFERENCE `rpass init`).
-pub fn prompt_new_master() -> Result<Zeroizing<Vec<u8>>> {
+pub fn prompt_new_master(from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
     loop {
-        let a = Zeroizing::new(
-            prompt_password("New master password: ")
-                .map_err(|e| CliError::Other(format!("could not read password: {e}")))?,
-        );
-        let b = Zeroizing::new(
-            prompt_password("Repeat master password: ")
-                .map_err(|e| CliError::Other(format!("could not read password: {e}")))?,
-        );
+        let a = read_password("New master password: ", from_stdin)?;
+        let b = read_password("Repeat master password: ", from_stdin)?;
 
         if *a != *b {
             eprintln!("passwords do not match — try again");
             continue;
         }
+        let a_text = std::str::from_utf8(&a)
+            .map_err(|_| CliError::Other("master password from stdin is not valid UTF-8".into()))?;
         if a.is_empty() {
             eprintln!("refusing an empty master password — try again");
             continue;
         }
-        if let Some(err) = check_quality(&a) {
+        if let Some(err) = check_quality(a_text) {
             eprintln!("{err} — try again");
             continue;
         }
-        return Ok(Zeroizing::new(a.as_bytes().to_vec()));
+        return Ok(Zeroizing::new(a.to_vec()));
     }
+}
+
+fn read_password(prompt: &str, from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
+    if !from_stdin {
+        let value = prompt_password(prompt)
+            .map_err(|error| CliError::Other(format!("could not read password: {error}")))?;
+        return Ok(Zeroizing::new(value.into_bytes()));
+    }
+
+    let mut value = Zeroizing::new(Vec::new());
+    let count = std::io::stdin()
+        .lock()
+        .read_until(b'\n', &mut value)
+        .map_err(|error| CliError::Other(format!("could not read password from stdin: {error}")))?;
+    if count == 0 {
+        return Err(CliError::Other(
+            "could not read password from stdin: unexpected end of input".into(),
+        ));
+    }
+    while matches!(value.last(), Some(b'\n' | b'\r')) {
+        value.pop();
+    }
+    Ok(value)
 }
 
 /// Length floor + deny-list. Returns Some(complaint) on failure.

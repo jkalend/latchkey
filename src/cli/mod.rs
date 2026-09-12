@@ -36,6 +36,10 @@ pub struct Cli {
     #[arg(short = 'q', long, global = true)]
     quiet: bool,
 
+    /// Read master-password prompts from stdin, one line per prompt
+    #[arg(long, global = true)]
+    from_stdin: bool,
+
     /// Interactive interface (fuzzy search, detail view, copy)
     #[command(subcommand)]
     command: Option<Command>,
@@ -252,13 +256,22 @@ pub fn run(args: std::env::Args) -> i32 {
     }
 }
 
+#[derive(Clone, Copy)]
+struct CommandContext {
+    quiet: bool,
+    from_stdin: bool,
+}
+
 fn dispatch(cli: Cli) -> Result<()> {
-    let quiet = cli.quiet;
+    let context = CommandContext {
+        quiet: cli.quiet,
+        from_stdin: cli.from_stdin,
+    };
     let vault_path = vault_path::resolve(cli.vault.as_deref());
     // Bare `rpass` → the TUI (CLI_REFERENCE: tui is the interactive default).
     let command = cli.command.unwrap_or(Command::Tui);
     match command {
-        Command::Init { force } => cmd_init(&vault_path, force),
+        Command::Init { force } => cmd_init(&vault_path, force, context),
         Command::Add {
             title,
             username,
@@ -279,17 +292,18 @@ fn dispatch(cli: Cli) -> Result<()> {
                 want_totp,
                 totp_alg,
                 want_totp_uri: totp_uri,
+                context,
             },
         ),
-        Command::List => cmd_list(&vault_path),
+        Command::List => cmd_list(&vault_path, context),
         Command::Get {
             title,
             id,
             reveal,
             copy,
             timeout,
-        } => cmd_get(&vault_path, &title, id, reveal, copy, timeout, quiet),
-        Command::Copy { title, id, timeout } => cmd_copy(&vault_path, &title, id, timeout, quiet),
+        } => cmd_get(&vault_path, &title, id, reveal, copy, timeout, context),
+        Command::Copy { title, id, timeout } => cmd_copy(&vault_path, &title, id, timeout, context),
         Command::Generate {
             length,
             symbols,
@@ -308,10 +322,10 @@ fn dispatch(cli: Cli) -> Result<()> {
             no_ambiguous,
             copy,
             timeout,
-            quiet,
+            quiet: context.quiet,
         }),
-        Command::Totp { title, id, copy } => cmd_totp(&vault_path, &title, id, copy, quiet),
-        Command::Rm { title, id, purge } => cmd_rm(&vault_path, &title, id, purge),
+        Command::Totp { title, id, copy } => cmd_totp(&vault_path, &title, id, copy, context),
+        Command::Rm { title, id, purge } => cmd_rm(&vault_path, &title, id, purge, context),
         Command::Edit {
             title,
             id,
@@ -334,24 +348,28 @@ fn dispatch(cli: Cli) -> Result<()> {
                 want_totp: totp,
                 totp_alg,
                 want_totp_uri: totp_uri,
+                context,
             },
         ),
-        Command::Rotate { new_password } => cmd_rotate(&vault_path, new_password),
+        Command::Rotate { new_password } => cmd_rotate(&vault_path, new_password, context),
         Command::Export {
             format,
             yes_i_mean_it,
             out,
-        } => cmd_export(&vault_path, &format, yes_i_mean_it, out),
+        } => cmd_export(&vault_path, &format, yes_i_mean_it, out, context),
         Command::Import {
             format,
             file,
             dry_run,
             yes,
-        } => cmd_import(&vault_path, &format, &file, dry_run, yes),
+        } => cmd_import(&vault_path, &format, &file, dry_run, yes, context),
         Command::Backup { out } => cmd_backup(&vault_path, out),
-        Command::Check => cmd_check(&vault_path),
+        Command::Check => cmd_check(&vault_path, context),
         Command::Completions { shell } => cmd_completions(shell),
-        Command::Tui => match crate::tui::run(vault_path, quiet) {
+        Command::Tui if context.from_stdin => Err(CliError::Usage(
+            "--from-stdin is not supported by the interactive TUI".into(),
+        )),
+        Command::Tui => match crate::tui::run(vault_path, context.quiet) {
             0 => Ok(()),
             code => Err(CliError::Other(format!("TUI exited with status {code}"))),
         },
@@ -364,11 +382,14 @@ fn secret_vec(v: Vec<u8>) -> SecretVec {
     SecretVec::new(v.into_boxed_slice())
 }
 
-fn open_vault(path: &std::path::Path) -> Result<(Vault, Zeroizing<Vec<u8>>)> {
+fn open_vault(
+    path: &std::path::Path,
+    context: CommandContext,
+) -> Result<(Vault, Zeroizing<Vec<u8>>)> {
     if !path.exists() {
         return Err(CliError::VaultNotFound(path.to_path_buf()));
     }
-    let pw = passwords::prompt_master()?;
+    let pw = passwords::prompt_master(context.from_stdin)?;
     let v =
         Vault::open(path, &secret_vec(pw.to_vec())).map_err(|e| CliError::Other(e.to_string()))?;
     Ok((v, pw))
@@ -376,7 +397,7 @@ fn open_vault(path: &std::path::Path) -> Result<(Vault, Zeroizing<Vec<u8>>)> {
 
 // ─── commands ───────────────────────────────────────────────────────────────
 
-fn cmd_init(path: &std::path::Path, force: bool) -> Result<()> {
+fn cmd_init(path: &std::path::Path, force: bool, context: CommandContext) -> Result<()> {
     if path.exists() && !force {
         return Err(CliError::Other(format!(
             "vault already exists at {} — use --force to replace it (the old file is renamed, not deleted)",
@@ -399,7 +420,7 @@ fn cmd_init(path: &std::path::Path, force: bool) -> Result<()> {
             .map_err(|e| CliError::Other(format!("create vault dir: {e}")))?;
     }
 
-    let pw = passwords::prompt_new_master()?;
+    let pw = passwords::prompt_new_master(context.from_stdin)?;
     let start = std::time::Instant::now();
     let vault = Vault::create(
         path,
@@ -432,6 +453,7 @@ struct AddArgs {
     want_totp: bool,
     totp_alg: Option<TotpAlgArg>,
     want_totp_uri: bool,
+    context: CommandContext,
 }
 
 fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
@@ -444,9 +466,10 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
         want_totp,
         totp_alg,
         want_totp_uri,
+        context,
     } = a;
     let notes = resolve_notes(notes)?;
-    let (mut vault, _pw) = open_vault(path)?;
+    let (mut vault, _pw) = open_vault(path, context)?;
 
     let username = match username {
         Some(u) => u,
@@ -497,8 +520,8 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
     Ok(())
 }
 
-fn cmd_list(path: &std::path::Path) -> Result<()> {
-    let (vault, _pw) = open_vault(path)?;
+fn cmd_list(path: &std::path::Path, context: CommandContext) -> Result<()> {
+    let (vault, _pw) = open_vault(path, context)?;
     if vault.entries.is_empty() {
         eprintln!("vault is empty — add something with `rpass add <title>`");
         return Ok(());
@@ -519,9 +542,9 @@ fn cmd_get(
     reveal: bool,
     _copy: bool,
     timeout: u64,
-    quiet: bool,
+    context: CommandContext,
 ) -> Result<()> {
-    let (mut vault, _pw) = open_vault(path)?;
+    let (mut vault, _pw) = open_vault(path, context)?;
     let entry = resolve::resolve_title(&vault, title, id)?;
     vault
         .open_item(entry.item_id)
@@ -545,7 +568,7 @@ fn cmd_get(
             ));
         }
         let pw_str = Zeroizing::new(String::from_utf8(pw.to_vec()).expect("validated UTF-8"));
-        if !quiet {
+        if !context.quiet {
             eprintln!(
                 "warning: the secret is now in your terminal scrollback; clear it (or close the terminal) when done"
             );
@@ -553,7 +576,8 @@ fn cmd_get(
         println!("{}", pw_str.as_str());
         Ok(())
     } else {
-        clip::copy_and_hold_quiet(&pw, timeout, quiet).map_err(|e| CliError::Other(e.to_string()))
+        clip::copy_and_hold_quiet(&pw, timeout, context.quiet)
+            .map_err(|e| CliError::Other(e.to_string()))
     }
 }
 
@@ -562,9 +586,9 @@ fn cmd_copy(
     title: &str,
     id: Option<u32>,
     timeout: u64,
-    quiet: bool,
+    context: CommandContext,
 ) -> Result<()> {
-    let (mut vault, _pw) = open_vault(path)?;
+    let (mut vault, _pw) = open_vault(path, context)?;
     let entry = resolve::resolve_title(&vault, title, id)?;
     vault
         .open_item(entry.item_id)
@@ -578,7 +602,8 @@ fn cmd_copy(
             .clone()
             .ok_or_else(|| CliError::Other("item has no password".into()))?,
     );
-    clip::copy_and_hold_quiet(&pw, timeout, quiet).map_err(|e| CliError::Other(e.to_string()))
+    clip::copy_and_hold_quiet(&pw, timeout, context.quiet)
+        .map_err(|e| CliError::Other(e.to_string()))
 }
 
 /// All `rpass generate` flags in one struct (keeps cmd_generate at one arg).
@@ -666,9 +691,9 @@ fn cmd_totp(
     title: &str,
     id: Option<u32>,
     copy: bool,
-    quiet: bool,
+    context: CommandContext,
 ) -> Result<()> {
-    let (mut vault, _pw) = open_vault(path)?;
+    let (mut vault, _pw) = open_vault(path, context)?;
     let entry = resolve::resolve_title(&vault, title, id)?;
     vault
         .open_item(entry.item_id)
@@ -684,16 +709,26 @@ fn cmd_totp(
     let now =
         totp::totp_now(&totp::TotpParams::from(t)).map_err(|e| CliError::Other(e.to_string()))?;
     if copy {
-        clip::copy_and_hold_quiet(now.code.as_bytes(), clip::DEFAULT_TIMEOUT_SECS, quiet)
-            .map_err(|e| CliError::Other(e.to_string()))
+        clip::copy_and_hold_quiet(
+            now.code.as_bytes(),
+            clip::DEFAULT_TIMEOUT_SECS,
+            context.quiet,
+        )
+        .map_err(|e| CliError::Other(e.to_string()))
     } else {
         println!("{} ({}s remaining)", now.code, now.remaining);
         Ok(())
     }
 }
 
-fn cmd_rm(path: &std::path::Path, title: &str, id: Option<u32>, purge: bool) -> Result<()> {
-    let (mut vault, _pw) = open_vault(path)?;
+fn cmd_rm(
+    path: &std::path::Path,
+    title: &str,
+    id: Option<u32>,
+    purge: bool,
+    context: CommandContext,
+) -> Result<()> {
+    let (mut vault, _pw) = open_vault(path, context)?;
     let entry = resolve::resolve_title(&vault, title, id)?;
     if !purge {
         print!(
@@ -715,8 +750,8 @@ fn cmd_rm(path: &std::path::Path, title: &str, id: Option<u32>, purge: bool) -> 
     Ok(())
 }
 
-fn cmd_check(path: &std::path::Path) -> Result<()> {
-    let (vault, _pw) = open_vault(path)?;
+fn cmd_check(path: &std::path::Path, context: CommandContext) -> Result<()> {
+    let (vault, _pw) = open_vault(path, context)?;
     let report = ops::check_vault(&vault).map_err(|e| CliError::Other(e.to_string()))?;
     let algorithm_name = |algorithm| match algorithm {
         Algorithm::Aes256Gcm => "AES-256-GCM",
@@ -753,6 +788,7 @@ fn cmd_import(
     file: &std::path::Path,
     dry_run: bool,
     yes: bool,
+    context: CommandContext,
 ) -> Result<()> {
     import::run(
         path,
@@ -761,6 +797,8 @@ fn cmd_import(
             file,
             dry_run,
             yes,
+            from_stdin: context.from_stdin,
+            quiet: context.quiet,
         },
     )
 }
@@ -938,6 +976,7 @@ struct EditArgs {
     want_totp: bool,
     totp_alg: Option<TotpAlgArg>,
     want_totp_uri: bool,
+    context: CommandContext,
 }
 
 fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
@@ -951,9 +990,10 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         want_totp,
         totp_alg,
         want_totp_uri,
+        context,
     } = a;
     let notes = resolve_notes(notes)?;
-    let (mut vault, _pw) = open_vault(path)?;
+    let (mut vault, _pw) = open_vault(path, context)?;
     let entry = resolve::resolve_title(&vault, &title, id)?;
     vault
         .open_item(entry.item_id)
@@ -1038,8 +1078,8 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
     Ok(())
 }
 
-fn cmd_rotate(path: &std::path::Path, new_password: bool) -> Result<()> {
-    let (mut vault, pw) = open_vault(path)?;
+fn cmd_rotate(path: &std::path::Path, new_password: bool, context: CommandContext) -> Result<()> {
+    let (mut vault, pw) = open_vault(path, context)?;
     eprintln!(
         "current KDF: {} MiB, t={}, p={}",
         vault.header.kdf_params.argon2_m_mib,
@@ -1052,7 +1092,7 @@ fn cmd_rotate(path: &std::path::Path, new_password: bool) -> Result<()> {
         .rotate(&secret_vec(pw.to_vec()))
         .map_err(|e| CliError::Other(e.to_string()))?;
     if new_password {
-        let np = passwords::prompt_new_master()?;
+        let np = passwords::prompt_new_master(context.from_stdin)?;
         vault
             .change_password(&secret_vec(np.to_vec()))
             .map_err(|e| CliError::Other(e.to_string()))?;
@@ -1070,6 +1110,7 @@ fn cmd_export(
     format: &str,
     yes_i_mean_it: bool,
     out: Option<std::path::PathBuf>,
+    context: CommandContext,
 ) -> Result<()> {
     if format != "json" {
         return Err(CliError::Usage(format!(
@@ -1091,7 +1132,7 @@ fn cmd_export(
         ));
     }
 
-    let (mut vault, _pw) = open_vault(path)?;
+    let (mut vault, _pw) = open_vault(path, context)?;
     let mut items: Zeroizing<Vec<String>> = Zeroizing::new(Vec::new());
     let live: Vec<crate::vault::shape::IndexEntry> = vault
         .entries

@@ -1,6 +1,6 @@
 # CLI Reference
 
-**Status:** Current pre-release implementation (`rpass` 0.1.0)
+**Status:** Public preview (`rpass` 0.2.0)
 **Binary name:** `rpass`
 
 ---
@@ -11,6 +11,12 @@
 |---|---|
 | `--vault <path>` | Override the vault location (ADR-0002) for this invocation |
 | `-q` / `--quiet` | Suppress **security warnings** (see §warning policy) — never suppresses errors or usability warnings |
+| `--from-stdin` | Read master-password prompts from stdin, one line per prompt; intended for controlled automation |
+
+`--from-stdin` never accepts a secret as a process argument or environment
+variable. For `init`, provide the new master password twice. Other vault
+commands consume one line. The TUI rejects this flag because it is interactive.
+Treat the producing pipe or input file as secret material.
 
 ### Warning policy
 

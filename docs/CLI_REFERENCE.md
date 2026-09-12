@@ -177,29 +177,33 @@ copy-history warnings every time; errors must still reach a human.
   }
   ```
 
-### `rpass import --format json <file>`
+### `rpass import --format <format> <file>`
 
-- **Preview-and-confirm UX:** reads the file, computes `{ adds,
-  updates, title-collisions }`, prints them, and asks interactively to
-  proceed. No `--yes-i-mean-it` — scripts that need to know what an
-  import will do must run the command interactively or use
-  `--dry-run` for inspection only.
-- Interactive confirmation is skipped only when the import adds
-  nothing (pure adds, zero collisions) and the user passed `--yes`.
-- `<item_id>` keys with a matching `title` **update** the existing
-  entry's secrets, preserving its `item_id`; non-matching `<item_id>`
-  keys **create** a new entry with a generated `item_id` (never reusing
-  one from the import file — the file doesn't own identity allocation).
-- Existing title collisions require interactive confirmation; `--yes` is
-  accepted only for a pure add with no collisions. Duplicate titles in the
-  import file are allowed and create separate items.
-- `null` TOTP = no authenticator; missing optional fields = empty
-  string. Unrecognized top-level keys = ignored (forward-compat).
-- `format_version` is required and must be exactly `1`. Imports are
-  limited to 64 MiB, 10,000 items, 10,000 values per JSON collection,
-  and 128 nesting levels; larger inputs fail before mutating the vault.
-- Exit code 1 on malformed JSON, 0 on success, 4 on user-cancel at the
-  confirm prompt.
+- Formats: `json` for native schema 1, `bitwarden-json` for an unencrypted
+  Bitwarden JSON export, and `keepassxc-csv` for a KeePassXC CSV export.
+- **Preview-and-confirm UX:** the complete file is parsed and validated first,
+  then the command prints `{ adds, updates, title-collisions,
+  unsupported/skipped fields }` without secrets and asks interactively to
+  proceed.
+- `--yes` skips confirmation only for a validated pure-add plan with zero
+  title collisions. `--dry-run` validates and previews without writing.
+- Native `<item_id>` keys with a `title` matching exactly one live entry update
+  that entry's secrets while preserving its `item_id`. Non-matches create a
+  generated rpass `item_id`; imported IDs never allocate identity.
+- Bitwarden and KeePassXC records are always additions, even when their IDs or
+  titles match. Unsupported attachments, passkeys, cards, identity records,
+  custom fields, extra URLs, and nonempty unsupported CSV columns contribute
+  to the skipped count.
+- Supported source fields preserve title, username, password, URL, notes, and
+  TOTP. Bitwarden secure notes are imported as credentials without a password.
+  Malformed records identify their source position and abort the whole import
+  before any vault mutation.
+- Imports are limited to 64 MiB and 10,000 records. JSON retains the 10,000
+  values-per-collection and 128-level depth limits; individual CSV fields are
+  limited to 1 MiB.
+- The source file is plaintext. The command warns to secure or remove it after
+  import.
+- Exit code 1 on malformed input, 0 on success, and 4 on cancellation.
 
 ### `rpass rotate`
 

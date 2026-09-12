@@ -1,17 +1,9 @@
-//! `rpass import --format json <file>` (CLI_REFERENCE import contract).
+//! Import adapters and preview/confirm planning.
 //!
-//! Preview-and-confirm: reads the file, computes { adds, updates,
-//! title-collisions }, prints them, asks interactively. `--yes` skips the
-//! confirm only for pure adds with zero collisions — anything that would
-//! overwrite existing secrets requires a human.
-//!
-//! Identity rule: `<item_id>` keys whose *title* matches exactly one live
-//! vault entry update that entry (its item_id is preserved); everything
-//! else creates a new entry with a generated item_id — the file never owns
-//! identity allocation. A title appearing MULTIPLE times in the import
-//! file never updates (two queued updates on one entry would apply in
-//! file order with the last silently winning) — all copies become adds
-//! and the preview flags the collision.
+//! Native schema-1 JSON may update an exact single title match. External
+//! Bitwarden and KeePassXC identities never become rpass identities: every
+//! external record is an addition. Every adapter fully parses and validates
+//! into canonical records before the planner can mutate the vault.
 
 use std::fs::File;
 use std::io::Read;
@@ -28,6 +20,7 @@ const MAX_IMPORT_BYTES: u64 = 64 * 1024 * 1024;
 #[cfg(test)]
 const MAX_IMPORT_BYTES: u64 = 1024 * 1024;
 const MAX_IMPORT_ITEMS: usize = 10_000;
+const MAX_CSV_FIELD_BYTES: usize = 1024 * 1024;
 
 pub struct ImportArgs<'a> {
     pub format: &'a str,
@@ -37,15 +30,9 @@ pub struct ImportArgs<'a> {
 }
 
 pub fn run(path: &std::path::Path, a: ImportArgs<'_>) -> Result<()> {
-    if a.format != "json" {
-        return Err(CliError::Usage(format!(
-            "unknown import format '{}' — only json exists in v1",
-            a.format
-        )));
-    }
     let text = read_import_text(a.file)?;
     let (mut vault, _pw) = super::open_vault(path)?;
-    import_into(&mut vault, &text, a.dry_run, a.yes)
+    import_format_into(&mut vault, a.format, &text, a.dry_run, a.yes)
 }
 
 fn read_import_text(path: &std::path::Path) -> Result<Zeroizing<String>> {
@@ -64,21 +51,46 @@ fn read_import_text(path: &std::path::Path) -> Result<Zeroizing<String>> {
     Ok(text)
 }
 
-/// Core import over an already-open vault (CLI wrapper handles the password;
-/// tests call this directly so nothing prompts).
+/// Native-import compatibility entry point used by integration tests.
 pub fn import_into(vault: &mut Vault, export_text: &str, dry_run: bool, yes: bool) -> Result<()> {
-    let doc = Zeroizing::new(json::parse(export_text).map_err(|e| CliError::Other(e.to_string()))?);
-    let plan = build_plan(vault, &doc)?;
+    import_format_into(vault, "json", export_text, dry_run, yes)
+}
 
-    // Preview (always — even with --yes, the user should see the shape).
+/// Core import over an already-open vault. Parsing, source validation, and
+/// planning all complete before the single mutation/save operation.
+pub fn import_format_into(
+    vault: &mut Vault,
+    format: &str,
+    export_text: &str,
+    dry_run: bool,
+    yes: bool,
+) -> Result<()> {
+    let parsed = match format {
+        "json" => parse_native(export_text)?,
+        "bitwarden-json" => parse_bitwarden(export_text)?,
+        "keepassxc-csv" => parse_keepassxc(export_text)?,
+        other => {
+            return Err(CliError::Usage(format!(
+                "unknown import format '{other}' — expected json, bitwarden-json, or keepassxc-csv"
+            )))
+        }
+    };
+    let plan = build_plan(vault, parsed)?;
+
     eprintln!(
-        "import plan: {} add{}, {} update{}, {} title-collision{}",
+        "warning: '{}' is a plaintext export; secure or remove it after import",
+        format
+    );
+    eprintln!(
+        "import plan: {} add{}, {} update{}, {} title-collision{}, {} unsupported/skipped field{}",
         plan.adds.len(),
         if plan.adds.len() == 1 { "" } else { "s" },
         plan.updates.len(),
         if plan.updates.len() == 1 { "" } else { "s" },
         plan.collisions.len(),
         if plan.collisions.len() == 1 { "" } else { "s" },
+        plan.skipped,
+        if plan.skipped == 1 { "" } else { "s" },
     );
     for add in &plan.adds {
         eprintln!("  + {} ({})", add.title, add.username);
@@ -89,10 +101,10 @@ pub fn import_into(vault: &mut Vault, export_text: &str, dry_run: bool, yes: boo
             upd.title, upd.item_id, upd.username
         );
     }
-    for c in &plan.collisions {
+    for (title, count) in &plan.collisions {
         eprintln!(
-            "  ! '{}' exists {} times — the import's '{}' becomes an add",
-            c.0, c.1, c.0
+            "  ! '{title}' collides with {count} existing/imported title{}",
+            if *count == 1 { "" } else { "s" }
         );
     }
 
@@ -101,7 +113,6 @@ pub fn import_into(vault: &mut Vault, export_text: &str, dry_run: bool, yes: boo
         return Ok(());
     }
 
-    // --yes only bypasses the prompt for pure adds with zero collisions.
     let pure_adds = plan.updates.is_empty() && plan.collisions.is_empty();
     if !(yes && pure_adds) {
         if !std::io::IsTerminal::is_terminal(&std::io::stdin()) {
@@ -132,6 +143,24 @@ pub fn import_into(vault: &mut Vault, export_text: &str, dry_run: bool, yes: boo
 
 // ─── plan ───────────────────────────────────────────────────────────────────
 
+struct CanonicalRecord {
+    title: String,
+    username: String,
+    record: ItemRecord,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum IdentityMode {
+    Native,
+    AddOnly,
+}
+
+struct ParsedImport {
+    records: Vec<CanonicalRecord>,
+    identity: IdentityMode,
+    skipped: usize,
+}
+
 struct PlannedAdd {
     title: String,
     username: String,
@@ -148,92 +177,85 @@ struct PlannedUpdate {
 struct Plan {
     adds: Vec<PlannedAdd>,
     updates: Vec<PlannedUpdate>,
-    /// (title, times-it-exists) for titles present 2+ times in the vault.
     collisions: Vec<(String, usize)>,
+    skipped: usize,
 }
 
-fn build_plan(vault: &Vault, doc: &Json) -> Result<Plan> {
-    validate_format_version(doc)?;
-    let items = doc
-        .get("items")
-        .and_then(|v| v.as_obj())
-        .ok_or_else(|| CliError::Other("import: missing 'items' object".into()))?;
-    if items.len() > MAX_IMPORT_ITEMS {
-        return Err(CliError::Other(format!(
-            "import has {} items; maximum is {MAX_IMPORT_ITEMS}",
-            items.len()
-        )));
-    }
-
-    // First pass: per-title counts within the FILE.
-    let mut file_counts: std::collections::HashMap<String, usize> =
-        std::collections::HashMap::new();
-    for (_id, value) in items {
-        *file_counts
-            .entry(required_str(value, "title")?)
-            .or_default() += 1;
+fn build_plan(vault: &Vault, parsed: ParsedImport) -> Result<Plan> {
+    let mut file_counts = std::collections::HashMap::<String, usize>::new();
+    for record in &parsed.records {
+        *file_counts.entry(record.title.clone()).or_default() += 1;
     }
 
     let mut adds = Vec::new();
     let mut updates = Vec::new();
     let mut collisions = Vec::new();
-    let mut collided: std::collections::HashSet<String> = std::collections::HashSet::new();
-    let mut note_collision = |title: &str, n: usize, collisions: &mut Vec<(String, usize)>| {
+    let mut collided = std::collections::HashSet::<String>::new();
+    let mut note_collision = |title: &str, count: usize| {
         if collided.insert(title.to_string()) {
-            collisions.push((title.to_string(), n));
+            collisions.push((title.to_string(), count));
         }
     };
 
-    for (_file_id, value) in items {
-        let title = required_str(value, "title")?;
-        let username = optional_str(value, "username")?;
-        let record = parse_record(value)?;
+    for record in parsed.records {
+        let duplicate_count = file_counts.get(&record.title).copied().unwrap_or(0);
+        let live: Vec<_> = vault
+            .entries
+            .iter()
+            .filter(|entry| entry.state == LIVE_STATE && entry.title == record.title)
+            .collect();
 
-        // Intra-file duplicates: never an update (see module docs).
-        if file_counts.get(&title).copied().unwrap_or(0) > 1 {
-            let n = file_counts[&title];
-            note_collision(&title, n, &mut collisions);
+        if parsed.identity == IdentityMode::AddOnly {
+            let other_titles = live.len() + duplicate_count.saturating_sub(1);
+            if other_titles > 0 {
+                note_collision(&record.title, other_titles);
+            }
             adds.push(PlannedAdd {
-                title,
-                username,
-                record,
+                title: record.title,
+                username: record.username,
+                record: record.record,
             });
             continue;
         }
 
-        // Identity: a title matching exactly one live vault entry updates it;
-        // 0 or ≥2 matches → add (with the collision recorded for the preview).
-        let live: Vec<_> = vault
-            .entries
-            .iter()
-            .filter(|e| e.state == LIVE_STATE && e.title == title)
-            .collect();
+        if duplicate_count > 1 {
+            note_collision(&record.title, duplicate_count);
+            adds.push(PlannedAdd {
+                title: record.title,
+                username: record.username,
+                record: record.record,
+            });
+            continue;
+        }
+
         match live.len() {
             0 => adds.push(PlannedAdd {
-                title,
-                username,
-                record,
+                title: record.title,
+                username: record.username,
+                record: record.record,
             }),
             1 => updates.push(PlannedUpdate {
                 item_id: live[0].item_id,
                 title: live[0].title.clone(),
                 username: live[0].username.clone(),
-                record,
+                record: record.record,
             }),
-            n => {
-                note_collision(&title, n, &mut collisions);
+            count => {
+                note_collision(&record.title, count);
                 adds.push(PlannedAdd {
-                    title,
-                    username,
-                    record,
+                    title: record.title,
+                    username: record.username,
+                    record: record.record,
                 });
             }
         }
     }
+
     Ok(Plan {
         adds,
         updates,
         collisions,
+        skipped: parsed.skipped,
     })
 }
 
@@ -256,6 +278,302 @@ fn apply(vault: &mut Vault, plan: Plan) -> Result<()> {
         })
         .collect();
     ops::apply_import(vault, adds, updates).map_err(|e| CliError::Other(e.to_string()))
+}
+
+// ─── source adapters ────────────────────────────────────────────────────────
+
+fn parse_native(text: &str) -> Result<ParsedImport> {
+    let doc = Zeroizing::new(json::parse(text).map_err(|e| CliError::Other(e.to_string()))?);
+    validate_format_version(&doc)?;
+    let items = doc
+        .get("items")
+        .and_then(Json::as_obj)
+        .ok_or_else(|| CliError::Other("import: missing 'items' object".into()))?;
+    enforce_item_limit(items.len())?;
+
+    let mut records = Vec::with_capacity(items.len());
+    for (index, (_id, value)) in items.iter().enumerate() {
+        let parsed = (|| {
+            Ok(CanonicalRecord {
+                title: required_str(value, "title")?,
+                username: optional_str(value, "username")?,
+                record: parse_record(value)?,
+            })
+        })()
+        .map_err(|error: CliError| record_error("json", index + 1, error))?;
+        records.push(parsed);
+    }
+    Ok(ParsedImport {
+        records,
+        identity: IdentityMode::Native,
+        skipped: 0,
+    })
+}
+
+fn parse_bitwarden(text: &str) -> Result<ParsedImport> {
+    let doc = Zeroizing::new(json::parse(text).map_err(|e| CliError::Other(e.to_string()))?);
+    if matches!(doc.get("encrypted"), Some(Json::Bool(true))) {
+        return Err(CliError::Other(
+            "bitwarden-json: encrypted exports are not supported; export unencrypted JSON".into(),
+        ));
+    }
+    let items = match doc.get("items") {
+        Some(Json::Arr(items)) => items,
+        _ => {
+            return Err(CliError::Other(
+                "bitwarden-json: missing 'items' array".into(),
+            ))
+        }
+    };
+    enforce_item_limit(items.len())?;
+
+    let mut records = Vec::with_capacity(items.len());
+    let mut skipped = 0;
+    for (index, item) in items.iter().enumerate() {
+        let parsed = parse_bitwarden_item(item, &mut skipped)
+            .map_err(|error| record_error("bitwarden-json", index + 1, error))?;
+        if let Some(record) = parsed {
+            records.push(record);
+        }
+    }
+    Ok(ParsedImport {
+        records,
+        identity: IdentityMode::AddOnly,
+        skipped,
+    })
+}
+
+fn parse_bitwarden_item(item: &Json, skipped: &mut usize) -> Result<Option<CanonicalRecord>> {
+    let item_type = item
+        .get("type")
+        .and_then(Json::as_num)
+        .ok_or_else(|| CliError::Other("missing numeric 'type'".into()))?;
+    if item_type.fract() != 0.0 {
+        return Err(CliError::Other("'type' must be an integer".into()));
+    }
+    let item_type = item_type as u32;
+    if matches!(item_type, 3 | 4) {
+        *skipped += 1;
+        return Ok(None);
+    }
+    if !matches!(item_type, 1 | 2) {
+        return Err(CliError::Other(format!(
+            "unsupported Bitwarden item type {item_type}"
+        )));
+    }
+
+    let title = required_str(item, "name")?;
+    let notes = optional_secret(item, "notes")?;
+    *skipped += json_array_len(item, "attachments")?;
+    *skipped += json_array_len(item, "fields")?;
+
+    if item_type == 2 {
+        return Ok(Some(CanonicalRecord {
+            title,
+            username: String::new(),
+            record: new_record(None, String::new(), notes, None),
+        }));
+    }
+
+    let login = item
+        .get("login")
+        .ok_or_else(|| CliError::Other("login item is missing 'login' object".into()))?;
+    login
+        .as_obj()
+        .ok_or_else(|| CliError::Other("'login' must be an object".into()))?;
+    let username = optional_str(login, "username")?;
+    let password = optional_secret(login, "password")?;
+    let totp = match optional_json_str(login, "totp")? {
+        Some(value) if !value.is_empty() => Some(parse_external_totp(&value)?),
+        _ => None,
+    };
+    *skipped += json_array_len(login, "fido2Credentials")?;
+
+    let uris = match login.get("uris") {
+        None | Some(Json::Null) => &[][..],
+        Some(Json::Arr(values)) => values.as_slice(),
+        Some(_) => return Err(CliError::Other("'login.uris' must be an array".into())),
+    };
+    let mut url = String::new();
+    for (uri_index, uri) in uris.iter().enumerate() {
+        let value = required_str(uri, "uri")?;
+        if uri_index == 0 {
+            url = value;
+        } else {
+            *skipped += 1;
+        }
+    }
+
+    Ok(Some(CanonicalRecord {
+        title,
+        username,
+        record: new_record(password, url, notes, totp),
+    }))
+}
+
+fn parse_keepassxc(text: &str) -> Result<ParsedImport> {
+    let mut reader = csv::ReaderBuilder::new()
+        .flexible(false)
+        .from_reader(text.as_bytes());
+    let headers = reader
+        .headers()
+        .map_err(|error| CliError::Other(format!("keepassxc-csv header: {error}")))?
+        .clone();
+    for required in ["Title", "Username", "Password", "URL", "Notes"] {
+        if !headers.iter().any(|header| header == required) {
+            return Err(CliError::Other(format!(
+                "keepassxc-csv: missing '{required}' column"
+            )));
+        }
+    }
+    validate_csv_fields(&headers, "header")?;
+
+    let mut records = Vec::new();
+    let mut skipped = 0;
+    for (index, row) in reader.records().enumerate() {
+        if index >= MAX_IMPORT_ITEMS {
+            return Err(CliError::Other(format!(
+                "import has more than {MAX_IMPORT_ITEMS} items"
+            )));
+        }
+        let row = row.map_err(|error| {
+            CliError::Other(format!("keepassxc-csv record {}: {error}", index + 1))
+        })?;
+        validate_csv_fields(&row, &format!("record {}", index + 1))?;
+        let field = |name: &str| -> &str {
+            headers
+                .iter()
+                .position(|header| header == name)
+                .and_then(|column| row.get(column))
+                .unwrap_or("")
+        };
+        let totp = match field("TOTP") {
+            "" => None,
+            value => Some(
+                parse_external_totp(value)
+                    .map_err(|error| record_error("keepassxc-csv", index + 1, error))?,
+            ),
+        };
+        skipped += headers
+            .iter()
+            .zip(row.iter())
+            .filter(|(header, value)| {
+                !value.is_empty()
+                    && !matches!(
+                        *header,
+                        "Title" | "Username" | "Password" | "URL" | "Notes" | "TOTP"
+                    )
+            })
+            .count();
+        records.push(CanonicalRecord {
+            title: field("Title").to_string(),
+            username: field("Username").to_string(),
+            record: new_record(
+                nonempty_secret(field("Password")),
+                field("URL").to_string(),
+                nonempty_secret(field("Notes")),
+                totp,
+            ),
+        });
+    }
+
+    Ok(ParsedImport {
+        records,
+        identity: IdentityMode::AddOnly,
+        skipped,
+    })
+}
+
+fn enforce_item_limit(count: usize) -> Result<()> {
+    if count > MAX_IMPORT_ITEMS {
+        return Err(CliError::Other(format!(
+            "import has {count} items; maximum is {MAX_IMPORT_ITEMS}"
+        )));
+    }
+    Ok(())
+}
+
+fn validate_csv_fields(record: &csv::StringRecord, label: &str) -> Result<()> {
+    if let Some(field) = record
+        .iter()
+        .find(|field| field.len() > MAX_CSV_FIELD_BYTES)
+    {
+        return Err(CliError::Other(format!(
+            "keepassxc-csv {label}: field is {} bytes; maximum is {MAX_CSV_FIELD_BYTES}",
+            field.len()
+        )));
+    }
+    Ok(())
+}
+
+fn optional_json_str(obj: &Json, key: &str) -> Result<Option<String>> {
+    match obj.get(key) {
+        None | Some(Json::Null) => Ok(None),
+        Some(value) => value
+            .as_str()
+            .map(|value| Some(value.to_string()))
+            .ok_or_else(|| CliError::Other(format!("'{key}' must be a string or null"))),
+    }
+}
+
+fn optional_secret(obj: &Json, key: &str) -> Result<Option<Vec<u8>>> {
+    Ok(optional_json_str(obj, key)?.map(|value| value.into_bytes()))
+}
+
+fn json_array_len(obj: &Json, key: &str) -> Result<usize> {
+    match obj.get(key) {
+        None | Some(Json::Null) => Ok(0),
+        Some(Json::Arr(values)) => Ok(values.len()),
+        Some(_) => Err(CliError::Other(format!("'{key}' must be an array"))),
+    }
+}
+
+fn nonempty_secret(value: &str) -> Option<Vec<u8>> {
+    (!value.is_empty()).then(|| value.as_bytes().to_vec())
+}
+
+fn new_record(
+    password: Option<Vec<u8>>,
+    url: String,
+    notes: Option<Vec<u8>>,
+    totp: Option<TotpSubRecord>,
+) -> ItemRecord {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .unwrap_or(0);
+    ItemRecord {
+        password,
+        url,
+        notes,
+        totp,
+        created_unix: now,
+        modified_unix: now,
+    }
+}
+
+fn parse_external_totp(value: &str) -> Result<TotpSubRecord> {
+    if value.starts_with("otpauth://") {
+        let mut parsed = crate::totp::parse_otpauth_uri(value)
+            .map_err(|error| CliError::Other(error.to_string()))?;
+        return Ok(TotpSubRecord {
+            secret: std::mem::take(&mut parsed.secret),
+            period: parsed.period,
+            digits: parsed.digits,
+            algorithm: parsed.algorithm,
+        });
+    }
+    Ok(TotpSubRecord {
+        secret: crate::totp::validate_secret(value, TotpAlgorithm::Sha1)
+            .map_err(|error| CliError::Other(error.to_string()))?,
+        period: 30,
+        digits: 6,
+        algorithm: TotpAlgorithm::Sha1,
+    })
+}
+
+fn record_error(source: &str, index: usize, error: CliError) -> CliError {
+    CliError::Other(format!("{source} record {index}: {error}"))
 }
 
 // ─── field decoding ─────────────────────────────────────────────────────────
@@ -481,7 +799,7 @@ mod tests {
             v
         };
 
-        let doc = parse(
+        let parsed = parse_native(
             r#"{"format_version":1,"items":{
                 "9":  {"title":"one.example","username":"u1-new","password":"new-pw"},
                 "10": {"title":"dup","username":"c","password":"pw"},
@@ -489,7 +807,7 @@ mod tests {
             }}"#,
         )
         .unwrap();
-        let plan = build_plan(&v, &doc).unwrap();
+        let plan = build_plan(&v, parsed).unwrap();
 
         // one.example matches exactly once → update
         assert_eq!(plan.updates.len(), 1);
@@ -547,19 +865,146 @@ mod tests {
             v
         };
 
-        let doc = parse(
+        let parsed = parse_native(
             r#"{"format_version":1,"items":{
                 "1": {"title":"solo","username":"a","password":"pw-a"},
                 "2": {"title":"solo","username":"b","password":"pw-b"}
             }}"#,
         )
         .unwrap();
-        let plan = build_plan(&v, &doc).unwrap();
+        let plan = build_plan(&v, parsed).unwrap();
         assert_eq!(plan.updates.len(), 0, "file duplicates must not update");
         assert_eq!(plan.adds.len(), 2);
         assert_eq!(plan.collisions.len(), 1);
         assert_eq!(plan.collisions[0], ("solo".to_string(), 2));
 
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn bitwarden_fixture_preserves_supported_fields_and_never_updates() {
+        let fixture = include_str!("../../test-vectors/import/bitwarden.json");
+        let parsed = parse_bitwarden(fixture).unwrap();
+        assert_eq!(parsed.records.len(), 2);
+        assert_eq!(parsed.skipped, 6);
+        assert_eq!(parsed.records[0].title, "Bitwarden Login");
+        assert_eq!(parsed.records[0].username, "alice");
+        assert_eq!(
+            parsed.records[0].record.password.as_deref(),
+            Some(b"correct horse".as_slice())
+        );
+        assert_eq!(parsed.records[0].record.url, "https://example.com");
+        assert!(parsed.records[0].record.totp.is_some());
+        assert_eq!(
+            parsed.records[1].record.notes.as_deref(),
+            Some(b"standalone note".as_slice())
+        );
+
+        let path = std::env::temp_dir().join(format!("rpass_bw_{}.bin", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+        let password = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
+        let mut vault = Vault::create(
+            &path,
+            &password,
+            crate::crypto::kdf::KdfParams::new(8, 1, 1).unwrap(),
+            crate::crypto::ciphers::Algorithm::Aes256Gcm,
+            crate::crypto::ciphers::Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        ops::add_entry(
+            &mut vault,
+            crate::ops::NewEntry {
+                title: "Bitwarden Login".into(),
+                username: "existing".into(),
+                password: None,
+                url: String::new(),
+                notes: None,
+                totp: None,
+            },
+        )
+        .unwrap();
+        let plan = build_plan(&vault, parsed).unwrap();
+        assert_eq!(plan.updates.len(), 0);
+        assert_eq!(plan.adds.len(), 2);
+        assert_eq!(plan.collisions.len(), 1);
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn keepassxc_fixture_handles_csv_quoting_and_reports_skipped_fields() {
+        let fixture = include_str!("../../test-vectors/import/keepassxc.csv");
+        let parsed = parse_keepassxc(fixture).unwrap();
+        assert_eq!(parsed.records.len(), 2);
+        assert_eq!(parsed.skipped, 5);
+        assert_eq!(
+            parsed.records[0].record.notes.as_deref(),
+            Some(b"note, with comma".as_slice())
+        );
+        assert_eq!(
+            parsed.records[1].record.notes.as_deref(),
+            Some(b"line one\nline two".as_slice())
+        );
+        assert!(parsed.records[0].record.totp.is_some());
+
+        let path =
+            std::env::temp_dir().join(format!("rpass_keepass_import_{}.bin", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+        let password = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
+        let mut vault = Vault::create(
+            &path,
+            &password,
+            crate::crypto::kdf::KdfParams::new(8, 1, 1).unwrap(),
+            crate::crypto::ciphers::Algorithm::Aes256Gcm,
+            crate::crypto::ciphers::Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        import_format_into(&mut vault, "keepassxc-csv", fixture, false, true).unwrap();
+        drop(vault);
+        let mut reopened = Vault::open(&path, &password).unwrap();
+        assert_eq!(reopened.entries.len(), 2);
+        let item_id = reopened
+            .entries
+            .iter()
+            .find(|entry| entry.title == "KeePassXC Login")
+            .unwrap()
+            .item_id;
+        reopened.open_item(item_id).unwrap();
+        assert!(reopened
+            .open_items
+            .values()
+            .any(|record| record.password.as_deref() == Some(b"open-sesame".as_slice())));
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn malformed_external_record_leaves_vault_unchanged() {
+        let path =
+            std::env::temp_dir().join(format!("rpass_import_atomic_{}.bin", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+        let password = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
+        let mut vault = Vault::create(
+            &path,
+            &password,
+            crate::crypto::kdf::KdfParams::new(8, 1, 1).unwrap(),
+            crate::crypto::ciphers::Algorithm::Aes256Gcm,
+            crate::crypto::ciphers::Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        let before = std::fs::read(&path).unwrap();
+        let error = import_format_into(
+            &mut vault,
+            "keepassxc-csv",
+            include_str!("../../test-vectors/import/keepassxc-malformed.csv"),
+            false,
+            true,
+        )
+        .unwrap_err();
+        assert!(
+            error.to_string().contains("keepassxc-csv record 2"),
+            "{error}"
+        );
+        assert_eq!(std::fs::read(&path).unwrap(), before);
+        assert!(vault.entries.is_empty());
+        let _ = std::fs::remove_file(path);
     }
 }

@@ -20,6 +20,7 @@ getrandom = "0.2"
 thiserror = "1"
 crc32c = "0.6"
 clap = { version = "4", features = ["derive"] }
+csv = "1"
 rpassword = "7"
 base32 = "0.5"
 sha1 = "0.10"

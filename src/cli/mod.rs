@@ -195,10 +195,10 @@ enum Command {
         #[arg(long, value_name = "FILE")]
         out: Option<std::path::PathBuf>,
     },
-    /// Import items from a JSON export (preview + confirm)
+    /// Import items from rpass, Bitwarden, or KeePassXC (preview + confirm)
     Import {
-        /// Import format; only json exists in v1
-        #[arg(long)]
+        /// Source format
+        #[arg(long, value_parser = ["json", "bitwarden-json", "keepassxc-csv"])]
         format: String,
         file: std::path::PathBuf,
         /// Print what would happen, change nothing

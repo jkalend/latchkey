@@ -84,7 +84,7 @@ $ rpass backup --out /mnt/c/Backups/vault-backup.bin
 | `rpass export` | ✅ implemented — `--format json --yes-i-mean-it --out <file>` |
 | `rpass backup` | ✅ implemented — `--out` |
 | `rpass check` | ✅ implemented — authenticates every vault record without writing |
-| `rpass tui` (or bare `rpass`) | ✅ implemented — fuzzy search, detail view, idle lock |
+| `rpass tui` (or bare `rpass`) | ✅ implemented — search, add/edit/delete, detail view, idle lock |
 | `rpass import` | ✅ implemented — `--format json <file>`, preview + confirm, `--dry-run`, `--yes` |
 
 Full contract per command: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md).

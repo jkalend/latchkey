@@ -24,7 +24,7 @@ use ratatui::Frame;
 use crate::cli::passwords;
 use crate::crypto::kdf::SecretVec;
 use crate::gen::GenerateSpec;
-use crate::ops::{self, NewEntry};
+use crate::ops::{self, Change, EntryPatch, NewEntry};
 use crate::vault::shape::{TotpAlgorithm, TotpSubRecord};
 use crate::vault::vault_impl::Vault;
 use crate::{clip, totp};
@@ -132,6 +132,8 @@ enum Mode {
     List,
     Detail { item_id: u32 },
     Add,
+    Edit { item_id: u32 },
+    Delete { item_id: u32 },
 }
 
 struct App {
@@ -370,7 +372,6 @@ fn scroll(app: &mut App, delta: i64) {
 
 /// Returns Some(exit_code) to quit.
 fn handle_key(app: &mut App, k: KeyEvent) -> Option<i32> {
-    // Ctrl-C always quits (and drops the DEK with it).
     if k.modifiers.contains(KeyModifiers::CONTROL) && k.code == KeyCode::Char('c') {
         return Some(0);
     }
@@ -408,11 +409,25 @@ fn handle_key(app: &mut App, k: KeyEvent) -> Option<i32> {
                     copy_totp(app, item_id);
                     None
                 }
+                KeyCode::Char('e') => {
+                    start_edit(app, item_id);
+                    None
+                }
+                KeyCode::Char('d') => {
+                    app.mode = Mode::Delete { item_id };
+                    app.status.clear();
+                    None
+                }
                 _ => None,
             }
         }
-        Mode::Add => {
-            handle_add_key(app, k);
+        Mode::Add | Mode::Edit { .. } => {
+            handle_form_key(app, k);
+            None
+        }
+        Mode::Delete { item_id } => {
+            let item_id = *item_id;
+            handle_delete_key(app, item_id, k);
             None
         }
     }
@@ -452,6 +467,21 @@ fn handle_list_key(app: &mut App, k: KeyEvent) -> Option<i32> {
             app.status.clear();
             None
         }
+        KeyCode::Char('e') => {
+            if let Some(entry) = app.selected() {
+                start_edit(app, entry.item_id);
+            }
+            None
+        }
+        KeyCode::Char('d') => {
+            if let Some(entry) = app.selected() {
+                app.mode = Mode::Delete {
+                    item_id: entry.item_id,
+                };
+                app.status.clear();
+            }
+            None
+        }
         KeyCode::Up => {
             scroll(app, -1);
             None
@@ -477,15 +507,11 @@ fn handle_list_key(app: &mut App, k: KeyEvent) -> Option<i32> {
             }
             None
         }
-        KeyCode::Backspace => {
-            app.search.pop();
-            None
-        }
         _ => None,
     }
 }
 
-fn handle_add_key(app: &mut App, k: KeyEvent) {
+fn handle_form_key(app: &mut App, k: KeyEvent) {
     if app.save_failed {
         if k.code == KeyCode::Esc {
             app.lock();
@@ -495,9 +521,16 @@ fn handle_add_key(app: &mut App, k: KeyEvent) {
     }
     match k.code {
         KeyCode::Esc => {
+            let (return_mode, status) = match &app.mode {
+                Mode::Edit { item_id } => (
+                    Mode::Detail { item_id: *item_id },
+                    "edit cancelled".to_string(),
+                ),
+                _ => (Mode::List, "add cancelled".to_string()),
+            };
             app.form = None;
-            app.mode = Mode::List;
-            app.status = "add cancelled".into();
+            app.mode = return_mode;
+            app.status = status;
         }
         KeyCode::Tab | KeyCode::Down => {
             if let Some(form) = app.form.as_mut() {
@@ -515,7 +548,15 @@ fn handle_add_key(app: &mut App, k: KeyEvent) {
                 .as_ref()
                 .is_some_and(|form| form.field == FORM_FIELDS.len() - 1)
             {
-                submit_add(app);
+                let edit_id = match &app.mode {
+                    Mode::Edit { item_id } => Some(*item_id),
+                    _ => None,
+                };
+                if let Some(item_id) = edit_id {
+                    submit_edit(app, item_id);
+                } else {
+                    submit_add(app);
+                }
             } else if let Some(form) = app.form.as_mut() {
                 form.next();
             }
@@ -543,6 +584,133 @@ fn handle_add_key(app: &mut App, k: KeyEvent) {
             if let Some(form) = app.form.as_mut() {
                 form.current_value_mut().push(c);
             }
+        }
+        _ => {}
+    }
+}
+
+fn start_edit(app: &mut App, item_id: u32) {
+    let Some(vault) = app.vault.as_mut() else {
+        return;
+    };
+    let Some(entry) = vault
+        .entries
+        .iter()
+        .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
+        .cloned()
+    else {
+        app.status = format!("no such item {item_id}");
+        return;
+    };
+    if let Err(error) = vault.open_item(item_id) {
+        app.status = format!("open item: {error}");
+        return;
+    }
+    let Some(record) = vault.open_items.get(&entry.slot) else {
+        app.status = "item not open".into();
+        return;
+    };
+    app.form = Some(EntryForm {
+        title: entry.title,
+        username: entry.username,
+        password: String::new(),
+        url: record.url.clone(),
+        notes: String::new(),
+        totp: String::new(),
+        field: 0,
+    });
+    app.mode = Mode::Edit { item_id };
+    app.status = "blank secret fields keep existing values; '-' clears".into();
+    app.save_failed = false;
+}
+
+fn submit_edit(app: &mut App, item_id: u32) {
+    let Some(mut form) = app.form.as_ref().cloned() else {
+        return;
+    };
+    if form.title.trim().is_empty() {
+        app.status = "title is required".into();
+        return;
+    }
+    let password = match form.password.as_str() {
+        "" => Change::Keep,
+        "-" => Change::Clear,
+        _ => Change::Set(std::mem::take(&mut form.password).into_bytes()),
+    };
+    let notes = match form.notes.as_str() {
+        "" => Change::Keep,
+        "-" => Change::Clear,
+        _ => Change::Set(std::mem::take(&mut form.notes).into_bytes()),
+    };
+    let totp = match form.totp.as_str() {
+        "" => Change::Keep,
+        "-" => Change::Clear,
+        _ => match parse_form_totp(&form.totp) {
+            Ok(Some(value)) => Change::Set(value),
+            Ok(None) => Change::Keep,
+            Err(error) => {
+                app.status = format!("TOTP: {error}");
+                return;
+            }
+        },
+    };
+    let patch = EntryPatch {
+        title: Some(std::mem::take(&mut form.title)),
+        username: Some(std::mem::take(&mut form.username)),
+        password,
+        url: Some(std::mem::take(&mut form.url)),
+        notes,
+        totp,
+    };
+    let Some(vault) = app.vault.as_mut() else {
+        return;
+    };
+    match ops::update_entry(vault, item_id, patch) {
+        Ok(changed) => {
+            app.form = None;
+            app.mode = Mode::Detail { item_id };
+            app.status = if changed {
+                format!("updated item {item_id}")
+            } else {
+                "nothing changed".into()
+            };
+            app.save_failed = false;
+        }
+        Err(error) => {
+            app.save_failed = true;
+            app.status = format!("save failed: {error} — Esc to reload");
+        }
+    }
+}
+
+fn handle_delete_key(app: &mut App, item_id: u32, k: KeyEvent) {
+    if app.save_failed {
+        if k.code == KeyCode::Esc {
+            app.lock();
+            app.status = "save failed — vault re-open required".into();
+        }
+        return;
+    }
+    match k.code {
+        KeyCode::Char('y') | KeyCode::Char('Y') => {
+            let Some(vault) = app.vault.as_mut() else {
+                return;
+            };
+            match ops::delete_entry(vault, item_id) {
+                Ok(()) => {
+                    app.mode = Mode::List;
+                    app.status = format!("deleted item {item_id}");
+                    app.list_state.select(Some(0));
+                }
+                Err(error) => {
+                    app.save_failed = true;
+                    app.status = format!("save failed: {error} — Esc to reload");
+                }
+            }
+        }
+        KeyCode::Char('n') | KeyCode::Char('N') | KeyCode::Esc => {
+            app.mode = Mode::Detail { item_id };
+            app.status = "delete cancelled".into();
         }
         _ => {}
     }
@@ -611,6 +779,7 @@ fn parse_form_totp(input: &str) -> crate::crypto::error::Result<Option<TotpSubRe
         algorithm: TotpAlgorithm::Sha1,
     }))
 }
+
 fn start_clipboard(app: &mut App, secret: zeroize::Zeroizing<Vec<u8>>) {
     if let Some(handle) = app.clip_task.take() {
         if !handle.is_finished() {
@@ -620,8 +789,6 @@ fn start_clipboard(app: &mut App, secret: zeroize::Zeroizing<Vec<u8>>) {
         }
         let _ = handle.join();
     }
-    // quiet: the Clipboard History warning already fired once at startup
-    // (CLI_REFERENCE's warning policy) — not on every copy.
     match std::thread::Builder::new()
         .name("rpass-clipboard".into())
         .spawn(move || clip::copy_and_hold_quiet(&secret, clip::DEFAULT_TIMEOUT_SECS, true))
@@ -631,54 +798,62 @@ fn start_clipboard(app: &mut App, secret: zeroize::Zeroizing<Vec<u8>>) {
             app.clip_until = Some(Instant::now() + Duration::from_secs(clip::DEFAULT_TIMEOUT_SECS));
             app.status = format!("copied — clears in {}s", clip::DEFAULT_TIMEOUT_SECS);
         }
-        Err(e) => app.status = format!("clipboard worker: {e}"),
+        Err(error) => app.status = format!("clipboard worker: {error}"),
     }
 }
 
 fn copy_password(app: &mut App, item_id: u32) {
-    let Some(v) = app.vault.as_mut() else { return };
-    let entry = v
-        .entries
-        .iter()
-        .find(|e| e.item_id == item_id && e.state == crate::vault::shape::LIVE_STATE)
-        .cloned();
-    let Some(entry) = entry else { return };
-    if let Err(e) = v.open_item(item_id) {
-        app.status = format!("open item: {e}");
-        return;
-    }
-    let Some(rec) = v.open_items.get(&entry.slot) else {
+    let Some(vault) = app.vault.as_mut() else {
         return;
     };
-    let Some(pw) = rec.password.clone() else {
+    let entry = vault
+        .entries
+        .iter()
+        .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
+        .cloned();
+    let Some(entry) = entry else {
+        return;
+    };
+    if let Err(error) = vault.open_item(item_id) {
+        app.status = format!("open item: {error}");
+        return;
+    }
+    let Some(record) = vault.open_items.get(&entry.slot) else {
+        return;
+    };
+    let Some(password) = record.password.clone() else {
         app.status = "item has no password".into();
         return;
     };
-    start_clipboard(app, zeroize::Zeroizing::new(pw));
+    start_clipboard(app, zeroize::Zeroizing::new(password));
 }
 
 fn copy_totp(app: &mut App, item_id: u32) {
-    let Some(v) = app.vault.as_mut() else { return };
-    let entry = v
-        .entries
-        .iter()
-        .find(|e| e.item_id == item_id && e.state == crate::vault::shape::LIVE_STATE)
-        .cloned();
-    let Some(entry) = entry else { return };
-    if let Err(e) = v.open_item(item_id) {
-        app.status = format!("open item: {e}");
-        return;
-    }
-    let Some(rec) = v.open_items.get(&entry.slot) else {
+    let Some(vault) = app.vault.as_mut() else {
         return;
     };
-    let Some(t) = rec.totp.as_ref() else {
+    let entry = vault
+        .entries
+        .iter()
+        .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
+        .cloned();
+    let Some(entry) = entry else {
+        return;
+    };
+    if let Err(error) = vault.open_item(item_id) {
+        app.status = format!("open item: {error}");
+        return;
+    }
+    let Some(record) = vault.open_items.get(&entry.slot) else {
+        return;
+    };
+    let Some(params) = record.totp.as_ref() else {
         app.status = "item has no TOTP secret".into();
         return;
     };
-    match totp::totp_now(&totp::TotpParams::from(t)) {
+    match totp::totp_now(&totp::TotpParams::from(params)) {
         Ok(now) => start_clipboard(app, zeroize::Zeroizing::new(now.code.into_bytes())),
-        Err(e) => app.status = format!("totp: {e}"),
+        Err(error) => app.status = format!("totp: {error}"),
     }
 }
 
@@ -697,9 +872,9 @@ fn draw(f: &mut Frame, app: &mut App) {
         Mode::Locked => draw_locked(f, app, chunks[1]),
         Mode::List => draw_list(f, app, chunks[1]),
         Mode::Detail { item_id } => draw_detail(f, app, item_id, chunks[1]),
-        Mode::Add => draw_form(f, app, chunks[1]),
+        Mode::Add | Mode::Edit { .. } => draw_form(f, app, chunks[1]),
+        Mode::Delete { item_id } => draw_delete(f, app, item_id, chunks[1]),
     }
-
     draw_status(f, app, chunks[2]);
 }
 
@@ -724,10 +899,10 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect) {
     let items = app.filtered();
     let list_items: Vec<ListItem> = items
         .iter()
-        .map(|e| {
+        .map(|entry| {
             ListItem::new(Line::from(vec![
-                Span::styled(format!("{:<40}", e.title), Style::default()),
-                Span::styled(e.username.clone(), Style::default().fg(Color::DarkGray)),
+                Span::styled(format!("{:<40}", entry.title), Style::default()),
+                Span::styled(entry.username.clone(), Style::default().fg(Color::DarkGray)),
             ]))
         })
         .collect();
@@ -737,7 +912,6 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect) {
     } else {
         Span::raw(app.search.clone())
     };
-
     let list = List::new(list_items)
         .block(Block::default().borders(Borders::ALL).title(vec![
             Span::styled(
@@ -749,7 +923,10 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect) {
                 Style::default().fg(Color::Cyan),
             ),
             search,
-            Span::styled("   a add ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                "   a add   e edit   d delete ",
+                Style::default().fg(Color::DarkGray),
+            ),
         ]))
         .highlight_style(Style::default().bg(Color::Blue).fg(Color::White))
         .highlight_symbol("> ");
@@ -757,47 +934,52 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect) {
 }
 
 fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
-    let Some(v) = app.vault.as_ref() else { return };
-    let Some(entry) = v
+    let Some(vault) = app.vault.as_ref() else {
+        return;
+    };
+    let Some(entry) = vault
         .entries
         .iter()
-        .find(|e| e.item_id == item_id && e.state == crate::vault::shape::LIVE_STATE)
+        .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
         .cloned()
     else {
         return;
     };
-    if let Some(v) = app.vault.as_mut() {
-        if !v.open_items.contains_key(&entry.slot) {
-            if let Err(e) = v.open_item(item_id) {
-                app.status = format!("could not decrypt item: {e}");
+    if let Some(vault) = app.vault.as_mut() {
+        if !vault.open_items.contains_key(&entry.slot) {
+            if let Err(error) = vault.open_item(item_id) {
+                app.status = format!("could not decrypt item: {error}");
                 return;
             }
         }
     }
-    let Some(v) = app.vault.as_ref() else { return };
-    let Some(rec) = v.open_items.get(&entry.slot) else {
+    let Some(vault) = app.vault.as_ref() else {
+        return;
+    };
+    let Some(record) = vault.open_items.get(&entry.slot) else {
         return;
     };
 
-    let revealed_now = app.revealed.map(|(id, _)| id == item_id).unwrap_or(false);
-    let mask = |s: &str| {
+    let revealed_now = app
+        .revealed
+        .map(|(revealed_id, _)| revealed_id == item_id)
+        .unwrap_or(false);
+    let mask = |secret: &str| {
         if revealed_now {
-            s.to_string()
+            secret.to_string()
         } else {
-            "•".repeat(s.chars().count().max(8))
+            "•".repeat(secret.chars().count().max(8))
         }
     };
-
-    let pw_line = match &rec.password {
-        Some(p) => format!("password:  {}", mask(&String::from_utf8_lossy(p))),
+    let password = match &record.password {
+        Some(password) => format!("password:  {}", mask(&String::from_utf8_lossy(password))),
         None => "password:  (none)".to_string(),
     };
-    let totp_line = if rec.totp.is_some() {
+    let totp = if record.totp.is_some() {
         "totp:      configured (press t to copy current code)".to_string()
     } else {
         "totp:      (none)".to_string()
     };
-
     let text = vec![
         Line::from(Span::styled(
             entry.title.clone(),
@@ -806,13 +988,17 @@ fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
         Line::from(format!("username:  {}", entry.username)),
         Line::from(format!(
             "url:       {}",
-            if rec.url.is_empty() { "—" } else { &rec.url }
+            if record.url.is_empty() {
+                "—"
+            } else {
+                &record.url
+            }
         )),
-        Line::from(pw_line),
-        Line::from(totp_line),
+        Line::from(password),
+        Line::from(totp),
         Line::from(""),
         Line::from(Span::styled(
-            "c copy   r reveal (10s)   t copy TOTP   Esc back",
+            "c copy   r reveal (10s)   t copy TOTP   e edit   d delete   Esc back",
             Style::default().fg(Color::DarkGray),
         )),
     ];
@@ -826,18 +1012,27 @@ fn draw_form(f: &mut Frame, app: &App, area: Rect) {
     let Some(form) = app.form.as_ref() else {
         return;
     };
+    let editing = matches!(app.mode, Mode::Edit { .. });
     let lines: Vec<Line> = FORM_FIELDS
         .iter()
         .enumerate()
         .map(|(index, field)| {
             let focused = index == form.field;
             let raw = form.value(*field);
-            let value = if matches!(field, FormField::Password | FormField::Totp) {
-                if raw.is_empty() {
-                    "(optional)".to_string()
+            let secret = matches!(
+                field,
+                FormField::Password | FormField::Notes | FormField::Totp
+            );
+            let value = if editing && secret && raw == "-" {
+                "(clear)".to_string()
+            } else if secret && raw.is_empty() {
+                if editing {
+                    "(unchanged; '-' clears)".to_string()
                 } else {
-                    "•".repeat(raw.chars().count().max(8))
+                    "(optional)".to_string()
                 }
+            } else if secret {
+                "•".repeat(raw.chars().count().max(8))
             } else if raw.is_empty() {
                 if matches!(field, FormField::Title) {
                     "(required)".to_string()
@@ -862,24 +1057,52 @@ fn draw_form(f: &mut Frame, app: &App, area: Rect) {
             ])
         })
         .collect();
+    let title = if editing {
+        " edit credential "
+    } else {
+        " add credential "
+    };
     f.render_widget(
-        Paragraph::new(lines).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(" add credential "),
-        ),
+        Paragraph::new(lines).block(Block::default().borders(Borders::ALL).title(title)),
+        area,
+    );
+}
+
+fn draw_delete(f: &mut Frame, app: &App, item_id: u32, area: Rect) {
+    let Some(entry) = app
+        .vault
+        .as_ref()
+        .and_then(|vault| vault.entries.iter().find(|entry| entry.item_id == item_id))
+    else {
+        return;
+    };
+    let text = vec![
+        Line::from(Span::styled(
+            "Delete credential?",
+            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+        )),
+        Line::from(""),
+        Line::from(format!("title:    {}", entry.title)),
+        Line::from(format!("username: {}", entry.username)),
+        Line::from(format!("item_id:  {}", entry.item_id)),
+        Line::from(""),
+        Line::from("Press y to delete; n or Esc to cancel."),
+    ];
+    f.render_widget(
+        Paragraph::new(text).block(Block::default().borders(Borders::ALL)),
         area,
     );
 }
 
 fn draw_status(f: &mut Frame, app: &App, area: Rect) {
-    let help = if matches!(app.mode, Mode::Add) {
+    let help = if matches!(app.mode, Mode::Add | Mode::Edit { .. }) {
         " Tab fields   Enter next/save   Ctrl-G generate   Esc cancel "
+    } else if matches!(app.mode, Mode::Delete { .. }) {
+        " y delete   n/Esc cancel "
     } else {
         " L lock   q quit "
     };
     let mut spans = vec![Span::styled(help, Style::default().fg(Color::DarkGray))];
-
     if let Some(until) = app.clip_until {
         let left = until.saturating_duration_since(Instant::now()).as_secs();
         spans.push(Span::styled(
@@ -899,7 +1122,6 @@ fn draw_status(f: &mut Frame, app: &App, area: Rect) {
             Style::default().fg(Color::Cyan),
         ));
     }
-
     f.render_widget(
         Paragraph::new(Line::from(spans)).block(Block::default().borders(Borders::NONE)),
         area,
@@ -953,6 +1175,81 @@ mod tests {
         assert_eq!(record.url, "https://example.com");
         assert_eq!(record.notes.as_deref(), Some(b"note".as_slice()));
         assert!(record.totp.is_some());
+        let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn edit_form_hides_existing_secrets_and_delete_persists() {
+        let path = std::env::temp_dir().join(format!("rpass_tui_edit_{}.bin", std::process::id()));
+        let _ = std::fs::remove_file(&path);
+        let password = SecretVec::new(b"test-password".to_vec().into_boxed_slice());
+        let mut vault = Vault::create(
+            &path,
+            &password,
+            KdfParams::new(8, 1, 1).unwrap(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        let item_id = ops::add_entry(
+            &mut vault,
+            NewEntry {
+                title: "old.example".into(),
+                username: "alice".into(),
+                password: Some(b"old-secret".to_vec()),
+                url: "https://old.example".into(),
+                notes: Some(b"sensitive note".to_vec()),
+                totp: parse_form_totp("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ").unwrap(),
+            },
+        )
+        .unwrap();
+        let mut app = App::new(path.clone());
+        app.vault = Some(vault);
+        app.mode = Mode::Detail { item_id };
+
+        start_edit(&mut app, item_id);
+        let form = app.form.as_ref().unwrap();
+        assert_eq!(form.title, "old.example");
+        assert_eq!(form.url, "https://old.example");
+        assert!(form.password.is_empty());
+        assert!(form.notes.is_empty());
+        assert!(form.totp.is_empty());
+
+        let form = app.form.as_mut().unwrap();
+        form.title = "new.example".into();
+        form.username = "bob".into();
+        form.password = "new-secret".into();
+        form.url = "https://new.example".into();
+        form.notes = "-".into();
+        form.totp = "-".into();
+        submit_edit(&mut app, item_id);
+        assert!(matches!(app.mode, Mode::Detail { .. }));
+        let vault = app.vault.as_ref().unwrap();
+        let entry = vault
+            .entries
+            .iter()
+            .find(|entry| entry.item_id == item_id)
+            .unwrap();
+        let record = &vault.open_items[&entry.slot];
+        assert_eq!(entry.title, "new.example");
+        assert_eq!(entry.username, "bob");
+        assert_eq!(record.password.as_deref(), Some(b"new-secret".as_slice()));
+        assert_eq!(record.url, "https://new.example");
+        assert!(record.notes.is_none());
+        assert!(record.totp.is_none());
+
+        app.mode = Mode::Delete { item_id };
+        handle_delete_key(
+            &mut app,
+            item_id,
+            KeyEvent::new(KeyCode::Char('y'), KeyModifiers::NONE),
+        );
+        drop(app);
+        let reopened = Vault::open(&path, &password).unwrap();
+        assert_eq!(
+            reopened.entries[0].state,
+            crate::vault::shape::TOMBSTONE_STATE
+        );
         let _ = std::fs::remove_file(path);
     }
 }

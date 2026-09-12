@@ -16,7 +16,7 @@ use zeroize::Zeroizing;
 use crate::crypto::ciphers::Algorithm;
 use crate::crypto::kdf::{KdfParams, SecretVec};
 use crate::gen::{GenerateSpec, Preset};
-use crate::vault::shape::ItemRecord;
+use crate::ops::{self, Change, EntryPatch, NewEntry};
 use crate::vault::vault_impl::Vault;
 use crate::{clip, totp};
 
@@ -472,19 +472,18 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
         None
     };
 
-    let now = unix_now();
-    let record = ItemRecord {
-        password,
-        url: url.unwrap_or_default(),
-        notes: notes.map(|n| n.into_bytes()),
-        totp: totp_rec,
-        created_unix: now,
-        modified_unix: now,
-    };
-    let id = vault
-        .add_item(title, username, record)
-        .map_err(|e| CliError::Other(e.to_string()))?;
-    vault.save().map_err(|e| CliError::Other(e.to_string()))?;
+    let id = ops::add_entry(
+        &mut vault,
+        NewEntry {
+            title,
+            username,
+            password,
+            url: url.unwrap_or_default(),
+            notes: notes.map(String::into_bytes),
+            totp: totp_rec,
+        },
+    )
+    .map_err(|e| CliError::Other(e.to_string()))?;
     println!("added item {id}");
     Ok(())
 }
@@ -702,15 +701,7 @@ fn cmd_rm(path: &std::path::Path, title: &str, id: Option<u32>, purge: bool) -> 
             return Err(CliError::Cancelled);
         }
     }
-    let entry_idx = vault
-        .entries
-        .iter()
-        .position(|e| e.item_id == entry.item_id)
-        .ok_or_else(|| CliError::Other("entry vanished".into()))?;
-    // Keep a tombstone so item IDs are never reused and slot counts remain stable.
-    vault.entries[entry_idx].state = crate::vault::shape::TOMBSTONE_STATE;
-    vault.open_items.remove(&entry.slot);
-    vault.save().map_err(|e| CliError::Other(e.to_string()))?;
+    ops::delete_entry(&mut vault, entry.item_id).map_err(|e| CliError::Other(e.to_string()))?;
     println!("deleted item {}", entry.item_id);
     Ok(())
 }
@@ -976,46 +967,33 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         }
     };
 
-    let new_totp = if want_totp_uri {
-        Some(prompt_totp_uri()?)
+    let totp_change = if want_totp_uri {
+        Change::Set(prompt_totp_uri()?)
     } else if want_totp {
         let alg = totp_alg.unwrap_or(TotpAlgArg::Sha1).algorithm();
-        Some(prompt_totp_secret(alg)?)
+        Change::Set(prompt_totp_secret(alg)?)
     } else {
-        rec.totp.clone()
+        Change::Keep
     };
 
-    let mut updated = rec.clone();
-    if let Some(u) = new_url {
-        updated.url = u;
-    }
-    if let Some(n) = new_notes {
-        updated.notes = Some(n.into_bytes());
-    }
-    if let Some(p) = new_password {
-        updated.password = Some(p);
-    }
-    updated.totp = new_totp;
-    updated.modified_unix = unix_now();
-
-    if updated == rec && new_username.is_none() {
+    let changed = ops::update_entry(
+        &mut vault,
+        entry.item_id,
+        EntryPatch {
+            username: new_username,
+            password: new_password.map_or(Change::Keep, Change::Set),
+            url: new_url,
+            notes: new_notes.map_or(Change::Keep, |value| Change::Set(value.into_bytes())),
+            totp: totp_change,
+            ..EntryPatch::default()
+        },
+    )
+    .map_err(|e| CliError::Other(e.to_string()))?;
+    if changed {
+        println!("updated item {}", entry.item_id);
+    } else {
         eprintln!("nothing changed");
-        return Ok(());
     }
-
-    // Single atomic write: index (username) + item (secrets) are parts of one
-    // file — there is no partial-edit split-brain mode (CLI_REFERENCE `edit`).
-    if let Some(u) = new_username {
-        let idx = vault
-            .entries
-            .iter()
-            .position(|e| e.item_id == entry.item_id)
-            .ok_or_else(|| CliError::Other("entry vanished".into()))?;
-        vault.entries[idx].username = u;
-    }
-    vault.open_items.insert(entry.slot, updated);
-    vault.save().map_err(|e| CliError::Other(e.to_string()))?;
-    println!("updated item {}", entry.item_id);
     Ok(())
 }
 

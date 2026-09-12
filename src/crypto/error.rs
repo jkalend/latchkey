@@ -6,6 +6,10 @@ pub enum Error {
     Kdf(String),
     #[error("encryption error: {0}")]
     Encrypt(String),
+    #[error(
+        "vault changed on disk since this session opened it — refusing to overwrite another process's changes; re-open and retry"
+    )]
+    Stale,
     #[error("decryption error: vault corrupt or wrong password")]
     Decrypt,
     #[error("invalid key length: expected {expected} bytes, got {actual}")]

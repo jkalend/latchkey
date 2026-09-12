@@ -3,6 +3,7 @@ pub mod clip;
 pub mod crypto;
 pub mod gen;
 pub mod json;
+pub mod ops;
 pub mod totp;
 pub mod tui;
 pub mod vault;

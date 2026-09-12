@@ -330,12 +330,7 @@ impl Vault {
         if !old.is_empty() {
             if let Some(expected) = self.last_disk_crc {
                 if trailer_crc_of(&old) != Some(expected) {
-                    return Err(Error::Encrypt(
-                        "vault changed on disk since this session opened it — \
-                         refusing to overwrite another process's changes; \
-                         re-open and retry"
-                            .into(),
-                    ));
+                    return Err(Error::Stale);
                 }
             }
         }

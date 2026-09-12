@@ -18,6 +18,7 @@ use std::io::Read;
 
 use crate::cli::error::{CliError, Result};
 use crate::json::{self, Json};
+use crate::ops::{self, ImportedEntry, ImportedUpdate};
 use crate::vault::shape::{ItemRecord, TotpAlgorithm, TotpSubRecord, LIVE_STATE};
 use crate::vault::vault_impl::Vault;
 use zeroize::Zeroizing;
@@ -122,13 +123,10 @@ pub fn import_into(vault: &mut Vault, export_text: &str, dry_run: bool, yes: boo
         }
     }
 
-    apply(vault, &plan)?;
-    vault.save().map_err(|e| CliError::Other(e.to_string()))?;
-    println!(
-        "imported: {} added, {} updated",
-        plan.adds.len(),
-        plan.updates.len()
-    );
+    let add_count = plan.adds.len();
+    let update_count = plan.updates.len();
+    apply(vault, plan)?;
+    println!("imported: {add_count} added, {update_count} updated");
     Ok(())
 }
 
@@ -239,32 +237,25 @@ fn build_plan(vault: &Vault, doc: &Json) -> Result<Plan> {
     })
 }
 
-fn apply(vault: &mut Vault, plan: &Plan) -> Result<()> {
-    for add in &plan.adds {
-        vault
-            .add_item(add.title.clone(), add.username.clone(), add.record.clone())
-            .map_err(|e| CliError::Other(e.to_string()))?;
-    }
-    for upd in &plan.updates {
-        let entry = vault
-            .entries
-            .iter()
-            .find(|e| e.item_id == upd.item_id && e.state == LIVE_STATE)
-            .ok_or_else(|| CliError::Other("entry vanished mid-import".into()))?;
-        let slot = entry.slot;
-        // Open first so unmodified fields (created_unix) survive the update.
-        vault
-            .open_item(upd.item_id)
-            .map_err(|e| CliError::Other(e.to_string()))?;
-        let existing = vault
-            .open_items
-            .get(&slot)
-            .ok_or_else(|| CliError::Other("item not open".into()))?;
-        let mut record = upd.record.clone();
-        record.created_unix = existing.created_unix;
-        vault.open_items.insert(slot, record);
-    }
-    Ok(())
+fn apply(vault: &mut Vault, plan: Plan) -> Result<()> {
+    let adds = plan
+        .adds
+        .into_iter()
+        .map(|add| ImportedEntry {
+            title: add.title,
+            username: add.username,
+            record: add.record,
+        })
+        .collect();
+    let updates = plan
+        .updates
+        .into_iter()
+        .map(|update| ImportedUpdate {
+            item_id: update.item_id,
+            record: update.record,
+        })
+        .collect();
+    ops::apply_import(vault, adds, updates).map_err(|e| CliError::Other(e.to_string()))
 }
 
 // ─── field decoding ─────────────────────────────────────────────────────────
@@ -510,8 +501,7 @@ mod tests {
         // fresh.example matches nothing → add; plus the collided dup
         assert_eq!(plan.adds.len(), 2);
 
-        apply(&mut v, &plan).unwrap();
-        v.save().unwrap();
+        apply(&mut v, plan).unwrap();
 
         // The update preserved item_id and created_unix, replaced secrets.
         let updated = v.entries.iter().find(|e| e.title == "one.example").unwrap();

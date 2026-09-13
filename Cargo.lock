@@ -539,6 +539,31 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
+name = "latchkey"
+version = "0.2.0"
+dependencies = [
+ "aes-gcm",
+ "argon2",
+ "base32",
+ "chacha20poly1305",
+ "clap",
+ "clap_complete",
+ "crc32c",
+ "crossterm",
+ "csv",
+ "getrandom",
+ "hmac",
+ "ratatui",
+ "rpassword",
+ "secrecy",
+ "sha1",
+ "sha2",
+ "thiserror",
+ "windows",
+ "zeroize",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -722,31 +747,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d"
 dependencies = [
  "bitflags",
-]
-
-[[package]]
-name = "rpass"
-version = "0.2.0"
-dependencies = [
- "aes-gcm",
- "argon2",
- "base32",
- "chacha20poly1305",
- "clap",
- "clap_complete",
- "crc32c",
- "crossterm",
- "csv",
- "getrandom",
- "hmac",
- "ratatui",
- "rpassword",
- "secrecy",
- "sha1",
- "sha2",
- "thiserror",
- "windows",
- "zeroize",
 ]
 
 [[package]]

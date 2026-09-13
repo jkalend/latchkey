@@ -157,9 +157,9 @@ fn spawn_announcer(secret: &[u8]) -> Result<mpsc::Sender<ToThread>> {
     let secret = zeroize::Zeroizing::new(secret_utf16);
 
     std::thread::Builder::new()
-        .name("rpass-clip-render".into())
+        .name("latchkey-clip-render".into())
         .spawn(move || unsafe {
-            let class_name = w!("rpass_clip_render_wnd");
+            let class_name = w!("latchkey_clip_render_wnd");
             let wc = WNDCLASSW {
                 lpfnWndProc: Some(wnd_proc),
                 lpszClassName: class_name,
@@ -352,7 +352,7 @@ mod tests {
         // Save whatever the user had.
         let before = super::super::win32::snapshot_best_effort();
 
-        let ctl = super::spawn_announcer(b"rpass-delayed-test-42").unwrap();
+        let ctl = super::spawn_announcer(b"latchkey-delayed-test-42").unwrap();
         // Let the thread announce.
         std::thread::sleep(std::time::Duration::from_millis(200));
 
@@ -360,7 +360,7 @@ mod tests {
         let got = super::super::win32::snapshot_best_effort();
         assert_eq!(
             got.map(|g| String::from_utf16_lossy(&g)),
-            Some("rpass-delayed-test-42".to_string()),
+            Some("latchkey-delayed-test-42".to_string()),
             "delayed render must serve the secret on request"
         );
 
@@ -369,7 +369,7 @@ mod tests {
         let after = super::super::win32::snapshot_best_effort();
         assert_ne!(
             after.map(|g| String::from_utf16_lossy(&g)),
-            Some("rpass-delayed-test-42".to_string()),
+            Some("latchkey-delayed-test-42".to_string()),
             "closed render thread must stop serving the secret"
         );
 
@@ -384,16 +384,16 @@ mod tests {
     fn second_announcer_after_close_still_works() {
         let _guard = lock_clipboard();
         let before = super::super::win32::snapshot_best_effort();
-        let ctl1 = super::spawn_announcer(b"rpass-dup-1").unwrap();
+        let ctl1 = super::spawn_announcer(b"latchkey-dup-1").unwrap();
         std::thread::sleep(std::time::Duration::from_millis(200));
         super::close(&ctl1);
 
-        let ctl2 = super::spawn_announcer(b"rpass-dup-2").unwrap();
+        let ctl2 = super::spawn_announcer(b"latchkey-dup-2").unwrap();
         std::thread::sleep(std::time::Duration::from_millis(200));
         let got = super::super::win32::snapshot_best_effort();
         assert_eq!(
             got.map(|g| String::from_utf16_lossy(&g)),
-            Some("rpass-dup-2".to_string()),
+            Some("latchkey-dup-2".to_string()),
             "second copy must still announce (class already registered)"
         );
         super::close(&ctl2);

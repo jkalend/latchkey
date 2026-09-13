@@ -44,7 +44,7 @@ weakest point of any password manager on our two platforms:
    `HKCU\Software\Microsoft\Clipboard\EnableClipboardHistory`. If
    enabled, print a one-line warning at copy time: Clipboard History
    defeats auto-clear. Probe only — the tool never writes registry keys.
-5. Timeout is enforced by the `rpass copy` process staying alive until
+5. Timeout is enforced by the `latchkey copy` process staying alive until
    expiry (simple, scriptable `&`-backgroundable), not by a daemon.
    Process death is *not* a failure mode on native Windows given delayed
    rendering (see #3) — the clipboard entry is a dead promise and the OS
@@ -52,12 +52,12 @@ weakest point of any password manager on our two platforms:
 
 6. **WSL residual risk (accepted, documented):** `clip.exe` performs a
    hard copy into the Windows clipboard and exits — the delayed-rendering
-   trick is unavailable to us across the WSL boundary. If the `rpass
+   trick is unavailable to us across the WSL boundary. If the `latchkey
    copy` process dies on WSL before the timeout fires, the secret stays
    in the clipboard until the timeout hits — bounded at 30 s by default
    (§1), not an unbounded leak as it was at 15 s. Documented in
    TUI_GUIDE (§security behaviors) and THREAT_MODEL §5.2; users on WSL
-   for whom this matters should either run `rpass` natively on Windows
+   for whom this matters should either run `latchkey` natively on Windows
    (where delayed rendering applies) or paste-and-clear the clipboard
    manually (`echo. | clip.exe`).
 
@@ -95,7 +95,7 @@ weakest point of any password manager on our two platforms:
 - A user with Clipboard History enabled still leaks into history — we
   warn loudly, we don't pretend to prevent. Full mitigation is
   documented in the TUI guide (exclude the app or disable history).
-- No daemon: `rpass copy` holds the process open for 30 s; Ctrl-C skips the
+- No daemon: `latchkey copy` holds the process open for 30 s; Ctrl-C skips the
   wait and clears immediately.
 
 ## Amendment (2026-09-12): review-driven corrections
@@ -113,7 +113,7 @@ Changes, by decision number:
    (`/mnt/c/Windows/System32/WindowsPowerShell/v1.0/…`) with a PATH
    fallback, not via a hijackable WSL PATH.
 6. **WSL bounded-leak claim corrected.** The old text said a killed
-   `rpass copy` leaves the secret bounded by the timeout. That was
+   `latchkey copy` leaves the secret bounded by the timeout. That was
    wrong: once the process dies, nothing clears it. The honest bound on
    WSL and plain Linux is "until the next copy overwrites the
    clipboard," and the docs now say so.

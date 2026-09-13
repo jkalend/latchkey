@@ -7,7 +7,7 @@
 //! left alone.
 //!
 //! Honest limit, documented in clip/mod.rs and README: on X11/Wayland the
-//! helper tool owns the selection as a background process. If rpass dies
+//! helper tool owns the selection as a background process. If latchkey dies
 //! before the timeout, that helper keeps serving the secret until the next
 //! copy — there is no signal handler on this platform.
 

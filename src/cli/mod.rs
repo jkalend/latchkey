@@ -22,13 +22,13 @@ use crate::{clip, totp};
 
 #[derive(Parser)]
 #[command(
-    name = "rpass",
+    name = "latchkey",
     version,
     about = "Local-first password manager — encrypted vault, no network, no telemetry",
     disable_colored_help = false
 )]
 pub struct Cli {
-    /// Vault path override (flag > RPASS_VAULT env > platform default)
+    /// Vault path override (flag > LATCHKEY_VAULT env > platform default)
     #[arg(long, global = true, value_name = "PATH")]
     vault: Option<std::path::PathBuf>,
 
@@ -199,7 +199,7 @@ enum Command {
         #[arg(long, value_name = "FILE")]
         out: Option<std::path::PathBuf>,
     },
-    /// Import items from rpass, Bitwarden, or KeePassXC (preview + confirm)
+    /// Import items from latchkey, Bitwarden, or KeePassXC (preview + confirm)
     Import {
         /// Source format
         #[arg(long, value_parser = ["json", "bitwarden-json", "keepassxc-csv"])]
@@ -250,7 +250,7 @@ pub fn run(args: std::env::Args) -> i32 {
     match dispatch(cli) {
         Ok(()) => ExitCode::Success as i32,
         Err(e) => {
-            eprintln!("rpass: {e}");
+            eprintln!("latchkey: {e}");
             e.exit_code()
         }
     }
@@ -268,7 +268,7 @@ fn dispatch(cli: Cli) -> Result<()> {
         from_stdin: cli.from_stdin,
     };
     let vault_path = vault_path::resolve(cli.vault.as_deref());
-    // Bare `rpass` → the TUI (CLI_REFERENCE: tui is the interactive default).
+    // Bare `latchkey` → the TUI (CLI_REFERENCE: tui is the interactive default).
     let command = cli.command.unwrap_or(Command::Tui);
     match command {
         Command::Init { force } => cmd_init(&vault_path, force, context),
@@ -443,7 +443,7 @@ fn cmd_init(path: &std::path::Path, force: bool, context: CommandContext) -> Res
     Ok(())
 }
 
-/// All `rpass add` flags in one struct (keeps cmd_add at one arg).
+/// All `latchkey add` flags in one struct (keeps cmd_add at one arg).
 struct AddArgs {
     title: String,
     username: Option<String>,
@@ -523,7 +523,7 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
 fn cmd_list(path: &std::path::Path, context: CommandContext) -> Result<()> {
     let (vault, _pw) = open_vault(path, context)?;
     if vault.entries.is_empty() {
-        eprintln!("vault is empty — add something with `rpass add <title>`");
+        eprintln!("vault is empty — add something with `latchkey add <title>`");
         return Ok(());
     }
     for e in &vault.entries {
@@ -564,7 +564,7 @@ fn cmd_get(
         // such requirement.
         if std::str::from_utf8(&pw).is_err() {
             return Err(CliError::Other(
-                "password is not UTF-8 — use `rpass copy` for a byte-exact copy".into(),
+                "password is not UTF-8 — use `latchkey copy` for a byte-exact copy".into(),
             ));
         }
         let pw_str = Zeroizing::new(String::from_utf8(pw.to_vec()).expect("validated UTF-8"));
@@ -606,7 +606,7 @@ fn cmd_copy(
         .map_err(|e| CliError::Other(e.to_string()))
 }
 
-/// All `rpass generate` flags in one struct (keeps cmd_generate at one arg).
+/// All `latchkey generate` flags in one struct (keeps cmd_generate at one arg).
 struct GenerateArgs {
     length: Option<usize>,
     symbols: bool,
@@ -849,7 +849,7 @@ fn resolve_notes(value: Option<Option<String>>) -> Result<Option<String>> {
             let mut opened = false;
             for attempt in 0..100u32 {
                 path = std::env::temp_dir().join(format!(
-                    "rpass-notes-{}-{}-{}.txt",
+                    "latchkey-notes-{}-{}-{}.txt",
                     std::process::id(),
                     unix_now(),
                     attempt
@@ -965,7 +965,7 @@ fn edit_field(label: &str, current: &str) -> Result<Option<String>> {
     }
 }
 
-/// All `rpass edit` flags in one struct (keeps cmd_edit at one arg).
+/// All `latchkey edit` flags in one struct (keeps cmd_edit at one arg).
 struct EditArgs {
     title: String,
     id: Option<u32>,

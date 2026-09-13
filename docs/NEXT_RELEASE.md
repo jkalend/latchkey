@@ -1,15 +1,15 @@
-# Next Release Proposal: rpass 0.2.0
+# Next Release Proposal: latchkey 0.2.0
 
 **Status:** Implemented; tag pending release-gate verification
 **Date:** 2026-09-12
 **Target:** First public preview
 **Package version:** `0.2.0`
-**Vault format:** version 1 (`RPv1`), unchanged
+**Vault format:** version 1 (`LKv1`), unchanged
 **Export schema:** version 1, unchanged
 
 ## 1. Decision
 
-The next release should be **rpass 0.2.0**, not 1.5 or 2.0.
+The next release should be **latchkey 0.2.0**, not 1.5 or 2.0.
 
 The crate now carries `0.2.0`, the first public-preview version. A 1.5 or 2.0
 tag would imply a release history and compatibility record that does not
@@ -21,10 +21,10 @@ Create the `v0.2.0` tag only after every release criterion in §8 passes.
 Three version numbers are independent:
 
 - **Package version** follows SemVer and describes the application release.
-- **Vault format version** selects the on-disk parser. rpass 0.2.0 continues to
+- **Vault format version** selects the on-disk parser. latchkey 0.2.0 continues to
   read and write format 1.
 - **Export schema version** selects the portable plaintext import/export
-  schema. rpass 0.2.0 continues to use schema 1.
+  schema. latchkey 0.2.0 continues to use schema 1.
 
 Once 0.2.0 ships, every later release must continue reading vaults and native
 exports created by 0.2.0. A future writer-format change requires an explicit
@@ -41,7 +41,7 @@ offline daily-driver preview:
    read/copy-only viewer.
 3. Users can import Bitwarden JSON and KeePassXC CSV through the existing
    preview-and-confirm workflow.
-4. Users can authenticate every record in a vault with `rpass check`.
+4. Users can authenticate every record in a vault with `latchkey check`.
 5. Published artifacts are exercised before GitHub Release publishes them.
 
 The release remains local-only, single-user, and per-process. It does not add a
@@ -145,11 +145,11 @@ Rare or high-risk vault-wide operations remain CLI-only: `init`, `rotate`,
 
 ### 4.3 Imports from established managers
 
-Extend `rpass import --format <format> <file>` with:
+Extend `latchkey import --format <format> <file>` with:
 
 | Format value | Source |
 |---|---|
-| `json` | Native rpass export schema 1; existing behavior |
+| `json` | Native latchkey export schema 1; existing behavior |
 | `bitwarden-json` | Unencrypted Bitwarden JSON export |
 | `keepassxc-csv` | KeePassXC CSV export |
 
@@ -157,9 +157,9 @@ Each source adapter parses into one canonical import record. The existing
 planner then applies title-collision reporting, full validation, confirmation,
 and one atomic save. Source-specific parsing must not leak into mutation code.
 
-External source identifiers are not rpass identities. Bitwarden and KeePassXC
+External source identifiers are not latchkey identities. Bitwarden and KeePassXC
 records are additions even if an external ID or title matches. Only native
-rpass schema-1 imports may update by the existing identity rules.
+latchkey schema-1 imports may update by the existing identity rules.
 
 **Acceptance criteria**
 
@@ -186,7 +186,7 @@ rpass schema-1 imports may update by the existing identity rules.
 
 ### 4.4 Full-vault authentication check
 
-Add `rpass check` as a read-only command.
+Add `latchkey check` as a read-only command.
 
 It prompts for the master password, validates framing and policy bounds,
 authenticates the wrapped DEK and index, and authenticates every live and
@@ -202,12 +202,12 @@ live count, tombstone count, and success without rendering credential data.
 - Output never includes titles, usernames, field lengths, secret values, or
   decrypted record data.
 - A before/after file checksum proves the command is read-only.
-- Backup documentation recommends running `rpass --vault <backup> check`
+- Backup documentation recommends running `latchkey --vault <backup> check`
   before relying on a copied backup.
 
 ### 4.5 Release and installation polish
 
-- Add `rpass completions <bash|zsh|fish|powershell>` using clap's command
+- Add `latchkey completions <bash|zsh|fish|powershell>` using clap's command
   definition as the single source of truth.
 - Document installation from GitHub artifacts and `cargo install --locked`.
 - In the release workflow, run each packaged binary's `--version` and a
@@ -221,7 +221,7 @@ live count, tombstone count, and success without rendering credential data.
   release binary.
 - Windows and Linux packaged binaries complete the artifact smoke scenario,
   not merely `cargo build`.
-- The binary reports `rpass 0.2.0`; the tag is `v0.2.0`; `Cargo.toml` and
+- The binary reports `latchkey 0.2.0`; the tag is `v0.2.0`; `Cargo.toml` and
   archive names agree.
 - CI still proves the ADR-0005 dependency and socket bans.
 
@@ -284,7 +284,7 @@ Tag `v0.2.0` only when all of these are true:
   clean exit on Windows and WSL2.
 - Import fixtures for native JSON, Bitwarden JSON, and KeePassXC CSV pass,
   including malformed and collision cases.
-- `rpass check` detects independent bit flips in the index, a live item, a
+- `latchkey check` detects independent bit flips in the index, a live item, a
   tombstone, and the trailer while leaving a valid vault byte-identical.
 - `cargo fmt --check`, clippy with warnings denied, all tests, locked release
   builds, `cargo audit`, `cargo deny`, network-ban checks, and the independent

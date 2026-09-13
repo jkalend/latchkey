@@ -2,7 +2,7 @@
 //! crates per CRYPTO_SPEC §11.
 //!
 //! Base32 secrets are decoded and validated at write-time (CLI_REFERENCE
-//! `rpass totp`): SHA1 ≥ 10 bytes, SHA256 ≥ 16, SHA512 ≥ 32 (RFC 6238
+//! `latchkey totp`): SHA1 ≥ 10 bytes, SHA256 ≥ 16, SHA512 ≥ 32 (RFC 6238
 //! interoperability floor).
 
 use hmac::{Hmac, Mac};
@@ -132,7 +132,7 @@ pub fn totp_now(p: &TotpParams) -> Result<TotpNow> {
     Ok(TotpNow { code, remaining })
 }
 
-/// Write-time validation (CLI_REFERENCE `rpass totp`): base32 must decode
+/// Write-time validation (CLI_REFERENCE `latchkey totp`): base32 must decode
 /// cleanly and the decoded length must meet the algorithm floor.
 pub fn validate_secret(secret_b32: &str, algorithm: TotpAlgorithm) -> Result<Vec<u8>> {
     let decoded = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, secret_b32)
@@ -152,7 +152,7 @@ pub fn validate_secret(secret_b32: &str, algorithm: TotpAlgorithm) -> Result<Vec
     Ok(decoded)
 }
 
-/// Parse an `otpauth://totp/...` URI (CLI_REFERENCE `rpass add --totp-uri`).
+/// Parse an `otpauth://totp/...` URI (CLI_REFERENCE `latchkey add --totp-uri`).
 /// Extracts secret/period/digits/algorithm; the caller zeroizes the raw URI
 /// (we take it by value and drop it, but the input String lives in the caller).
 pub fn parse_otpauth_uri(uri: &str) -> Result<TotpParams> {

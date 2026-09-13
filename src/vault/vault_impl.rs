@@ -370,7 +370,7 @@ impl Vault {
         };
         // Multi-session guard: the write lock serializes writers, but a
         // session holding a stale in-memory index must not clobber changes
-        // committed by another process (or an older rpass instance left
+        // committed by another process (or an older latchkey instance left
         // running) since it opened the vault.
         if !old.is_empty() {
             if let Some(expected) = self.last_disk_crc {
@@ -746,7 +746,8 @@ mod tests {
 
     #[test]
     fn oversized_vault_is_rejected_before_parsing() {
-        let path = std::env::temp_dir().join(format!("rpass_v_big_{}.rpass", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("latchkey_v_big_{}.latchkey", std::process::id()));
         let file = File::create(&path).unwrap();
         file.set_len(MAX_VAULT_BYTES + 1).unwrap();
         drop(file);
@@ -758,7 +759,8 @@ mod tests {
 
     #[test]
     fn create_open_roundtrip_empty() {
-        let tmp = std::env::temp_dir().join(format!("rpass_v_rt_{}.rpass", std::process::id()));
+        let tmp =
+            std::env::temp_dir().join(format!("latchkey_v_rt_{}.latchkey", std::process::id()));
         let _ = std::fs::remove_file(&tmp);
         let kdf_params = KdfParams::new(8, 1, 1).unwrap();
         let password = pswd("test-password");
@@ -780,7 +782,8 @@ mod tests {
 
     #[test]
     fn wrong_password_rejected() {
-        let tmp = std::env::temp_dir().join(format!("rpass_v_wp_{}.rpass", std::process::id()));
+        let tmp =
+            std::env::temp_dir().join(format!("latchkey_v_wp_{}.latchkey", std::process::id()));
         let _ = std::fs::remove_file(&tmp);
         let kdf_params = KdfParams::new(8, 1, 1).unwrap();
         let right = pswd("right");
@@ -799,7 +802,8 @@ mod tests {
 
     #[test]
     fn add_get_roundtrip() {
-        let tmp = std::env::temp_dir().join(format!("rpass_v_ag_{}.rpass", std::process::id()));
+        let tmp =
+            std::env::temp_dir().join(format!("latchkey_v_ag_{}.latchkey", std::process::id()));
         let _ = std::fs::remove_file(&tmp);
         let kdf_params = KdfParams::new(8, 1, 1).unwrap();
         let password = pswd("pw");
@@ -834,7 +838,8 @@ mod tests {
 
     #[test]
     fn verify_all_detects_index_item_tombstone_and_trailer_corruption() {
-        let path = std::env::temp_dir().join(format!("rpass_v_check_{}.rpass", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("latchkey_v_check_{}.latchkey", std::process::id()));
         let _ = std::fs::remove_file(&path);
         let password = pswd("check-password");
         let record = || ItemRecord {

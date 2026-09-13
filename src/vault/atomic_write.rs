@@ -11,7 +11,7 @@ use std::io::Write;
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
-pub const TEMP_SUFFIX: &str = ".rpass-tmp";
+pub const TEMP_SUFFIX: &str = ".latchkey-tmp";
 
 // temp filename derived deterministically from the target so concurrent writes to
 // the same vault clash (one will lose the race and error) rather than corrupting.
@@ -133,9 +133,9 @@ mod tests {
 
     #[test]
     fn write_then_read_same_bytes() {
-        let dir = std::env::temp_dir().join(format!("rpass_awt_{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("latchkey_awt_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
-        let target = dir.join("vault.rpass");
+        let target = dir.join("vault.latchkey");
 
         let data = b"hello, vault!";
         atomic_write(&target, data).unwrap();
@@ -159,9 +159,9 @@ mod tests {
 
     #[test]
     fn overwrite_leaves_no_stale_data() {
-        let dir = std::env::temp_dir().join(format!("rpass_awt2_{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("latchkey_awt2_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
-        let target = dir.join("vault.rpass");
+        let target = dir.join("vault.latchkey");
 
         atomic_write(&target, b"0123456789abcdef").unwrap();
         atomic_write(&target, b"short").unwrap();
@@ -174,9 +174,9 @@ mod tests {
 
     #[test]
     fn concurrent_lock_is_rejected() {
-        let dir = std::env::temp_dir().join(format!("rpass_awt_lock_{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("latchkey_awt_lock_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
-        let target = dir.join("vault.rpass");
+        let target = dir.join("vault.latchkey");
         let lock = acquire_write_lock(&target).unwrap();
         assert!(atomic_write(&target, b"blocked").is_err());
         drop(lock);
@@ -190,9 +190,9 @@ mod tests {
     fn vault_and_lock_are_owner_only() {
         use std::os::unix::fs::PermissionsExt;
 
-        let dir = std::env::temp_dir().join(format!("rpass_awt_mode_{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("latchkey_awt_mode_{}", std::process::id()));
         fs::create_dir_all(&dir).unwrap();
-        let target = dir.join("vault.rpass");
+        let target = dir.join("vault.latchkey");
         atomic_write(&target, b"secret").unwrap();
 
         assert_eq!(

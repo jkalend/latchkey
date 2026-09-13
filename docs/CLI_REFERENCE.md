@@ -1,7 +1,7 @@
 # CLI Reference
 
-**Status:** Public preview (`rpass` 0.2.0)
-**Binary name:** `rpass`
+**Status:** Public preview (`latchkey` 0.2.0)
+**Binary name:** `latchkey`
 
 ---
 
@@ -33,33 +33,33 @@ Three tiers:
   them to know nothing happened).
 
 Never mix tiers in one message. The security-warning mechanism exists
-so a scripted `rpass copy x.service | clipboard-tool` can't spam
+so a scripted `latchkey copy x.service | clipboard-tool` can't spam
 copy-history warnings every time; errors must still reach a human.
 
 ## Command tree
 
 | Command | Purpose |
 |---|---|
-| `rpass init` | Create a new vault; prompts for master password (twice) |
-| `rpass add <title>` | Add a credential; prompts for username/password |
-| `rpass totp <title>` | Show + copy the current TOTP code for an item |
-| `rpass list` | List titles + usernames; never decrypts secrets |
-| `rpass get <title>` | Print a secret to stdout; requires `--reveal` unless `--copy` |
-| `rpass copy <title>` | Copy a secret to clipboard; auto-clears (ADR-0003) |
-| `rpass generate` | Generate a password (ADR-0006 presets) |
-| `rpass edit <title>` | Change username/password/notes (fuzzy-selects on collision) |
-| `rpass rm <title>` | Delete an item; `--purge` skips confirmation (fuzzy-selects on collision) |
-| `rpass rotate` | Raise KDF params to current policy; rotate DEK if `enc_counter` near cap |
-| `rpass backup` | Atomic copy of the vault file for safekeeping |
-| `rpass check` | Authenticate every record without modifying the vault |
-| `rpass export` | Plaintext export; requires `--format json` + explicit `--yes-i-mean-it` |
-| `rpass import` | Import from JSON export / other managers |
-| `rpass completions <shell>` | Generate Bash, Zsh, Fish, or PowerShell completions |
-| `rpass tui` | Interactive interface (docs/TUI_GUIDE.md) |
+| `latchkey init` | Create a new vault; prompts for master password (twice) |
+| `latchkey add <title>` | Add a credential; prompts for username/password |
+| `latchkey totp <title>` | Show + copy the current TOTP code for an item |
+| `latchkey list` | List titles + usernames; never decrypts secrets |
+| `latchkey get <title>` | Print a secret to stdout; requires `--reveal` unless `--copy` |
+| `latchkey copy <title>` | Copy a secret to clipboard; auto-clears (ADR-0003) |
+| `latchkey generate` | Generate a password (ADR-0006 presets) |
+| `latchkey edit <title>` | Change username/password/notes (fuzzy-selects on collision) |
+| `latchkey rm <title>` | Delete an item; `--purge` skips confirmation (fuzzy-selects on collision) |
+| `latchkey rotate` | Raise KDF params to current policy; rotate DEK if `enc_counter` near cap |
+| `latchkey backup` | Atomic copy of the vault file for safekeeping |
+| `latchkey check` | Authenticate every record without modifying the vault |
+| `latchkey export` | Plaintext export; requires `--format json` + explicit `--yes-i-mean-it` |
+| `latchkey import` | Import from JSON export / other managers |
+| `latchkey completions <shell>` | Generate Bash, Zsh, Fish, or PowerShell completions |
+| `latchkey tui` | Interactive interface (docs/TUI_GUIDE.md) |
 
 ## Details
 
-### `rpass init`
+### `latchkey init`
 
 - Prompts for the master password twice; refuses empty passwords and a
   small embedded deny-list of common passwords (THREAT_MODEL §5.1).
@@ -68,7 +68,7 @@ copy-history warnings every time; errors must still reach a human.
 - Prints the vault path and the measured Argon2 wall-clock time, so the
   user sees what "≥ 1 s" means on their machine.
 
-### `rpass add <title> [--username <u>] [--url <u>] [--notes <n>] [--generate]`
+### `latchkey add <title> [--username <u>] [--url <u>] [--notes <n>] [--generate]`
 
 - No duplicate-title rejection — it's valid to have several items with
   the same title ("github.com" / personal + work). Collisions are
@@ -81,7 +81,7 @@ copy-history warnings every time; errors must still reach a human.
   are not classified as secrets (documented trade-off — `get`/`edit`
   treat notes as secret on *output*).
 
-### `rpass get <title>`
+### `latchkey get <title>`
 
 - Default behavior: copies to clipboard (same as `copy`) — printing to
   stdout requires `--reveal`, which also prints a warning that the
@@ -95,19 +95,19 @@ copy-history warnings every time; errors must still reach a human.
   to 3, ranked). Non-interactive scripts use `--id <item_id>` which
   bypasses title matching entirely.
 
-### `rpass copy <title> [--timeout <secs>]`
+### `latchkey copy <title> [--timeout <secs>]`
 
 - Default 30 s auto-clear, max 300 (ADR-0003). Ctrl-C clears
   immediately.
 - Warns (once per invocation) if Windows Clipboard History is detected
   as enabled; `-q` suppresses.
 
-### `rpass generate [--length <n>] [--symbols] [--passphrase] [--words <n>] [--hex] [--no-ambiguous] [--copy]`
+### `latchkey generate [--length <n>] [--symbols] [--passphrase] [--words <n>] [--hex] [--no-ambiguous] [--copy]`
 
 - Defaults: 20 chars, 62-char alphabet, ~119 bits (ADR-0006).
 - Prints the entropy estimate alongside the password.
 
-### `rpass edit <title>`
+### `latchkey edit <title>`
 
 - Changes to any of username (index) or password/notes/TOTP
   (ItemRecord) are written as **a single atomic vault write** under
@@ -120,11 +120,11 @@ copy-history warnings every time; errors must still reach a human.
 - Title collision (Q7): enters interactive fuzzy select before any
   edit is staged.
 
-### `rpass totp <title>`
+### `latchkey totp <title>`
 
 - Prints the current code and remaining validity in seconds; `--copy`
   routes it to the clipboard instead (same ADR-0003 timeout).
-- `rpass add` / `rpass edit` accept a TOTP secret via `--totp`
+- `latchkey add` / `latchkey edit` accept a TOTP secret via `--totp`
   (base32, prompted hidden — never a CLI argument; defaults to
   SHA1/30 s/6 digits, select the algorithm with
   `--totp-alg <sha1|sha256|sha512>`) or `--totp-uri` for
@@ -136,12 +136,12 @@ copy-history warnings every time; errors must still reach a human.
   Rejects on garbage input with a message showing which validation
   failed (e.g. "base32 decodes to 12 bytes, need ≥16 for SHA256")
   — the service's "this doesn't work" wild-goose chase is much worse
-  than `rpass` rejecting a typo'd secret at save time.
+  than `latchkey` rejecting a typo'd secret at save time.
 - Time comes from the system clock; clock skew shows up as invalid
   codes at the service, which we surface as a hint (we do not
   auto-resync — no network, ADR-0005).
 
-### `rpass export --format json --yes-i-mean-it`
+### `latchkey export --format json --yes-i-mean-it`
 
 - Writes the entire vault **in plaintext** to stdout (or `--out
   <file>`). The double opt-in (flag + explicit format) is deliberate —
@@ -184,7 +184,7 @@ copy-history warnings every time; errors must still reach a human.
   }
   ```
 
-### `rpass import --format <format> <file>`
+### `latchkey import --format <format> <file>`
 
 - Formats: `json` for native schema 1, `bitwarden-json` for an unencrypted
   Bitwarden JSON export, and `keepassxc-csv` for a KeePassXC CSV export.
@@ -196,7 +196,7 @@ copy-history warnings every time; errors must still reach a human.
   title collisions. `--dry-run` validates and previews without writing.
 - Native `<item_id>` keys with a `title` matching exactly one live entry update
   that entry's secrets while preserving its `item_id`. Non-matches create a
-  generated rpass `item_id`; imported IDs never allocate identity.
+  generated latchkey `item_id`; imported IDs never allocate identity.
 - Bitwarden and KeePassXC records are always additions, even when their IDs or
   titles match. Unsupported attachments, passkeys, cards, identity records,
   custom fields, extra URLs, and nonempty unsupported CSV columns contribute
@@ -212,17 +212,17 @@ copy-history warnings every time; errors must still reach a human.
   import.
 - Exit code 1 on malformed input, 0 on success, and 4 on cancellation.
 
-### `rpass rotate`
+### `latchkey rotate`
 
 - Re-derives with current-policy KDF params, re-wraps the DEK, bumps
   `enc_counter` handling per VAULT_FORMAT §5.
 - Can also change the master password (`--new-password` prompts).
 
-### `rpass backup [--out <file>]`
+### `latchkey backup [--out <file>]`
 
 - Copies the vault file to a backup path (or prints one if `--out` is
   omitted: `<vault-dir>/vault-backup-<unix-timestamp>.bin`, e.g.
-  `%LOCALAPPDATA%\rpass\vault-backup-1725800000.bin` on Windows).
+  `%LOCALAPPDATA%\latchkey\vault-backup-1725800000.bin` on Windows).
 - The backup is **just a copy of the encrypted file** — nothing
   decrypted, nothing transformed. It's safe to move, sync, or back up
   anywhere the file itself is safe.
@@ -234,10 +234,10 @@ copy-history warnings every time; errors must still reach a human.
   the point of the command — the source vault stays on the local
   filesystem while backups can live elsewhere.
 - To restore: copy the backup file over `vault.bin` at the location
-  rpass expects (or use `--vault <path>` to point rpass at the backup).
+  latchkey expects (or use `--vault <path>` to point latchkey at the backup).
   No restore subcommand — restore is just a file copy in reverse.
 
-### `rpass check`
+### `latchkey check`
 
 - Prompts for the master password and authenticates the wrapped DEK, encrypted
   index, every live item, every tombstone frame, and the trailer CRC.
@@ -246,15 +246,15 @@ copy-history warnings every time; errors must still reach a human.
   record data.
 - Read-only: a successful or failed check never writes the vault. Validate an
   encrypted backup before relying on it with
-  `rpass --vault <backup-path> check`.
+  `latchkey --vault <backup-path> check`.
 
-### `rpass completions <bash|zsh|fish|powershell>`
+### `latchkey completions <bash|zsh|fish|powershell>`
 
 - Generates completion definitions directly from clap's live command tree, so
   every subcommand and global option matches the installed binary.
 - Writes to stdout. Load it for the current session, for example:
-  `source <(rpass completions bash)` or
-  `rpass completions powershell | Out-String | Invoke-Expression`.
+  `source <(latchkey completions bash)` or
+  `latchkey completions powershell | Out-String | Invoke-Expression`.
 - For persistent installation, redirect the output to the completion directory
   used by the selected shell.
 
@@ -275,9 +275,9 @@ an authentication-specific condition.
 
 | Variable | Effect |
 |---|---|
-| `RPASS_VAULT` | Default vault path (lowest precedence: flag > env > platform default) |
-| `RPASS_CLIPBOARD_TIMEOUT` | Default clipboard timeout in seconds (default 30, max 300 as documented under `copy`) |
-| `RPASS_TUI_LOCK_MINS` | TUI idle-lock timeout in minutes (default 10; 0 disables) |
+| `LATCHKEY_VAULT` | Default vault path (lowest precedence: flag > env > platform default) |
+| `LATCHKEY_CLIPBOARD_TIMEOUT` | Default clipboard timeout in seconds (default 30, max 300 as documented under `copy`) |
+| `LATCHKEY_TUI_LOCK_MINS` | TUI idle-lock timeout in minutes (default 10; 0 disables) |
 
 ## Configuration file
 

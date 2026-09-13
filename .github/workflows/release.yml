@@ -17,7 +17,7 @@ jobs:
       - name: Match tag to Cargo package version
         run: |
           version="$(cargo metadata --locked --no-deps --format-version 1 |
-            jq -r '.packages[] | select(.name == "rpass") | .version')"
+            jq -r '.packages[] | select(.name == "latchkey") | .version')"
           test "$GITHUB_REF_NAME" = "v${version}"
 
   linux:
@@ -34,12 +34,12 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          dir="rpass-${TAG}-x86_64-unknown-linux-gnu"
+          dir="latchkey-${TAG}-x86_64-unknown-linux-gnu"
           mkdir "$dir"
-          cp target/x86_64-unknown-linux-gnu/release/rpass README.md LICENSE-MIT LICENSE-APACHE "$dir/"
+          cp target/x86_64-unknown-linux-gnu/release/latchkey README.md LICENSE-MIT LICENSE-APACHE "$dir/"
 
-          bin="$dir/rpass"
-          test "$("$bin" --version)" = "rpass ${TAG#v}"
+          bin="$dir/latchkey"
+          test "$("$bin" --version)" = "latchkey ${TAG#v}"
           smoke_dir="$(mktemp -d)"
           trap 'rm -rf "$smoke_dir"' EXIT
           vault="$smoke_dir/vault.bin"
@@ -59,7 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: linux-release
-          path: rpass-*.tar.gz
+          path: latchkey-*.tar.gz
           if-no-files-found: error
 
   windows:
@@ -78,16 +78,16 @@ jobs:
         run: |
           $ErrorActionPreference = "Stop"
           $PSNativeCommandUseErrorActionPreference = $true
-          $dir = "rpass-$env:TAG-x86_64-pc-windows-msvc"
+          $dir = "latchkey-$env:TAG-x86_64-pc-windows-msvc"
           New-Item -ItemType Directory $dir | Out-Null
-          Copy-Item target/x86_64-pc-windows-msvc/release/rpass.exe, README.md, LICENSE-MIT, LICENSE-APACHE $dir
+          Copy-Item target/x86_64-pc-windows-msvc/release/latchkey.exe, README.md, LICENSE-MIT, LICENSE-APACHE $dir
 
-          $binary = Join-Path $dir "rpass.exe"
+          $binary = Join-Path $dir "latchkey.exe"
           $version = $env:TAG.TrimStart("v")
-          if ((& $binary --version) -ne "rpass $version") {
+          if ((& $binary --version) -ne "latchkey $version") {
             throw "packaged binary version does not match $env:TAG"
           }
-          $vault = Join-Path $env:RUNNER_TEMP "rpass-artifact-smoke-$([guid]::NewGuid()).bin"
+          $vault = Join-Path $env:RUNNER_TEMP "latchkey-artifact-smoke-$([guid]::NewGuid()).bin"
           @("artifact-smoke-master", "artifact-smoke-master") |
             & $binary --vault $vault --from-stdin init
           "artifact-smoke-master" |
@@ -109,7 +109,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: rpass-*.zip
+          path: latchkey-*.zip
           if-no-files-found: error
 
   publish:

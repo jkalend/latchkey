@@ -1,20 +1,20 @@
 //! Vault path resolution (ADR-0002, CLI_REFERENCE "Environment variables").
 //!
-//! Precedence: `--vault` flag > `RPASS_VAULT` env > platform default.
+//! Precedence: `--vault` flag > `LATCHKEY_VAULT` env > platform default.
 
 use std::path::PathBuf;
 
 /// Platform-default vault location (ADR-0002):
-/// - Windows: `%LOCALAPPDATA%\rpass\vault.bin`
-/// - Linux/WSL: `${XDG_STATE_HOME:-$HOME/.local/state}/rpass/vault.bin`
+/// - Windows: `%LOCALAPPDATA%\latchkey\vault.bin`
+/// - Linux/WSL: `${XDG_STATE_HOME:-$HOME/.local/state}/latchkey/vault.bin`
 pub fn default_vault_path() -> PathBuf {
     #[cfg(windows)]
     {
         if let Some(local) = std::env::var_os("LOCALAPPDATA") {
-            return PathBuf::from(local).join("rpass").join("vault.bin");
+            return PathBuf::from(local).join("latchkey").join("vault.bin");
         }
         // Fall through to a relative fallback if LOCALAPPDATA is somehow unset.
-        PathBuf::from("rpass").join("vault.bin")
+        PathBuf::from("latchkey").join("vault.bin")
     }
     #[cfg(not(windows))]
     {
@@ -25,7 +25,7 @@ pub fn default_vault_path() -> PathBuf {
                     .join(".local")
                     .join("state")
             });
-        state.join("rpass").join("vault.bin")
+        state.join("latchkey").join("vault.bin")
     }
 }
 
@@ -34,7 +34,7 @@ pub fn resolve(flag: Option<&std::path::Path>) -> PathBuf {
     if let Some(p) = flag {
         return p.to_path_buf();
     }
-    if let Some(env) = std::env::var_os("RPASS_VAULT") {
+    if let Some(env) = std::env::var_os("LATCHKEY_VAULT") {
         if !env.is_empty() {
             return PathBuf::from(env);
         }

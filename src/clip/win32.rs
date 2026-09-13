@@ -170,9 +170,9 @@ mod tests {
         // delayed-render tests via the same lock (they share the clipboard).
         let _guard = crate::clip::win32_delayed::lock_clipboard();
         let before = super::snapshot_best_effort();
-        super::copy_now(b"rpass-test-123").unwrap();
+        super::copy_now(b"latchkey-test-123").unwrap();
         let got = super::snapshot_best_effort().unwrap();
-        assert_eq!(String::from_utf16_lossy(&got), "rpass-test-123");
+        assert_eq!(String::from_utf16_lossy(&got), "latchkey-test-123");
         // restore
         match before {
             Some(prev) => super::copy_now(&String::from_utf16_lossy(&prev).into_bytes()).unwrap(),

@@ -245,7 +245,7 @@ mod tests {
 
     fn test_path() -> std::path::PathBuf {
         std::env::temp_dir().join(format!(
-            "rpass_ops_{}_{}.bin",
+            "latchkey_ops_{}_{}.bin",
             std::process::id(),
             unix_now()
         ))

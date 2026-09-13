@@ -3,7 +3,7 @@
 //! test-vectors/vault-golden.bin is produced by `cargo run --release
 //! --example make_test_vectors` and independently decrypted by
 //! test-vectors/cross_check.py (Python: argon2-cffi + cryptography, zero
-//! rpass code). If both the Python reader and this Rust reader agree on
+//! latchkey code). If both the Python reader and this Rust reader agree on
 //! the contents, the format implementation matches the spec, not just
 //! itself.
 //!
@@ -12,8 +12,8 @@
 //! entries, correct decrypted plaintext, correct CRC, and that a
 //! bit-flip anywhere in the body is rejected.
 
-use rpass::crypto::kdf::SecretVec;
-use rpass::vault::vault_impl::Vault;
+use latchkey::crypto::kdf::SecretVec;
+use latchkey::vault::vault_impl::Vault;
 
 const PASSWORD: &str = "test-vector-master-password";
 
@@ -104,8 +104,11 @@ fn golden_vault_bit_flip_rejected_everywhere() {
     ] {
         let mut corrupted = original.clone();
         corrupted[off] ^= 0x01;
-        let tmp =
-            std::env::temp_dir().join(format!("rpass_golden_flip_{}_{}", off, std::process::id()));
+        let tmp = std::env::temp_dir().join(format!(
+            "latchkey_golden_flip_{}_{}",
+            off,
+            std::process::id()
+        ));
         std::fs::write(&tmp, &corrupted).unwrap();
         let opened = Vault::open(&tmp, &pw(PASSWORD));
         // Every flip must be rejected: either the AEAD tag, the CRC, or a

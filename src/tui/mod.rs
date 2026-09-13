@@ -2,7 +2,7 @@
 //!
 //! Fuzzy search over the decrypted index, detail view with masked secrets,
 //! credential creation, clipboard copy/countdown, idle auto-lock at 10 minutes
-//! (`RPASS_TUI_LOCK_MINS`), explicit `L`-lock, and reveal (`r`) with
+//! (`LATCHKEY_TUI_LOCK_MINS`), explicit `L`-lock, and reveal (`r`) with
 //! auto-re-mask after 10 seconds of no input.
 
 use std::io::Stdout;
@@ -156,7 +156,7 @@ struct App {
 
 impl App {
     fn new(vault_path: std::path::PathBuf) -> Self {
-        let lock_mins = std::env::var("RPASS_TUI_LOCK_MINS")
+        let lock_mins = std::env::var("LATCHKEY_TUI_LOCK_MINS")
             .ok()
             .and_then(|v| v.parse::<u64>().ok())
             .unwrap_or(DEFAULT_LOCK_MINS);
@@ -271,7 +271,7 @@ pub fn run(vault_path: std::path::PathBuf, quiet: bool) -> i32 {
     let mut session = match setup_terminal() {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("rpass tui: {e}");
+            eprintln!("latchkey tui: {e}");
             return 1;
         }
     };
@@ -279,7 +279,7 @@ pub fn run(vault_path: std::path::PathBuf, quiet: bool) -> i32 {
     match event_loop(&mut session.terminal, &mut app) {
         Ok(code) => code,
         Err(e) => {
-            eprintln!("rpass tui: {e}");
+            eprintln!("latchkey tui: {e}");
             1
         }
     }
@@ -790,7 +790,7 @@ fn start_clipboard(app: &mut App, secret: zeroize::Zeroizing<Vec<u8>>) {
         let _ = handle.join();
     }
     match std::thread::Builder::new()
-        .name("rpass-clipboard".into())
+        .name("latchkey-clipboard".into())
         .spawn(move || clip::copy_and_hold_quiet(&secret, clip::DEFAULT_TIMEOUT_SECS, true))
     {
         Ok(handle) => {
@@ -889,7 +889,7 @@ fn draw_locked(f: &mut Frame, app: &App, area: Rect) {
         Line::from("Ctrl-C to quit"),
     ];
     f.render_widget(
-        Paragraph::new(text).block(Block::default().borders(Borders::ALL).title(" rpass ")),
+        Paragraph::new(text).block(Block::default().borders(Borders::ALL).title(" latchkey ")),
         area,
     );
     let _ = app;
@@ -1136,7 +1136,8 @@ mod tests {
 
     #[test]
     fn add_form_persists_all_fields() {
-        let path = std::env::temp_dir().join(format!("rpass_tui_add_{}.bin", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("latchkey_tui_add_{}.bin", std::process::id()));
         let _ = std::fs::remove_file(&path);
         let password = SecretVec::new(b"test-password".to_vec().into_boxed_slice());
         let vault = Vault::create(
@@ -1180,7 +1181,8 @@ mod tests {
 
     #[test]
     fn edit_form_hides_existing_secrets_and_delete_persists() {
-        let path = std::env::temp_dir().join(format!("rpass_tui_edit_{}.bin", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("latchkey_tui_edit_{}.bin", std::process::id()));
         let _ = std::fs::remove_file(&path);
         let password = SecretVec::new(b"test-password".to_vec().into_boxed_slice());
         let mut vault = Vault::create(

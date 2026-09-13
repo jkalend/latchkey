@@ -1,4 +1,4 @@
-use rpass::crypto::kdf::{Kdf, KdfParams, SecretVec};
+use latchkey::crypto::kdf::{Kdf, KdfParams, SecretVec};
 
 fn main() {
     let pw = SecretVec::new(b"benchmark-password".to_vec().into_boxed_slice());

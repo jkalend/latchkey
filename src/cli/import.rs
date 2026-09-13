@@ -1,7 +1,7 @@
 //! Import adapters and preview/confirm planning.
 //!
 //! Native schema-1 JSON may update an exact single title match. External
-//! Bitwarden and KeePassXC identities never become rpass identities: every
+//! Bitwarden and KeePassXC identities never become latchkey identities: every
 //! external record is an addition. Every adapter fully parses and validates
 //! into canonical records before the planner can mutate the vault.
 
@@ -724,7 +724,7 @@ mod tests {
 
     #[test]
     fn oversized_import_is_rejected_before_parsing() {
-        let path = std::env::temp_dir().join(format!("rpass_import_big_{}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("latchkey_import_big_{}", std::process::id()));
         let file = File::create(&path).unwrap();
         file.set_len(MAX_IMPORT_BYTES + 1).unwrap();
         drop(file);
@@ -794,7 +794,7 @@ mod tests {
     #[test]
     fn plan_rules_add_update_collision() {
         // A real (fast-KDF) vault so the identity rule is exercised for real.
-        let dir = std::env::temp_dir().join(format!("rpass_imp_plan_{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("latchkey_imp_plan_{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("v.bin");
         let secret = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
@@ -860,7 +860,7 @@ mod tests {
     /// first). Both become adds; the collision is reported exactly once.
     #[test]
     fn plan_intra_file_duplicates_become_adds() {
-        let dir = std::env::temp_dir().join(format!("rpass_imp_dup_{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("latchkey_imp_dup_{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("v.bin");
         let secret = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
@@ -921,7 +921,7 @@ mod tests {
             Some(b"standalone note".as_slice())
         );
 
-        let path = std::env::temp_dir().join(format!("rpass_bw_{}.bin", std::process::id()));
+        let path = std::env::temp_dir().join(format!("latchkey_bw_{}.bin", std::process::id()));
         let _ = std::fs::remove_file(&path);
         let password = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
         let mut vault = Vault::create(
@@ -967,8 +967,10 @@ mod tests {
         );
         assert!(parsed.records[0].record.totp.is_some());
 
-        let path =
-            std::env::temp_dir().join(format!("rpass_keepass_import_{}.bin", std::process::id()));
+        let path = std::env::temp_dir().join(format!(
+            "latchkey_keepass_import_{}.bin",
+            std::process::id()
+        ));
         let _ = std::fs::remove_file(&path);
         let password = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
         let mut vault = Vault::create(
@@ -1000,7 +1002,7 @@ mod tests {
     #[test]
     fn malformed_external_record_leaves_vault_unchanged() {
         let path =
-            std::env::temp_dir().join(format!("rpass_import_atomic_{}.bin", std::process::id()));
+            std::env::temp_dir().join(format!("latchkey_import_atomic_{}.bin", std::process::id()));
         let _ = std::fs::remove_file(&path);
         let password = crate::crypto::kdf::SecretVec::new(b"x".to_vec().into_boxed_slice());
         let mut vault = Vault::create(

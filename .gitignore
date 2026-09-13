@@ -13,8 +13,9 @@ target/
 *.lnk
 
 # Test vaults (create real ones in your home dir instead)
-*.rpass
-!docs/**/*.rpass
+*.latchkey
+!docs/**/*.latchkey
+*.lock
 
 # Backup / temp
 *.bak

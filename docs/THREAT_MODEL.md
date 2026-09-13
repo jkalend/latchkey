@@ -1,6 +1,6 @@
 # Threat Model
 
-**Status:** Current pre-release implementation (`rpass` 0.1.0)
+**Status:** Current pre-release implementation (`latchkey` 0.1.0)
 **Covers:** Current `main` branch
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
@@ -130,15 +130,15 @@ These are **not defended against**, stated plainly so nobody relies on them:
   - **WSL: hard copy via PowerShell `Set-Clipboard`** (secret piped as
     UTF-16LE-in-base64 over stdin — Unicode-exact, never on a command
     line) — delayed rendering is not available across the WSL boundary.
-    If the `rpass copy` process dies on WSL before the timeout fires,
+    If the `latchkey copy` process dies on WSL before the timeout fires,
     the secret stays in the clipboard **until the next copy overwrites
     it** — not bounded by the timeout. Accepted and documented; the
-    mitigation advice is to run rpass natively on Windows, or use a
+    mitigation advice is to run latchkey natively on Windows, or use a
     shorter `--timeout`.
   - **Plain Linux: best-effort.** Detected by the absence of WSL env
     vars (ADR-0008), then clipboard via `wl-copy` (Wayland) or
     `xclip`/`xsel` (X11), probed at runtime. The helper tool owns the
-    selection; if rpass dies before the timeout, the helper keeps
+    selection; if latchkey dies before the timeout, the helper keeps
     serving the secret until the next copy — same residual as WSL. If
     no Linux clipboard tool is found, `copy`/`totp --copy` fails with a
     clear error. Linux clipboard parity is not claimed as supported.

@@ -1,4 +1,4 @@
-//! Minimal JSON reader for `rpass import` (CLI_REFERENCE schema v1).
+//! Minimal JSON reader for `latchkey import` (CLI_REFERENCE schema v1).
 //!
 //! Hand-rolled deliberately: the no-dependency-creeep principle that shaped
 //! the whole tree (ADR-0005 is about network, but the same taste applies

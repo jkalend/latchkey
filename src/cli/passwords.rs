@@ -8,7 +8,7 @@ use zeroize::Zeroizing;
 use crate::cli::error::{CliError, Result};
 
 /// Small embedded deny-list of hopeless passwords (THREAT_MODEL §5.1 —
-/// "not a network API"). Checked case-insensitively on `rpass init`.
+/// "not a network API"). Checked case-insensitively on `latchkey init`.
 const DENY_LIST: &[&str] = &[
     "password",
     "password1",
@@ -31,7 +31,7 @@ const DENY_LIST: &[&str] = &[
     "princess",
     "football",
     "baseball",
-    "rpass",
+    "latchkey",
     "correcthorsebatterystaple",
 ];
 
@@ -44,7 +44,7 @@ pub fn prompt_master(from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
 }
 
 /// Prompt twice and check they match; refuse empty, short, or deny-listed
-/// passwords (CLI_REFERENCE `rpass init`).
+/// passwords (CLI_REFERENCE `latchkey init`).
 pub fn prompt_new_master(from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
     loop {
         let a = read_password("New master password: ", from_stdin)?;

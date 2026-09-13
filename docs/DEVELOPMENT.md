@@ -1,6 +1,6 @@
 # Development Guide
 
-**Status:** Public-preview implementation (`rpass` 0.2.0)
+**Status:** Public-preview implementation (`latchkey` 0.2.0)
 **Platforms:** Windows 10/11 (native), Linux under WSL2 — both are
 first-class; CI runs both.
 

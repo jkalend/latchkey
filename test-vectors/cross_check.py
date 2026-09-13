@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Independent RPv1 vault reader — the second implementation for the
+"""Independent LKv1 vault reader — the second implementation for the
 test-vector cross-check (DEVELOPMENT.md).
 
 Parses and decrypts a vault file using Python's `cryptography` and
-`argon2-cffi` — no rpass code involved. Used to prove the Rust
+`argon2-cffi` — no latchkey code involved. Used to prove the Rust
 implementation reads and writes the format that VAULT_FORMAT.md
 specifies, not merely the format it itself produces.
 
@@ -15,7 +15,7 @@ Layout (VAULT_FORMAT §3-§7):
   [last 8            ]  u32 slot_count || u32 crc32c
 
 Header fields (offsets):
-  0..3    magic "RPv"          3     version 0x01
+  0..3    magic "LKv"          3     version 0x01
   4       kdf_id (0x01)        5     wrap_alg_id   6     item_alg_id
   7       frame layout marker (0x00 legacy, 0xA5 v2)
   8..10   reserved             10..14 argon2_m_mib (u32 BE)
@@ -49,11 +49,12 @@ def u32be(b, off):
 def parse_header(data):
     if len(data) < HEADER_LEN:
         raise VaultError("file too short for header")
-    if data[0:3] != b"RPv":
+    if data[0:3] != b"LKv":
         raise VaultError("bad magic")
     if data[3] != 0x01:
         raise VaultError(f"unsupported version 0x{data[3]:02x}")
     return {
+        "reserved": data[7:10],
         "kdf_id": data[4],
         "wrap_alg_id": data[5],
         "item_alg_id": data[6],
@@ -94,7 +95,7 @@ def header_bytes_for_aad(h):
     # offsets 4..51 of the on-disk header — rebuilt from the parsed fields.
     return (
         bytes([h["kdf_id"], h["wrap_alg_id"], h["item_alg_id"]])
-        + b"\x00\x00\x00"
+        + h["reserved"]
         + struct.pack(">I", h["m_mib"])
         + struct.pack(">I", h["t"])
         + bytes([h["p"]])
@@ -241,6 +242,9 @@ def main():
     if len(sys.argv) != 3:
         print("usage: cross_check.py <vault-file> <password>", file=sys.stderr)
         return 2
+    # Pin LF: expected.txt is LF in the repo; stdout must match on every
+    # platform (Windows text mode would otherwise emit CRLF).
+    sys.stdout.reconfigure(newline="\n")
     entries, items = decrypt_vault(sys.argv[1], sys.argv[2].encode())
     for e in entries:
         rec = items[e["item_id"]]

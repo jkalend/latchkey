@@ -1,10 +1,10 @@
 # TUI Guide
 
-**Status:** Current pre-release implementation (`rpass` 0.1.0)
+**Status:** Current pre-release implementation (`latchkey` 0.1.0)
 
 ## Scope
 
-- Entry: `rpass tui` — or just `rpass` with no subcommand, which is the
+- Entry: `latchkey tui` — or just `latchkey` with no subcommand, which is the
   same thing (the TUI is the interactive default).
 - Fuzzy search over titles/usernames (index-only decryption — secrets
   stay untouched until selection, VAULT_FORMAT §5).
@@ -37,7 +37,7 @@
 - Secrets masked by default; explicit reveal (`r` key) with a visible
   "on screen" indicator and auto-re-mask after 10 s of no input.
 - **Auto-lock after 10 minutes of inactivity** (configurable,
-  `RPASS_TUI_LOCK_MINS`, default 10): the DEK, KEK, and all decrypted
+  `LATCHKEY_TUI_LOCK_MINS`, default 10): the DEK, KEK, and all decrypted
   secrets are zeroized and dropped; the TUI keeps running with a
   password prompt. Re-entry cost is one Argon2 round-trip — same as any
   CLI invocation. This replaces the no-lock alternative (a TUI session

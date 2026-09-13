@@ -14,7 +14,7 @@ pub enum ExitCode {
 pub enum CliError {
     #[error("{0}")]
     Usage(String),
-    #[error("vault not found at {0} — run `rpass init` first (or pass --vault <path>)")]
+    #[error("vault not found at {0} — run `latchkey init` first (or pass --vault <path>)")]
     VaultNotFound(std::path::PathBuf),
     #[error("cancelled")]
     Cancelled,

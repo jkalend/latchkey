@@ -4,10 +4,10 @@
 //!
 //! Run: cargo run --release --example make_test_vectors
 
-use rpass::crypto::ciphers::Algorithm;
-use rpass::crypto::kdf::{KdfParams, SecretVec};
-use rpass::vault::shape::{ItemRecord, TotpAlgorithm, TotpSubRecord};
-use rpass::vault::vault_impl::Vault;
+use latchkey::crypto::ciphers::Algorithm;
+use latchkey::crypto::kdf::{KdfParams, SecretVec};
+use latchkey::vault::shape::{ItemRecord, TotpAlgorithm, TotpSubRecord};
+use latchkey::vault::vault_impl::Vault;
 
 fn pw(s: &str) -> SecretVec {
     SecretVec::new(s.as_bytes().to_vec().into_boxed_slice())
@@ -84,11 +84,11 @@ fn main() {
     v.save().unwrap();
 
     // Expected content — what cross_check.py must print for this vault.
-    let expected = "\
-  1 example.com               alice        pw='correct horse battery staple' url='https://example.com/login' totp=SHA1 notes=b'work account' created=1750000000
-  2 github.com                bob          pw='Tr0ub4dor&3' url='' totp=None notes=None created=1750000000
-  3 github.com                bob-personal pw=None url='https://github.com' totp=None notes=b'token in the totp slot? no - plain note' created=1750000000
-";
+    let expected = concat!(
+    "  1 example.com              alice        pw='correct horse battery staple' url='https://example.com/login' totp=SHA1 notes=b'work account' created=1750000000\n",
+    "  2 github.com               bob          pw='Tr0ub4dor&3' url='' totp=None notes=None created=1750000000\n",
+    "  3 github.com               bob-personal pw=None url='https://github.com' totp=None notes=b'token in the totp slot? no - plain note' created=1750000000\n",
+    );
     std::fs::write(dir.join("expected.txt"), expected).unwrap();
     println!(
         "wrote {} ({} bytes)",

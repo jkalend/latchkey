@@ -5,7 +5,7 @@
 
 ## Context
 
-`rpass generate` must produce uniformly random passwords over the
+`latchkey generate` must produce uniformly random passwords over the
 requested alphabet with no modulo bias, and the defaults must be
 defensible without hand-waving.
 

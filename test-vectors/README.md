@@ -1,6 +1,6 @@
 # Test vectors
 
-A golden vault + an independent second implementation of the RPv1 format,
+A golden vault + an independent second implementation of the LKv1 format,
 cross-checked (DEVELOPMENT.md's verification bar).
 
 ## Files
@@ -9,7 +9,7 @@ cross-checked (DEVELOPMENT.md's verification bar).
 |---|---|
 | `vault-golden.bin` | Golden vault: 3 items (TOTP + notes + a password-less entry, duplicate "github.com" titles), fast test KDF (8 MiB, t=1), password `test-vector-master-password` |
 | `expected.txt` | The exact content listing both readers must produce |
-| `cross_check.py` | The second implementation — pure Python (`argon2-cffi`, `cryptography`, `crc32c`), zero rpass code |
+| `cross_check.py` | The second implementation — pure Python (`argon2-cffi`, `cryptography`, `crc32c`), zero latchkey code |
 
 ## Why
 

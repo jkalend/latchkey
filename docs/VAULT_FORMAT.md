@@ -1,7 +1,7 @@
 # Vault File Format
 
 **Status:** Implemented; not yet publicly released
-**Covers:** Format version 1 (`RPv1`)
+**Covers:** Format version 1 (`LKv1`)
 **Companion specs:** [CRYPTO_SPEC.md](CRYPTO_SPEC.md), [THREAT_MODEL.md](THREAT_MODEL.md)
 
 > This is a byte-level specification. The success criterion: an
@@ -28,7 +28,7 @@
 
 ```
 ┌───────────────────────────┐  offset 0
-│  Magic + version ("RPv1") │  4-byte parser selector
+│  Magic + version ("LKv1") │  4-byte parser selector
 ├───────────────────────────┤
 │  Fixed header             │  crypto parameters + wrapped DEK, 117 total
 ├───────────────────────────┤
@@ -48,7 +48,7 @@ from causing unbounded allocation.
 
 ```
 Offset  Length  Value
-0       3       "RPv"                    (0x52 0x50 0x76)
+0       3       "LKv"                    (0x52 0x50 0x76)
 3       1       version byte, 0x01
 ```
 

@@ -2,12 +2,12 @@
 //! expectations"). These exercise the full stack: KDF → wrap → index → items →
 //! atomic write → reopen, plus the generator and TOTP layers on top.
 
-use rpass::crypto::ciphers::Algorithm;
-use rpass::crypto::kdf::{KdfParams, SecretVec};
-use rpass::gen::{GenerateSpec, Preset};
-use rpass::totp::{totp_at, TotpParams};
-use rpass::vault::shape::{IndexEntry, ItemRecord, TotpAlgorithm, TotpSubRecord};
-use rpass::vault::vault_impl::Vault;
+use latchkey::crypto::ciphers::Algorithm;
+use latchkey::crypto::kdf::{KdfParams, SecretVec};
+use latchkey::gen::{GenerateSpec, Preset};
+use latchkey::totp::{totp_at, TotpParams};
+use latchkey::vault::shape::{IndexEntry, ItemRecord, TotpAlgorithm, TotpSubRecord};
+use latchkey::vault::vault_impl::Vault;
 use secrecy::ExposeSecret;
 
 fn pw(s: &str) -> SecretVec {
@@ -16,7 +16,7 @@ fn pw(s: &str) -> SecretVec {
 
 fn tmp_vault(tag: &str) -> std::path::PathBuf {
     let dir = std::env::temp_dir().join(format!(
-        "rpass_it_{}_{}_{}",
+        "latchkey_it_{}_{}_{}",
         tag,
         std::process::id(),
         std::time::SystemTime::now()
@@ -142,7 +142,7 @@ fn delete_then_reopen_preserves_others() {
             .iter()
             .position(|e| e.item_id == victim.item_id)
             .unwrap();
-        v.entries[idx].state = rpass::vault::shape::TOMBSTONE_STATE;
+        v.entries[idx].state = latchkey::vault::shape::TOMBSTONE_STATE;
         v.open_items.remove(&victim.slot);
         v.save().unwrap();
     }
@@ -151,7 +151,7 @@ fn delete_then_reopen_preserves_others() {
     let live: Vec<&IndexEntry> = v
         .entries
         .iter()
-        .filter(|e| e.state == rpass::vault::shape::LIVE_STATE)
+        .filter(|e| e.state == latchkey::vault::shape::LIVE_STATE)
         .collect();
     assert_eq!(live.len(), 1);
     assert_eq!(live[0].title, "keep");
@@ -273,7 +273,7 @@ fn generator_feeds_vault_roundtrip() {
 
 #[test]
 fn backup_is_byte_identical() {
-    use rpass::vault::atomic_write::atomic_write;
+    use latchkey::vault::atomic_write::atomic_write;
     let path = tmp_vault("bak");
     let backup = path.parent().unwrap().join("backup.bin");
     let password = pw("pw");
@@ -446,8 +446,8 @@ fn change_password_rewraps_same_dek() {
 /// and the hand-rolled JSON reader: what comes out must go back in intact.
 #[test]
 fn export_import_roundtrip() {
-    use rpass::cli::export_item_json;
-    use rpass::cli::import::import_into;
+    use latchkey::cli::export_item_json;
+    use latchkey::cli::import::import_into;
 
     let path = tmp_vault("imp");
     let password = pw("import-master-pw");
@@ -469,7 +469,7 @@ fn export_import_roundtrip() {
             .unwrap();
         v.save().unwrap();
 
-        let live: Vec<rpass::vault::shape::IndexEntry> = v
+        let live: Vec<latchkey::vault::shape::IndexEntry> = v
             .entries
             .iter()
             .filter(|e| e.state != 0xFF)

@@ -50,11 +50,11 @@ pub fn validate_timeout(secs: u64) -> Result<u64> {
     }
 }
 
-/// `RPASS_CLIPBOARD_TIMEOUT` (CLI_REFERENCE "Environment variables"):
+/// `LATCHKEY_CLIPBOARD_TIMEOUT` (CLI_REFERENCE "Environment variables"):
 /// out-of-range or unparsable values fall back to the default rather
 /// than failing the prompt path.
 pub fn env_timeout_default() -> u64 {
-    std::env::var("RPASS_CLIPBOARD_TIMEOUT")
+    std::env::var("LATCHKEY_CLIPBOARD_TIMEOUT")
         .ok()
         .and_then(|v| v.parse::<u64>().ok())
         .filter(|s| *s <= MAX_TIMEOUT_SECS)

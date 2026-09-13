@@ -15,11 +15,11 @@ discoverable on both platforms. Candidates considered:
 
 | Platform | Path |
 |---|---|
-| Windows | `%LOCALAPPDATA%\rpass\vault.bin` |
-| Linux/WSL | `${XDG_STATE_HOME:-$HOME/.local/state}/rpass/vault.bin` |
+| Windows | `%LOCALAPPDATA%\latchkey\vault.bin` |
+| Linux/WSL | `${XDG_STATE_HOME:-$HOME/.local/state}/latchkey/vault.bin` |
 
 `--vault <path>` overrides on every command; the default is printed by
-`rpass init`.
+`latchkey init`.
 
 ## Consequences
 

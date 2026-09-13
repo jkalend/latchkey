@@ -1,12 +1,12 @@
 [package]
-name = "rpass"
+name = "latchkey"
 version = "0.2.0"
 edition = "2021"
 rust-version = "1.98"
 license = "MIT OR Apache-2.0"
 description = "Local-first password manager for Windows and Linux/WSL"
 readme = "README.md"
-documentation = "https://docs.rs/rpass"
+documentation = "https://docs.rs/latchkey"
 keywords = ["password-manager", "cli", "tui", "security"]
 categories = ["command-line-utilities", "cryptography"]
 

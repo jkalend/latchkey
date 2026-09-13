@@ -1,10 +1,10 @@
-//! RPv1 header parser/serializer (VAULT_FORMAT.md §3-§4).
+//! LKv1 header parser/serializer (VAULT_FORMAT.md §3-§4).
 
 use crate::crypto::ciphers::{Algorithm, NONCE_LEN};
 use crate::crypto::error::{Error, Result};
 use crate::crypto::kdf::{KdfParams, SALT_LEN};
 
-pub const MAGIC: &[u8; 3] = b"RPv";
+pub const MAGIC: &[u8; 3] = b"LKv";
 pub const CURRENT_VERSION: u8 = 0x01;
 pub const HEADER_LEN: usize = 117;
 pub const FUTURE_PAD_LEN: usize = 18;
@@ -151,7 +151,7 @@ mod tests {
         };
         let buf = build_header(&h);
         assert_eq!(buf.len(), HEADER_LEN);
-        assert_eq!(&buf[0..4], b"RPv\x01");
+        assert_eq!(&buf[0..4], b"LKv\x01");
         let parsed = parse_header(&buf).unwrap();
         assert_eq!(parsed, h);
     }
@@ -182,7 +182,7 @@ mod tests {
 
     #[test]
     fn wrong_version_rpv2_rejected() {
-        // "RPv2" = magic bytes correct, version 0x32 (ASCII '2') — should hit the
+        // "LKv2" = magic bytes correct, version 0x32 (ASCII '2') — should hit the
         // version check, not the magic check.
         let mut buf = [0u8; HEADER_LEN];
         buf[0..3].copy_from_slice(MAGIC);

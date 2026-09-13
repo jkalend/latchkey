@@ -1,7 +1,7 @@
 # Cryptography Specification
 
-**Status:** Current pre-release implementation (`rpass` 0.1.0)
-**Covers:** Vault format 1 (`RPv1`)
+**Status:** Current pre-release implementation (`latchkey` 0.1.0)
+**Covers:** Vault format 1 (`LKv1`)
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
 > This document is written to be reviewable without reading the code.

@@ -1,5 +1,5 @@
 //! Title → item resolution with the fuzzy-disambiguation rule (Q7,
-//! CLI_REFERENCE `rpass get`): titles are not unique, so a title resolves to
+//! CLI_REFERENCE `latchkey get`): titles are not unique, so a title resolves to
 //! ALL live entries; several matches require interactive selection.
 
 use crate::cli::error::{CliError, Result};
@@ -9,7 +9,7 @@ use crate::vault::vault_impl::Vault;
 /// Resolve a title to one entry. Errors list similar titles (up to 3) when
 /// nothing matches; interactive selection when several match.
 pub fn resolve_title(vault: &Vault, title: &str, item_id: Option<u32>) -> Result<IndexEntry> {
-    // --id bypasses title matching entirely (CLI_REFERENCE `rpass get`).
+    // --id bypasses title matching entirely (CLI_REFERENCE `latchkey get`).
     if let Some(id) = item_id {
         return vault
             .entries

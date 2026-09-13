@@ -750,7 +750,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rpass"
+name = "latchkey"
 version = "0.1.0"
 dependencies = [
  "aes-gcm",
@@ -773,11 +773,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "rpass-fuzz"
+name = "latchkey-fuzz"
 version = "0.0.0"
 dependencies = [
  "libfuzzer-sys",
- "rpass",
+ "latchkey",
 ]
 
 [[package]]

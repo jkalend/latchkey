@@ -1,4 +1,4 @@
-# rust_password_manager
+# Latchkey
 
 A local-first password manager for **Windows 10/11 (native)** and
 **Linux under WSL2**. No accounts, no servers, no network calls — your

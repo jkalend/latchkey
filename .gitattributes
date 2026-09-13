@@ -1,0 +1,6 @@
+# Deterministic line endings: CI on Windows defaults to autocrlf=true, which
+# rewrites text files at checkout. `include_str!` fixtures (import CSV/JSON,
+# EFF wordlist) and the golden-vault pipeline must be byte-identical on every
+# platform — assert LF everywhere.
+* text=auto eol=lf
+*.bin binary

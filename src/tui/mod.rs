@@ -172,7 +172,7 @@ impl App {
             lock_after: if lock_mins == 0 {
                 Duration::MAX // 0 disables
             } else {
-                Duration::from_secs(lock_mins * 60)
+                Duration::from_secs(lock_mins.saturating_mul(60))
             },
             clip_until: None,
             clip_task: None,

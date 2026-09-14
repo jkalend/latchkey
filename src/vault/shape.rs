@@ -96,12 +96,6 @@ impl TotpAlgorithm {
     }
 }
 
-/// Wooden in-memory vault, holding decrypted data for the current session.
-pub struct VaultState {
-    pub entries: Vec<IndexEntry>,
-    pub open_items: std::collections::BTreeMap<u32, ItemRecord>,
-}
-
 pub fn serialize_index(p: &IndexPayload) -> Result<Vec<u8>> {
     if p.entries.len() > u32::MAX as usize {
         return Err(Error::Encrypt("too many index entries".into()));

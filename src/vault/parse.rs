@@ -181,7 +181,7 @@ mod tests {
     }
 
     #[test]
-    fn wrong_version_rpv2_rejected() {
+    fn wrong_version_lkv2_rejected() {
         // "LKv2" = magic bytes correct, version 0x32 (ASCII '2') — should hit the
         // version check, not the magic check.
         let mut buf = [0u8; HEADER_LEN];

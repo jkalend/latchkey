@@ -92,13 +92,16 @@ jobs:
             & $binary --vault $vault --from-stdin init
           "artifact-smoke-master" |
             & $binary --vault $vault --from-stdin add artifact-smoke --username ci --generate
-          $listOutput = "artifact-smoke-master" |
-            & $binary --vault $vault --from-stdin list
+          # Join to a single string: pipeline capture yields an array of
+          # lines, and -notmatch on an array returns non-matching elements
+          # (truthy even when a line matches) instead of a bool.
+          $listOutput = ("artifact-smoke-master" |
+            & $binary --vault $vault --from-stdin list) -join "`n"
           if ($listOutput -notmatch "artifact-smoke") {
             throw "packaged binary list smoke did not find the added item"
           }
-          $checkOutput = "artifact-smoke-master" |
-            & $binary --vault $vault --from-stdin check
+          $checkOutput = ("artifact-smoke-master" |
+            & $binary --vault $vault --from-stdin check) -join "`n"
           if ($checkOutput -notmatch "vault check: ok" -or
               $checkOutput -notmatch "records: 1 live, 0 tombstone") {
             throw "packaged binary check smoke failed"

@@ -1,0 +1,52 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "oSHA2tpauth://totp/Example:alit=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algo&rithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure Note",
+      "notes": "ernal-identity-id",
+      "type": 4,
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "oSHA2tpauth://totp/Example:alTQOJQGEZDGNBVGY3TQOJQ&algo&rithm=SHA1&digits=6&period=30",
+   "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure Note",
+      "notes": "ernal-identity-id",
+      "type": 4,
+      "name": "Unsupported   "name": "U: {"me": "Example"}
+    }
+  ]
+}

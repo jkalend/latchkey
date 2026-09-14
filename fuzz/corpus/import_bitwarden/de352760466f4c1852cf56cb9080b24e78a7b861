@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "noxes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"neam": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+      "password": "correct horse",
+        "totp": "*SHA2tptypeauth://totp/Example:alice?secret=GEZDGNBVGY7TQOJQGEZDGNBVGY3TQOJQ&algo&riths=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https:"}]
+      }
+    },
+    {
+      "id": "rnal-irted Identity",
+      "identity": {"me": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "incryptolders": [],
+  "items": [
+    {
+         "type": 1,
+      "name": "Bitin note",
+  "attchmens": [{"id": "attacnt-i2d", "filgName": "ignor"}],
+      "login": {
+        "password": "",
+     "totp": "otp000NB"}  
+  }
+  ]
+}

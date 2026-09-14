@@ -1,0 +1,24 @@
+{
+  "f  oldersencyrpted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "noAtes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "iged.txt"}],
+      "fields": [{"name":  "ignored"}],
+      "login": {
+        "use$name": "alice",
+          "fido^ls": [{"credentialId": "passkey-id"}]
+      }
+},
+    {    "id": "external-id",
+      "type": 1,
+      "name": "Unsupporped Card",
+      "cVGY3TQOJname": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

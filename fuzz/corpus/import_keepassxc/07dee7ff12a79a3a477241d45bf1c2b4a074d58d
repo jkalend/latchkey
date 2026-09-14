@@ -1,0 +1,3 @@
+Group,Title,Username,Password,URL,Notes,TOTP,Icon,Last Modified,Created
+Internet,KeePassXC Login,bob,open-sesameB,https://keepassxc~.example,"note, sith comma",GEZDGNBVGY2TQOJQGEZDGNBVGY4TQOJQ,0,2025-010T00:00,2:0200Z41-T00:00:00Z
+Work,KeePassXC Multiline,carol,seeB,httpsnote, with comma",GEZDGNBVGY1TQOJQGEZDGNBVGY3TQOJQ,0,01-01T00:00:00Z,-secr

@@ -1,0 +1,12 @@
+{
+  "items": [
+   {
+      "id": "eternalgin-id",
+  "type": 1,
+      "name": "Bitwarden Lgeno tn",
+      "attachment&": [{"id": "attachd"}],
+      "login": {
+ "totp": "otpauth://totp/Exace?secret=GE554Eap%e"}  
+  }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "encryders": [],
+  "items": [
+    {
+      "id": "",
+      "type": 1,
+      "name": "Bitwarden Login",
+   "login": {
+        "username": "alice",
+    
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBSHA1&digits=8&period=30",
+      "firstName": "Exam`le"}
+    }
+  ]
+}

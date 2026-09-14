@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "attachsents": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+    "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alicct horse",
+        "totp": "otpauth://totp/Exzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)))))))))))))))))))))))))))))))))))))))))))))))))))))zzzzzzzzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passusernamekey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+       "identity": {"firstName": "Example"}
+    }
+  ]
+}

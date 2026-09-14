@@ -1,0 +1,3 @@
+{
+ "items": [{
+"type":1,  "name": "","login":{ "totp":"otpauth://totp/e?se25222OJQGEZDWFBVGYQ&","uris": [ {"":""}] }}]}

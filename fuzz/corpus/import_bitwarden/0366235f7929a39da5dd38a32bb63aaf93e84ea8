@@ -1,0 +1,16 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name":  "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "igntom", "value": "ignored"}],
+      "login": {
+       "username": "alice",
+        "password": "correct horse",
+        "totp": "otqauth://totp/Exzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBample"}
+    }
+  ]
+}

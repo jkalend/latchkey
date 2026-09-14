@@ -1,0 +1,13 @@
+{
+  "icryptders": [],
+  "items": [
+    {
+      "id": "exm-",
+      "type": 1, "name": "Bitin note",
+ 
+      "fields": [{"name": "custom"}],
+  "login": {
+          "totp": "otpauth://totp/Example:alicesecret?digits=00000001ple"}  
+   }] 
+
+}

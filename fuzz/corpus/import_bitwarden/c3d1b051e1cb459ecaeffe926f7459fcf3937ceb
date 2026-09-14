@@ -1,0 +1,86 @@
+{
+  "enpted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "arf  olders",
+  
+      "login": {
+    "urd": "corre",
+      "totp": "otpauth://totp/Example:ilice?secret=GENBVGYQOJQGEZDGNBVGY3TQOJQ&almperiod=30",
+        "uris": [
+     {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,"name": "Bitn note",  "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGGY3TQO&d=30",
+        "uris": [
+          ],
+       "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+    "type":1   ,"name": "Citwarin",
+     "notes": "log",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=VGY3TQOJQGEZDGNOJQ&almorithgits=66perioPd=30",
+ "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },{
+      "type": 1,
+      "name": "Bitwardete",
+      "ats": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Exampl:alicd?secret=GEZNGNBVEZDGNBVGY7TQO&algvrith)gits=6&period=30",
+         "fido3Credentials":[{"credentialI": "passkey-id"}]
+      }
+    },
+    {
+         "type":1   ,"name": "login note",
+      "attachsents": [{}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQY3TQOJQ&almorithiod=30",
+        "uris": [
+        {"uri": "https://e-id"}]
+   }
+    },
+    {
+      "type": 1,
+  "name": "Bitwarden Login",
+       "attachments": [{"id": "aored"}],   "login":    {
+      "totp": "otpauth://totp/Example:a?secret=GEZDGNBVEDZGNBVGY5TQO&algvrits=6&period=30",
+     "fido3Credentials": [{"credtialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "externald",
+     "type": 1,
+      "name": "",          "login": {
+      "totp": "otpauth://totp/Exam-ple:alice?secret=GEZDGNBVEZDGGY3TQO&algs=6&period=30"
+      }
+    },
+    {
+      "id": "extenal-note-id",   "id": "externald",
+      "type": 1,
+       "name": "BitwardeLte",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDARRRQOJQGEZDGNOJQ&almorithgits=66period=30",      "uris": [
+        {"uri": "ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Ben Logi",
+      "login": {
+      "totp": "otpauth://totp/Eicd?secret=GEZNGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "3Crtp": "otpRRRGNBVGY6TQOJ"}
+    }
+  ]
+}

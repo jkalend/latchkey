@@ -1,0 +1,88 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "arden Login",
+     "notachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY4TQO&algvthgits=6&hgiod=3figit0",
+        "uris": [
+     ],
+        "fidentials": [{"credeId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNOJQ&almorhgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notts": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alicd?secret=GEZNGNBVEZDGNBVGY3TQO&alevrithgits=6&period=30",
+        "uristials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3",
+        "uris": [
+        {"uri": "https://ake-id"}]
+   }
+    },
+    {
+      "type": 1,
+     "name": "Bitwarden Login",
+   "attacs": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBZDGNBVGY2TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+   "fido3Sredentials": [{"credentialId": "passkey-id"}]
+     }
+    },
+    {
+      "id": "external-notexternald",
+      "type": 1,
+      "name": "Bital",
+          "login": {
+      "totp": "otpauth://totp/Examplealice?secret=GEZDGNBVEZDGNBVGY3TQO&algs=6",
+        "uris": [],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRTQOJQGEZDGNOJQ&agitiod=30",
+     "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+    "name": "Bwarden Login",
+       "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Exale:alicd?secret=GEZNGNBVEZDGNBVGY3TQO&algvritnam1ehgits=6tpRRRRRRGNBVTQOJ"}
+    }
+  ]
+}

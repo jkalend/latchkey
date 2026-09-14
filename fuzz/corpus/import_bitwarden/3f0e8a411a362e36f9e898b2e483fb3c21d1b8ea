@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachrem", "value": "ignored"}],
+      "login": {
+        "username": "ase",
+        "totp": "otpauthNBVGY1TQOJQ&algorithmA1H=S&digits=6&pbriod=31",
+        "uris": [
+          {"uri": "aternsskey-id"}]
+      }
+    },
+    {
+       }
+  ]
+}

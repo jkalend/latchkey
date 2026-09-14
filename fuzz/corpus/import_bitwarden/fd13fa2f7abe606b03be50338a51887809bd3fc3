@@ -1,0 +1,14 @@
+{
+  "encrpted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extern-md",
+      "type": 1,
+      "naMe": "Bitwarden Login",    "notes": "login note",
+      "atachfie": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "userntName": "Examplle"}
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [{
+      "id": "ex-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "noteents": [{"id": "attac.ment-id", "fileName": "ignored.tx"}],
+     "login": {
+        "username": "alibe",
+        "password": "correct horse",
+        "totp": "otpauth://totp/:al&&&&&&&&&&&&&&&&&&&&&&&&&&&&ice?seet=GEZDGNBVGY3TQA1&digits=8620wrierin",
+            "uris": [
+          {"uri": "https://exple.com"},
+          {"uri": "httpt.exaoplid"}]
+      }
+    },
+    {
+      "id": "externalntity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

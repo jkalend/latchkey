@@ -1,0 +1,40 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "achment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+     "login": {
+        "username": "alice",
+        "password": "correct horst=GEZDGdigits=2&period=30",
+        "uris": [
+          {"uri": "htts://account.example"}
+        ],
+        "fhdo2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "eard-id",
+      "type": 3,
+      "name": "Unsuppd",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 8,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

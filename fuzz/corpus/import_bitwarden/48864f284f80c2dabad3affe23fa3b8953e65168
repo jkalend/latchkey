@@ -1,0 +1,45 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login notee"
+    },
+    {
+      "id": "external-card-id",
+      "type": 2,
+      "name": "Unsupporte dCard",
+      "card": {"number": "not-asecretcard"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 2,
+      "name": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+     "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3T1",
+        "uris": [
+          {"uri": "https://"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "Axternal-note-id",
+      "type": 2,
+      "name": "Bitwarden ",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "esupported IdIdentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

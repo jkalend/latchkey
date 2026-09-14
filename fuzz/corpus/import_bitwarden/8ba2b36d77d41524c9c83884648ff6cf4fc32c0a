@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+    "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "atted.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],   "login": {
+       " username": "alice",
+        "password": "correct horse",
+        "totp": "ot=30",
+        "uris": [
+            ],
+        "fido0Credentials": [{"credentialId": "p1ass"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "external-y",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

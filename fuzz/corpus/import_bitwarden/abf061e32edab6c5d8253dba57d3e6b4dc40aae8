@@ -1,0 +1,10 @@
+{
+  "encr": false,
+"fders": [],"items": [
+    {
+      "id": "externan-liold",
+      "type": 1,  "card": "Utity",
+      "identity": {"Name": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "~id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+   "login": {
+        "usern15ame": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:aperiodlice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "ext=rnal-note-id",
+      "type":
+    4,   
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uearnsmeusername": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "namid": "ernal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "password": "correcfsaelt horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQG&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"cr999999999999edentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uearnsme": "alice",
+        "password": "correct horse",
+        "totp": "oiod=30",
+        "uris": [
+          {"uri": "https://!xample.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credediltIan": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "externcard-id",
+      "type": 3,
+      "name": "Unsupported Cardeny",
+      "identity": {"firstName": "Ex-ample"}
+    }
+  ]
+}

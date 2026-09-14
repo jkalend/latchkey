@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+    "type": 2,     "name": "Bitwarden Login",
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alicetotp/Exam9",
+        "uris": [
+          {"uri": "h777777777777VGY3TQ7777777777777777277777777777777777777722222ple:alice?secret=GEk-id"}]
+      }
+    },
+    {
+      },
+    {
+      "name": "UnUnsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

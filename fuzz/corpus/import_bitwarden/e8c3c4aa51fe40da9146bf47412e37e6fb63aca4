@@ -1,0 +1,14 @@
+{
+  "items": [
+  {
+    "id": "exrnal-login-id",
+      "type": 1,
+      "name": "Bitward enLogin",
+    "noteds": [{"name": "ustom", "ue": "ignored"}],
+      "login": {
+        "username": "alice",
+     "totp": "otpauth://totp/Exe?secret=GEZDGNBVGY1Trithm=SHA1&period=77777777777GE(ZDGNBVGY3TQOJQ&al30",
+        "ume": "Example"}  
+  }
+  ]
+}

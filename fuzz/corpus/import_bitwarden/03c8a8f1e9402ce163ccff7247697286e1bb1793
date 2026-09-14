@@ -1,0 +1,11 @@
+{
+  "encrypted": false,
+  "items": [
+    {      "id": "extid",
+      "typgd": "exttid",
+      "type":1   ,"name": "Bgin",
+     "login": {
+      "totp": "RRRRRRRRRRRRRRRRRRRRRGNY6TQOJ"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+ "items": [
+    {
+      "type": 1,
+      "name":"Bitin note",
+ "attchmens": [{"id":  "ignor"}],
+      "login": {
+ "password": "",
+     "totp": "otp000NB"}  
+  }
+  ]
+}

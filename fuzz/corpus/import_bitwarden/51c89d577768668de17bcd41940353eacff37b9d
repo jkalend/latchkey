@@ -1,0 +1,25 @@
+{
+  "encpretyd": false,
+  "folders": [],
+  "items": [
+    {
+    "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+        "fields": [{"name": "custom", "value": "ignored"}]   
+ ,  "login": {
+        "usere": "alice",
+        "username": "correct horse",
+        "totp": "otpauth://totp/Example:ali0",
+        "uris": [
+        {"uri": "https://eample.com"},
+          {"uri": "https://account.exey-id"}]
+      
+}    },
+    {
+      "id": "external-note-id",
+      "tyy": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",      "login": {
+        "username": "alice",
+        "password": "correct horse",       "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQ00000000000000000000000000000000000000OJQ&algotiSHmhr=A1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.ctypeom"},
+          {"uri": "https://account.examplekey-id"}]
+      }
+    },
+    {
+      "id": "exported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

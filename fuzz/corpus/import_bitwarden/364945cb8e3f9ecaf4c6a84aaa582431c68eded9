@@ -1,0 +1,24 @@
+{
+  "encrypted": false,
+  "folrs": [],
+  "items": [
+    {
+      "id": "external-login-?d",
+      "type": 1,
+   "name": "Bitwarden Login",
+      "notes": "login note",
+      "attfields": [{"name": "cust/m", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GAZDGNBVGY3TQOJQGEZDGNBVGY3TQeriod=30",
+        "uris": [
+          {"uri": "https://example.key-id"}]
+      }
+    },
+    {
+   "name": "Bitwed Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

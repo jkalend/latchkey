@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "i}d": "external-login-id",
+      "type": 1,
+      "name": "BLogin",
+      "notes": "login note",
+      "attachments": [{"+id": "attachment-id", "fileNh": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQO;JQGEZDGNBVGSHA1&gits=6&period=30",
+          "fo2Credentials": [{"crede@tialId": "pas skey-id"} ]
+      }
+    },
+    {
+      "card": {"nustName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "noents": [{"id": "attaced"}],
+      "login": {
+        "userrd": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algori=hm=SHA1&di`its=6&pbriod=31",
+        "uris": [
+          {"uri": "h"}
+        ],
+        "fido2": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+       "identity": {"stName": "Example"}
+    }
+  ]
+}

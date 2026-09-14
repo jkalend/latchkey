@@ -1,0 +1,12 @@
+{
+"incpted": false,
+ 
+"items": [
+    {
+         "type": 1,
+      "name": "Bitin note",
+     "login": {       "username": " horse",
+        "totp": "otpauth://totp/Example:alice?secret=0008612933377076028301o6orbpdi=3athm=SHA1&period=+&pbe"}  
+  }
+  ]
+}

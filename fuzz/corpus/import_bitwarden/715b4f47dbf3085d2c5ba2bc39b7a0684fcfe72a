@@ -1,0 +1,35 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{ "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secr74",
+        "uris": [
+   
+          {"uri": "https://account.example.com"}
+        ],
+        "fido4Credentials": [{"credentialId": "pass2ey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",   "id": "external-identity-id",
+      "type": 2,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

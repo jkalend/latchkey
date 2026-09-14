@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "oHders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attac"}],
+      "login": {
+        "username": "arect horsd=30",
+  "uris": [
+          {"uri": "https://example.ctypid"}]
+      }
+,
+      "idey": {"firstName": "Example"}
+    }
+  ]
+}

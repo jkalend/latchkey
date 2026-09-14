@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+    "type": 1,
+      "name": "Bitwarden Login",
+        "login": {
+        }
+    
+    }
+  ]
+}

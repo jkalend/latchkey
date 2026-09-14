@@ -1,0 +1,22 @@
+{
+
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bilogin note",
+          "login": {
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY&period=30",
+        "uris": [
+          {"uri": "htjps://examplm"},
+        { " uri": ".com"}
+        ],
+        "fido3Credteni^ls": [{"credentialId": "passkey-id"}]
+  }
+    },
+    {
+        "type": 2,
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

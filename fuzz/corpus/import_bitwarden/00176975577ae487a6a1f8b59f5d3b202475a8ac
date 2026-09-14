@@ -1,0 +1,42 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-lden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "corrth://totp/ExaBbriod=31",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "notes": "standalone note"
+    },
+    {
+      "id": "exte:nal-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-c0rd"}
+    },
+    {
+    "id": "external-notewarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+       "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+  "notes": "login nonsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

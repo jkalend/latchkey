@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwardene",
+      "attfields": [{"name": "cust/m", "value": "ignored"}],
+      "login": { 
+       "usersword": "correctrse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY1TQOJQGEZDGNyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyBVGY3TQ-%11rOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://eunt.e-ample.com"}
+        ],
+        "fido1Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-ntity-id",
+      "type": 3,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

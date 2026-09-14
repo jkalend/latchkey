@@ -1,0 +1,27 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachs": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horseD",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZ(GNBVGY3TQOJQ&algoreriod=30",
+        "uris": [
+     { "    uri": "https://ple.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-ntity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

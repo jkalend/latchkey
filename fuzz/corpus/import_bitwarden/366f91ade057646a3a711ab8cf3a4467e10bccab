@@ -1,0 +1,14 @@
+{
+  "fers": [],
+  "items": [
+    {
+      "id": "external-lgin-id",
+      "type": 1,
+      "name": "Bitruetwarogin",
+      "noteelDs": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "userord": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3&QOQaJTlgorithm=Sle"}
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e$ternal-login-id",
+      "type": 1,
+      "name": "BitwardenDDDDDDDDDDDDDDDD Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/ZDGNBVrnal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "ment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "pa;ssword": "correct horse",
+        "totp": "otpauthce?secret=Grithm=SHigits=6&perkod=30",
+        "uris": [
+          {"uri": "https:ps://account.example.com"}
+        ],
+      d fi;"o 2Credentials"mple"}
+    }
+  ]
+}

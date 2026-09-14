@@ -1,0 +1,86 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "Bitwarden Login",
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66perVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bi@twarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exte-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "lon not-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY6TQOJ"}
+    }
+  ]
+}

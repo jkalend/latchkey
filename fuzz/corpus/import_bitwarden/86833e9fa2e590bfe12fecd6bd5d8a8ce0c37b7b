@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwarden Logote",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correalice?se=tcGerEZDGNBVGY1TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digitxample"}
+    }
+  ]
+}

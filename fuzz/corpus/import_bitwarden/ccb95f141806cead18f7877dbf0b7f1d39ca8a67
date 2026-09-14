@@ -1,0 +1,37 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY67777777777777777777777777777777777TQO&algvrithgits=6&period=30",
+    "fido3Creurisdentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored" }],   
+  "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNONBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+     "lype": 1,
+      "name": "Bitwarden L]ogin",
+      "notes*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GERRRRRRRRRRRRRRRRRRRRRRRRRRRRRGNY6TQOJ"}
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "encry": [],
+  "items": [
+    {
+      "id": "external-ln-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+        "login": {
+       "totp": "otpauth://totp/Example:alice?seet=GElgorithm=SHA1&digits=860erin",
+            "firstName": "Example"}
+    }
+  ]
+}

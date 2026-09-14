@@ -1,0 +1,47 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "jotes": "lote",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+       "login": {
+        "username": "alice",
+        "pasCredentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 1,
+      "name": "Bitwarden Secure dentity-id",
+     "type+": 2,
+      "nam1e": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "lone no?te"
+      },
+    {
+      "id": "external-identity-id",
+      "type+": 2,
+      "nam1e": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden "
+    },
+    {
+      "id": "external-cardnal-identity-id",
+      "type": 4,
+      "name": "U",
+      "type+": 2,
+      "nam0e": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "atype": 2,
+      "name": "Unsupported IdIdentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

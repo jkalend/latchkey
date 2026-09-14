@@ -1,0 +1,47 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "~id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note0", "name": "Bitwarden Jogin",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uearnsmeusername": "alice",
+        "password": "correkt horse",
+        "totp": "otpauth://totp/Ee:alice?secret=EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEVVVVVVVVVVVVVVVVVVVVVVVVVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "httpcount.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note)id",
+      "type": 4,
+      "name": "Bitwarden Securstandalone note"
+    },
+    {
+      "id": "ernal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+     "totp": "ot://totp/Example:alice?secret=GEZDGNBVGPPPPPPPPPPPPPPPPPPtotpPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPY1TQOJQG&period=30",
+        "uris": [
+          {"uri": "httpey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Sote",
+      "notes": "standalone noteeny",
+      "identity": {"firstName": "Ex-ample"}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "incrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitward en+Logote",
+        "s": [{"ue": "ignored"}],
+      "login": {
+        "totp": "otpauth://totp/Exampalice?secret=GEZDrithm=SHA1&period=000000-00d=6xa"}  
+  }
+  ]
+}

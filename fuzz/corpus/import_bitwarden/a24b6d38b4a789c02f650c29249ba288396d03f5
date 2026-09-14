@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "login note",
+      "attachments": [{"id": "attachred"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZD=SHA1&dieriod=30",
+        "uris": [
+          {"uri": "hwtpscount.example.com"}
+   ]
+      }
+    },
+    {
+      "id": "externarden Secure Note",
+      "notes": "stannsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "rypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external->ogin-id",   "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+     "attachments": [{"i": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secre-real-card"}
+    },
+    {
+        "idtity": {"firstName": "Example"}
+    }
+  ]
+}

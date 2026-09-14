@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+  "folders": [],  "items": [
+    {
+      "id": "external-login-id",     "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note","s": [{"name": "cust/m", "value": "ignored"}],
+      "login": {
+        "uxersword": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZ/DGNBVG&&&&&&&&&&&&&&&&&&&&&&&'&&&&&&&yyyyyyyBVVV0",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "httpse.com"}
+        ],
+        "fiirstName": "Example"}
+    }
+  ]
+}

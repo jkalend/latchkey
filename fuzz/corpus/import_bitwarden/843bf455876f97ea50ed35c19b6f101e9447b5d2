@@ -1,0 +1,13 @@
+{
+  "encrted": false,
+  "folders": [],
+  "items": [
+    {
+     "id": "extenlogin-id", "type": 1,
+      "name": "Bitwarden Logigin note",
+      "lds": [{"navalue": "ignored"}],
+      "login": {
+     "totp": "otsecret=ENBVGY3TQOJQGEZD="}
+    }
+  ]
+}

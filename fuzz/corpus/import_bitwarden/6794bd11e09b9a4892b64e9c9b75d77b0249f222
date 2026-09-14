@@ -1,0 +1,15 @@
+{
+  "encrypted":false,
+  "folders": [],
+  "items": [
+    
+     { "id": "ein-id",
+      "type": 1,
+      "name": "Brwidaten Login",
+  "fields": [{"nmae": "cus", "value": "ignored"}],
+      "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGVGYlgorithm=SHA1&period=6&period=30",
+        "fido2CredentfirstName": "Example"}
+ }
+  ]
+}

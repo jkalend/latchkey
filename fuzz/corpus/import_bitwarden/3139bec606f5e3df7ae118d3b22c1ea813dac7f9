@@ -1,0 +1,70 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attach!ent-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDFNBVGY3TQOJQ&algorithmA1H=S&digits=6&pbriod=31",
+        "uris": [
+          {"uri": "https://example.com"},         {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 2,
+      "n[me": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "usernqme": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:al3TQOJQGEZDGNBVGY3TQOJQ&algorithmA1H=S&digits=6&pbriod=31",
+   
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 2,
+      "name": "Unsupported IdIdentity",
+      "identity": {"firstName": "Examplm"}
+    }
+  ]
+}

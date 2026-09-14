@@ -1,0 +1,13 @@
+{"encrypted": false,
+ "folders": [],
+  "items": [  {  
+
+      "id": "l-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+  "login": {
+      "totp": "\tpaut=="}
+  
+    }
+  ]
+}

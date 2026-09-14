@@ -1,0 +1,18 @@
+{
+  
+  "items":[
+    {        "type": 1,  "name":"login note",
+      "ts": [{"id": "aored"}],"login": {
+    "urd": "",
+   "totp": "otpauth://totp/:alice?secret=GENQGEZDGNBVGY3TQOJQ&almorithd=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },{
+      "type": 1,
+      "name": "Bitwte",
+     "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZTTTTTTTTOJ"}
+    }
+  ]
+}

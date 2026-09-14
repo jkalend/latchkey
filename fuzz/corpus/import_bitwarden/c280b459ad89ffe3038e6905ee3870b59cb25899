@@ -1,0 +1,12 @@
+{
+  "encryptlders": [],  "items": [{
+      "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notogin": {
+        "userne": "gorree",
+     "totp": "otpauth:/=4&peri%od=30",
+ "urisnumber": "d"}
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+
+  "items": [
+    {
+      "id": "external-lgi",
+      "type": 1,
+      "name": "Bilogin note",
+     "login": {
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY&period=30",
+        "uris": [
+          {"uri": "htjps://examplm"},
+        { " uri": ".com"}
+        ],
+        "fido3Credteni^ls": [{"credentialId": "ey-id"}]
+  }
+    },
+    {
+        "type": 2,
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

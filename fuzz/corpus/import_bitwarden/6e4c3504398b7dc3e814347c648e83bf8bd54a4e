@@ -1,0 +1,30 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "egin-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+      "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido1Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "exter~al-card-id",
+   "id": "external-identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

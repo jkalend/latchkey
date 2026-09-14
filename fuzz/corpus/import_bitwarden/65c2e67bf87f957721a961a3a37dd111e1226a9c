@@ -1,0 +1,41 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "eogin-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login notze",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Examplee?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algori=hm=SHA1&digits=6&pbriod=31",
+        "uris": [
+          {"uri": "https://eps://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Be Note",
+      "notes": "standalone note"
+    },
+  {
+      "id": "external-card-id",
+      "type": 3,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+  "notes": "login nol-identity-id",
+      "type": 2,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bote",
+      "attachments": [{"id": "atta'chmed.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "passwgrd": "alice",
+        "pd": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY1TQOJQGEZDGNBVGY3TQOJQ&algorimth=SHA1&digits=6&periodz30",
+       "uris": [
+         {"uri": "httpt.example.com"}
+        ],
+        "fiedentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-notee"
+  }
+  ]
+}

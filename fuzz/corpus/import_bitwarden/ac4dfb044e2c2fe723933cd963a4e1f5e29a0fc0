@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "BitwLogin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custgnored"}],
+      "login": {
+        "____________ame": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Exalice?secret=GEZDGNBVGY4WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWTQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+         {" uri": "https4//a.com"}
+        ],
+        "fido2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {  "identity": {"firstName": "Example"}
+    }
+  ]
+}

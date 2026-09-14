@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "BitwardYYYYYYYnote",
+      "atment&s": [{"id": "a-id", "filgName": "iored"}],
+      "login": {      "totp": "otpauth://totp/Exa2mple:alice?secret=GEZDG77777777fal%e77777777777777777%7777777777777777777%e7%e7777777777777777fal%7777fal%e7777777777777777777777fal%e77777777777777777777*77fal%e77777)7777777777(777fal%e7%e77777777777777777777767777fal%77777fal%7777fal%e7777777777777777777777fal%77777(777fal%e7%e777777777777777777zmple"}  
+  }
+  ]
+}

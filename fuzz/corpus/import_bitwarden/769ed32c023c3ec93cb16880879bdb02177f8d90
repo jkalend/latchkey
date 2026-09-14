@@ -1,0 +1,8 @@
+{
+  "incryps": [],
+  "items": [
+   {
+         "type": 1,
+      "name": "Bnote",    "login": {"totp": "otpauth://totp/Exaple:alice7778A777777777777277hm=SHA=3"  }}
+]
+}

@@ -1,0 +1,5 @@
+Group,Title,Username,Password,URL,Notes,TOTP,Icon,Last Modified,Created
+Internet,KeePassXC Login,bob,open-sesameB,htt.exle," with comma",GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ,0,2025-01-01T00:00:00Z,2024-01-01T00:00:00Z
+Work,C Multiline,carol,second-secropen-sesameB,https://keepassxc.te, with comma",GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ,0,2025-01-01T00:00:00Z,2024-01-01T0000Z
+Work,KeePassXC Multiline,carol,second-secret,https://wet,https://worcret,httpsva#lid.examptwo"ecret,https://vpxae,ml,
+,Broken ,,,,

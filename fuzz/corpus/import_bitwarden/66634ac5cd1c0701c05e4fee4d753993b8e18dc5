@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+" olders": [],
+  "items": [
+    {
+      "id": "eernal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+    "login": {
+        "ord": "ce","totp": "otpauth:/t/Et/poxampee:alice?secret=GEZDGNBVGY3TQOJQGEZDGYGBNV3TQOJQ&algorithm"}
+  }
+  ]
+}

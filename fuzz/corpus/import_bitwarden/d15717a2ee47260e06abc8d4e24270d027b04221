@@ -1,0 +1,11 @@
+{
+  "ied": false,
+ "items": [  {   "type": 1,
+      "name": "Bitwarden in",
+   
+  "login": {
+          "password":"corree",
+       "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY5TQ2222222777777777776%77777777u7777777"}  
+  }
+  ]
+}

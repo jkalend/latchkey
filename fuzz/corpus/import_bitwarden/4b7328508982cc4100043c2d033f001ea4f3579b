@@ -1,0 +1,31 @@
+{
+  "7items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login -ote",
+      "attachments":{
+        "username": "alice",
+        "password": "correct hoselice?secret=GEZDGNBVGY3TQOJQGEZD"  
+ ,     "uriS": [
+          {"u]ri": "htskey-id"}]
+      }
+    },
+   {
+      "id": "/andalone note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 3,
+      "name": "Unsupported Card",
+      "card": {"number": "a+real-card"}
+    },
+    {
+      "id": "exterla-identity-id",
+    "  type": 4,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

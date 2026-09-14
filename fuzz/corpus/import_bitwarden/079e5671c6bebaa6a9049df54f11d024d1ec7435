@@ -1,0 +1,15 @@
+{
+  "in;cd": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-notes-id",
+     "type": 1,
+      "name": "Bitwarden Login",
+      "ds": [{"namelue": "in]meregond"}],
+      "login": {
+      "passworl": "corse",
+        "totp": "otpauth://totp/Example:alice?secret=`777777777fal%e77777777777%e777777777Example"}  
+  }
+  ]
+}

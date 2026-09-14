@@ -1,0 +1,32 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY2TQOJQ&algorithm=SHA1&digits=6&period=30",
+"uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure ty-id",
+      "type": 4,
+      "name": "Unsupported Identity",
+      "identity": {"": "Example"}
+    }
+  ]
+}

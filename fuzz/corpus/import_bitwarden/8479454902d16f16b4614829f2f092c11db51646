@@ -1,0 +1,39 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "el-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+          "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type+": 2,
+      "name": "Unsupported ogin-id",
+      "type": 1,
+       "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "userntotp": "otpauth://totpriod=31",
+        "uris": [
+          {"uri": "hcom"},         {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "td": "external-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "externalrted IdIdentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

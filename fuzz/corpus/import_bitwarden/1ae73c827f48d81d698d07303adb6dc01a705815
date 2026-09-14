@@ -1,0 +1,18 @@
+{
+  "folders": [],
+ "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwn Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachmeored"}],
+      "login": {
+        "username": "alicerse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY4TQWOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30"}
+    },
+    {
+        "identity": {"firstName": "Example"}
+    }
+  ]
+}

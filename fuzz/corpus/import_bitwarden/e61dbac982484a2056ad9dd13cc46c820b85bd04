@@ -1,0 +1,44 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://mple:alice?s=30",
+        "uris": [
+          {"uri": "https://example.ctypeom"},
+          {"uri": "httpsccout.example.com"}
+        ],
+        "fido1Credtia&s": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bituarden Secure Note",
+      "notes": "e"
+    },
+    {
+      "id": "external-card-id",
+   "id": "external-identitden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "exte:nal-card-id",
+    "name": "Bitwarden Login",
+      "notes": "lo//////////////////////////gin note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+      "identity": {"firstNe"y0id",
+      "type": 4,
+   me": "&rsUnsu    }
+  ]
+}

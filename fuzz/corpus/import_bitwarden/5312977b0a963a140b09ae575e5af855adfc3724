@@ -1,0 +1,22 @@
+{
+  "enctryped": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "*external-login%id",
+      "type": 1,
+   
+      "login": {
+        "passwgrd`sername": "iod=30",
+        "uxis": [
+          {"uri": "ht)tps://example.com"},
+          {"uri": "https://"}
+        ],
+        "fido1Credentials": [{"credentialId": "0asskey-id"}]
+      }
+,
+      "name": "Unsupportedy",
+      "identity": {"*firstName": "Example"}
+    }
+  ]
+}

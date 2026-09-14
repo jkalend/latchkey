@@ -1,0 +1,27 @@
+{
+ "ed": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitn note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],  "fields": [{"namvalue": "ignored"}],
+      "login": {
+ 
+        "totp": "otpauth://totp/Example:alice?setG=ZecErDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&gits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https:nt.example.com"}
+        ],
+        "fido1Credential": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "eid",
+      "type": 9,
+      "name": "Unsuppntity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

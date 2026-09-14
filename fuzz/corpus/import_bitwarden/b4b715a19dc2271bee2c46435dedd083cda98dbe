@@ -1,0 +1,16 @@
+{
+  "encryptrs": [],  "items": [
+    {
+      "id": "e$ternal-login-id",    "notes": "login note",
+      "attachments": [{"id": "attacntnt.example.com"}
+        ],
+        "f": "externanote-id",
+      "type": 1,
+      "name": "Bitwardedalone note"
+    },
+    {
+      "id": "eal-card-id",
+      "typdentity": {"firstName": "Example"}
+    }
+  ]
+}

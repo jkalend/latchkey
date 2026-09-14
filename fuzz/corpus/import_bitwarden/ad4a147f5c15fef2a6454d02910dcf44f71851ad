@@ -1,0 +1,25 @@
+{
+  "es": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitn note",
+      "attachments": [{"id": "aed"}],
+      "login": {
+   "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?setG=ZecErDGNBVGY0TQOJQGEZDGNBVGY3TQOJQ&algorithm6=SHA0&digits=6&gits=6&perio-d=30",
+        "uris": [
+          {"uri": "https://exam.example.cfm"}
+        ],
+        "fidotials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "eid",
+ "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

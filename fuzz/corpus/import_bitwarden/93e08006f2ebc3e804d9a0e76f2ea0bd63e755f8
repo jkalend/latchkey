@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+   "name":"B itwarden Login",
+      "notes": "login note", "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "passwgrd": "alice",
+        "password": "correct horse",
+        "totpmber": "n-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "+ype": 4,
+      "y": {"fime": "Example"}
+    }
+  ]
+}

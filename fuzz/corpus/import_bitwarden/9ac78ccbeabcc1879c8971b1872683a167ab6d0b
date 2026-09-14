@@ -1,0 +1,13 @@
+{
+    "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bn Lo]in",
+   "notes": "login note",
+"login": {
+        "uname": "alice",
+        "password": "correctVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV ho)zzzzzzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&peExample"}
+    }
+  ]
+}

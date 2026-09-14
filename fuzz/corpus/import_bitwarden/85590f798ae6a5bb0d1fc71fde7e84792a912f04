@@ -1,0 +1,37 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e$ternal-login-id",
+      "type": 1,
+     "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+       {"uri": "https://example.com"},
+          {"uri": "https://accounp.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 3,
+      "name": "Unsupported Card",
+      "card": {"nuid": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "ed {"firstName": "Example"}
+    
+}

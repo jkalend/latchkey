@@ -1,0 +1,17 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "xgin-id",
+      "type": 1,
+      "name": "twarden Login",        "login": {
+        "username": "alicesssssssssssssssssss",  "totp": "otpauth://totp/Example:alice?secret=,GEZriod=29",
+        "uris": [
+          {"uti": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Cumber": "not-]a-reple"}
+    }
+  ]
+}

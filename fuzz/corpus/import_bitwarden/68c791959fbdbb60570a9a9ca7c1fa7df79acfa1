@@ -1,0 +1,24 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "ternal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "noteents": [{"id": "attac.ment-id", "fileName": "ignored.txt"}],
+     "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?seet=GEZlgorithm=SHA1&digits=86perin",
+            "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.examplid"}]
+      }
+    },
+    {
+      "id": "extity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

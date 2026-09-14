@@ -1,0 +1,20 @@
+{
+  "incrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "ext-login-id",
+      "type": 1,
+      "name": "Btiin note",
+      "attachlds": [{"name": "custom", "value": "ignored"}],
+      "login": {
+       "usernypesword": "correct horse",
+        "totp": "otpauth://totp/ExampRle:alice?digits=000000000000000m=S0",
+     "fido2Cdentials": [{"credentialId": "passkey-id"}]
+     }
+    },
+    {
+     "identkty": {"firstName": "Example"}  
+  }
+  ]
+}

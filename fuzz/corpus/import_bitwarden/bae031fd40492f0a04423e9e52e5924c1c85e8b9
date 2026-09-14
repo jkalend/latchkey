@@ -1,0 +1,20 @@
+{
+  "e": [],
+  "items": [
+    {
+      "id": "externalin-id",
+      "type": 1,
+           "fields": [{".ame": "custom", "value": "ignored"}],
+      "login": {
+              "password": "correct h3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uxis": [
+           {"uri": "httpm"}
+        ],
+        "fido1Credentials": [{"credentialId": "0asskey-id"}]
+      }
+,
+      "name": "Unsupported Identity",
+      "tity": {"*firstName": "Example"}
+    }
+  ]
+}

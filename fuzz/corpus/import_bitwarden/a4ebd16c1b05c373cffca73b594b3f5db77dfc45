@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e$ternal-login-id",
+      "type": 0,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "usord": "correct horse",
+        "totp": "otpauth:/?totp/SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"identity": {"firstName": "Example"}
+    }
+  ]
+}

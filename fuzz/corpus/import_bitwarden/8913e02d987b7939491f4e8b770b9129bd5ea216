@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "foders": [],
+  "items": [
+   {
+       "  id": "external-card-id",
+      "vype": 2,
+    "name": "Unsupprd",   "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+   
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "e": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",    "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQAOJQGEZDGNBVGY3TQO&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "passkey-id"}]
+      }
+    },
+    {
+   "id": "externalgin-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",     "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY6TQOJ"}
+    }
+  ]
+}

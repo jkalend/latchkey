@@ -1,0 +1,15 @@
+{
+  "encryed": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+     "type": 3,
+      "name": "Bitwaren Login",
+      "notes": "lggite",
+          "password": "correct horse",
+        "totp": "xuth://totp/Example:alicentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

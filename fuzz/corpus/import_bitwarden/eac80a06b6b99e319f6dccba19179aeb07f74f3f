@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+    "id": "External-logini-d",
+      "type": 1,
+  "name": "Bitwarden oLgin",
+  "fields": [{"name":"cnored"}],
+      "login": { "totp": "o",     "urstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+oup,Title,Username,Password,URL,Notes,TOTP
+, aF,,s,//,%s,TWWWWWWWWWWWWWWWWWWPW
+,t,aloe,ret,iL,es,otpauth://totp/TWWWOT
+.

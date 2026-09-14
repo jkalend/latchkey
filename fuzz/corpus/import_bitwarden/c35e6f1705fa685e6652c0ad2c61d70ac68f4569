@@ -1,0 +1,20 @@
+{
+  "f  oldersencrypted":[],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name":  "login note",   "login": {
+        "passwgrd": "ali",
+        "password": "correct horse",
+        "totp": "otpauth://totp/ExamplGY3TQOJQ&algorithm=SHA16&period=30",
+        "uris": [      ],
+        "fido2Crede.ntials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "type": 3,
+    "identity": {"firstName": "Example"}
+    }
+  ]
+}

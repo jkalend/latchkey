@@ -1,0 +1,19 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Biden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aed.t"}],
+      "login": {
+        "username": "alice",      "totp": "otpauth://totp/Example:anlice?secret=GEZDGNBVGY3TQWOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&digits=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https:/sskey-id"}]
+      }
+     }
+  ]
+}

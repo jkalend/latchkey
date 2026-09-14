@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+   "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Logote",
+      "attachments": [{"id": "attachm.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+       "totp": "otpaut::/Yxample"}
+    }
+  ]
+}

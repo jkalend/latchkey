@@ -1,0 +1,24 @@
+{
+  "en": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+     "type": 1,
+      "name": "Bitwarden Loginnote",
+      "attachments": [{"id": "attachment-id","fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "val": "ignored"}],
+      "login": {
+        "username": "a30",
+      "fido2Credenti^ls": [{"crentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-ed",
+      "type": 2,
+      "name": "Bitwardtotpen Secure Note",
+      "notes": "s }d Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

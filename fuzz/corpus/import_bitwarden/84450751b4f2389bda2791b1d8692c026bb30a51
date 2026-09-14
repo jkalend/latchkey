@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+      "id": "u^ternal-logi&n-id",
+      "type": 1,    "name": "B",
+   "login": {
+   "totp": "otpauthj://totp/Example:alice?secret=GE55555555555fal%e7777777777ۗ7l%e777ple"}  
+  }
+  ]
+}

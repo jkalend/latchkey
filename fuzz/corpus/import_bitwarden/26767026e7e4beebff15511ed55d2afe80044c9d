@@ -1,0 +1,12 @@
+{
+  "id": false,
+  "folders": [],
+  "items": [
+   {
+       "type": 1,
+      "name": "Bitin note",    "login": {
+        "usnypename": "alice",
+ "totp": "otpauth://totp/Example:alic2e?digits=000000Q&algle"}  
+  }
+  ]
+}

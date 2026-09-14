@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "folder6s": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,"name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachmenred"}],
+      "login": {
+        "username": "alice",
+        "password": "crreriod=30",
+        "uris": [
+          {"u.i": "https.com"},
+          {"uri": "https://account."}
+        ],
+        "fido2Credeame": "Example"}
+    }
+  ]
+}

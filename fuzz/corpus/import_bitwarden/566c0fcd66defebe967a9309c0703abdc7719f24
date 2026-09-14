@@ -1,0 +1,30 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "flogin": {
+        "useCredentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "nype": 1,
+      "name": "Bitwarden Secure ^ote",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",
+      "0ye": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      
+    },
+    {
+      "id": "externExample"}
+    }
+  ]
+}

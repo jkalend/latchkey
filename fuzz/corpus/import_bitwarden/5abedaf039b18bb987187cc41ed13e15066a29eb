@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwain note",
+   "attachments": [{"id": "attachment-id", "fileName": "ignorm", "value": "ignored"}],
+      "login": {
+        "username": "aliceithm=SHA1&",
+        "uris": [
+   
+        ],
+        "fido3Credentia": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "nype": 2,
+      "ents": "Bitwarden Secure Note",
+      "notes":  {"firstName": "Example"}
+    }
+  ]
+}

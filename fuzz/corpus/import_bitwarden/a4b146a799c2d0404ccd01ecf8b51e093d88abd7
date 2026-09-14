@@ -1,0 +1,145 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+    "type": 1,  "name": "Bitwarden Login",
+     "notes": "login note",
+      "attae": "arden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+ "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alicd?secret=GEZNGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=33period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "ernal",
+      "notes": "n note",
+      "attachmenchsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwawden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}], 
+     "login": {
+      
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDG2OJQ&ithgits=66pe0riod=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+ "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}], "1otes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "corrQOJQ&almorithgits=41period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden LogiJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJn",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {       "uris": [
+        {"uri": "https://akse-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+          "login": {
+        "tott": "otpaample:alice?secret=GEZDGiod=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "typ": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "lon note",
+     "login": {
+        "tolp": "opauth://totp/Example:alice?secret=GEZDGNBVGY6OJ"}
+    }
+  ]
+}

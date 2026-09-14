@@ -1,0 +1,34 @@
+{
+  "encrypetd": false,
+  "folders": [],
+  "items": [
+    {
+    "id": "egin-id",
+      "type": 1,
+      "in": {
+        "username": "alice",
+        "uris": [
+          ],
+        "fido1Credentials": [{"credlId": "passkey-id"}]
+      }
+    },
+    {
+    "": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "ernal-identi",
+    "attf": [{"name": "custom", "value": "ignored"}],
+      "login": {
+      "uris": [
+       ]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Secty-id",
+      "type": 4,
+        "identity": {"firstName": "Example"}
+    }
+  ]
+}

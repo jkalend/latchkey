@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [{
+      "id": "ex-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "noteents": [{"id": "attac.ment-id", "fileName": "ignored.tx"}],
+     "login": {
+     "username": "alibe",
+          "totp": "otpauth://totp/:a&&&&&&&&ice?seet=GEZDGNBnaMeVGY3TQA1&digits=8620wrierle"}
+    }
+  ]
+}

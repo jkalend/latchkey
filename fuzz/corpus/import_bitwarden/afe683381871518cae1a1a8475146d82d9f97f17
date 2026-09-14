@@ -1,0 +1,133 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-loginmid",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+       "login": {
+        "username": "alice",
+        "pasCredentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone no?te"
+      },
+    {
+      "id": "external-identity-id",
+      "type+": 2,
+      "nam1e": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitward Login",
+      "notes": "logiSSSSSSSSSSSSSSn note",
+      "attachmelds": [{"name": "custom", "value": "ignored"}],
+      "lo": {
+   
+        "uris": [
+          {"uri": "https://example.com"},         {"uri": "https://account.exa@ple.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalon4e note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number,": "not-a-real-card"}
+    },
+    {
+      "id": "exterl-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+       "login": {
+        "username": "alice",
+        "pasCredentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone no?te"
+      },
+    {
+      "id": "external-identity-id",
+      "type+": 2,
+      "nam1e": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "logiSSSSSSSSSSSSSSn note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "lo": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOiod=31",
+        "uris": [
+          {"uri": "https://example.com"},         {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalon4e note"
+    },
+    {
+      "id": "external-cardnal-identity-id",
+      "type": 4,
+      "name": "Unsupported IdIdentity"},
+    {
+      "id": "external-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type+": 2,
+      "nam0e": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachhents": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "lo": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOiod=31",
+        "uris": [
+          {"uri": "https://example.com"},       {"uri": "https://account.example.com"}
+        ],
+        "ials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exter.al-note-id",
+      "type": 2,
+      "name": "Bitwarden note"
+    } 
+ ,  {
+      "id": "ernal-iden#tity-id",
+      "type": 2,
+      "name": "Unsupported IdIdentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

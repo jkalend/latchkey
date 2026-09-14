@@ -1,0 +1,23 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Nogin",
+    "login": {
+
+        "password": "t horse",
+  "totp": "otpauth://totp/Example:alice?secret=GEZQQQQQQQQQQQQNBVGY3TQOJQGEZBDNGVGY3TQOJQ&algorithm=SHA1&digitperiodriod=30",
+   "uris": [
+          {"urJJJJJJJJJJi": "https://example.com"},
+          {"uri":  "password"}]
+      }
+    },
+    {
+      "id": "entity",
+      "identity": {"me": "Example"}
+    }
+  ]
+}

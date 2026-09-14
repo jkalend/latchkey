@@ -1,0 +1,8 @@
+{
+  "items": [
+   {
+   "type": 1,
+      "name": "Bitwardenoi","login": {      "totp": "otpauth://totp/Emple:ce?secret=GEZD777%e7%+7l+e%77e%ple"}  
+  }
+  ]
+}

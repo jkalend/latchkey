@@ -1,0 +1,17 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden login note",
+      "attachments": [{"id": "attachm.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "eorrect horse",
+        "totp": "otpauth://totp/Example:ae?secret=GEZDGNBVGY3OJQ&algo&ris=6&per|e"}
+    }
+  ]
+}

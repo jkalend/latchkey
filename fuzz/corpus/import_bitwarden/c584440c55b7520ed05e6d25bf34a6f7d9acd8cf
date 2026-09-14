@@ -1,0 +1,27 @@
+{ "items": [
+    { "i": "",     "type": 1,
+  "name": "Bitard",
+   "login": {
+  "uerame": "alice",
+      "pas": "otQO=65",
+   "uris": [  ],"r": [{"cr?lId": "d"}]
+   }
+    },
+    {  "name": "Biin-id",
+   "type": 1,
+
+      "login": {
+   "totp": "otpauth://totp/Exaalie?secret=GEZDGNBVGY5TQOJQG&period=30",
+       "uris": [
+   ],
+     "fido": [{"d?d": "pad"}]
+    }
+    },
+    {"id": "externad",
+      "type": 1,
+      "name": "Bitwarden L",
+    "login": {
+ "medName": "Ex-+ample"}
+    }
+  ]
+}

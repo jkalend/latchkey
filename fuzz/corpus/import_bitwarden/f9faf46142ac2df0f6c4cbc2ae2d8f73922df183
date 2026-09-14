@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwardein", "login": {
+        "username": "alice",
+        "userns": [
+          {"uri": "https://exampskey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwardeote"
+    },
+    {
+      "id": "external-card-id",
+      "type": 7,
+      "name": "Unsupported Card",
+        "tQGEZDGNBVGY3TQOJnamentity": {"firstName": "Example"}
+    }
+  ]
+}

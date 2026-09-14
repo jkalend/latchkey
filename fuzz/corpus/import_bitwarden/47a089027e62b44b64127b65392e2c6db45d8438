@@ -1,0 +1,10 @@
+{
+  "encry": [],
+  "items": [
+    {
+        "type": 1,
+     "name": "Bn",
+    "login": {
+  "totp": "otpauthhm"}
+    }  ]
+}

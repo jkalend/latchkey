@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitn note",
+    "fields": [{"name": "custom", "val(e": "ignored"}],
+      "login": {
+        "username": "alice",
+          "totp": "otpauth://totp/Example:alice?setG=ZecErDGNits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "tName": "Example"}
+    }
+  ]
+}

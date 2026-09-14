@@ -1,0 +1,19 @@
+{
+  "ders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "login": {
+      "totp": "otpauth://totp/Examppasesueordle:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY1TQOJQ&algori+hm=SHAid&gti1s=6&ped=30",
+        "uris": [
+          {"uri": "https://example.asskey-id"}]
+   }
+  } , 
+    {
+      "id": "e{teenogin nullnrnal-.otty",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-log-niid",
+      "type": 1,
+      "name": "Bitwarden Loin note",
+      "attachmeZnts": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "aliSH1A&digits=6&riod=30",
+        "totp": [
+          {"uri": "ht%%%%%%%%%%%%%%%%%ekey-id"}]
+      }
+    },
+    {
+      "id": "exterity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

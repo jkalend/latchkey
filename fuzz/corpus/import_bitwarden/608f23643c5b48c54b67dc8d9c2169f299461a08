@@ -1,0 +1,50 @@
+ {
+   "items": [
+    {      "type": 1,  "name": "arden Login",
+     "notes": "lmgin note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+   "upd": "c orrect hoe",      "totp": "otpauth://totp/Example:alice?secret=GENBGYOJQGEZDGNBVGY3TQOJQ&almor66period=30",
+        "uris": [  {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login","login": {
+      "totp": "otpauth://totp/Exampe:alice?secret=GEZDGNBVEZDGNBVGY6TDGNONBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwan",
+     "ntachsents": [{"id": "aored"}],
+      "login": {
+  "urd": "correct hoe",
+        "totp": "otpauth://totp/Exe?secret=GENBV22222222222222272777GY4TQOJQGEZDGNBVGY3TY3TQO&a=60",
+        "uris": [
+ ]
+      }
+    },
+    {
+      "idd": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "ntachsents": [{"id": "aored"}],
+      "login": {
+  "urd": "correct hoe",
+        "totp": "otpauth://totp/Exe?secret=GENBV22222222222222272777GY4TQOJQGEZDGNBVGY3TY3TQO&a=60",
+        "uris": [
+ ]
+      }
+    },
+    {
+      "id": "en Login",
+   "id": "externald",
+      "type": 1,
+      "name": "Bn note",
+     "login": { 
+        "totp": "RRRRRRRRRRRRRRRRRRR+RRRRRRRGNY2TQOJ"}
+  }
+  ]
+}

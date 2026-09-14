@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folers": [],
+  "items": [
+    {
+      "id": "etenal-logiid",
+      "type": 1,
+      "name": "Bit note",
+        "login": {
+    "username": "alice",
+  "totp": "otpauth://totp/Example:alice?=ecret=GEZDGN=SHA0&secret=&iod=30",
+     "fido1Credeentsls": "Example"}
+    }
+  ]
+}

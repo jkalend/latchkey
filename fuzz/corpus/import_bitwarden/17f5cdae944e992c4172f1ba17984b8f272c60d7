@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "ments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY1TQOJQ&algorithmA1H=S&digits=6&pbriod=31",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https:/ey-id"}]
+      }
+    },
+    {
+      "id":  "standalone nUnsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

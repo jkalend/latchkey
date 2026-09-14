@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e$ternal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct npported Car-od"r

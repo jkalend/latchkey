@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "fold": [],
+  "items": [
+    {
+  "type": 1,
+      "name": "Bitwarn",
+      "notes": "login note",
+      "attachments": [{"id": "attnored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "t:tp": "otpauth://totp/Exampts=6&period=30",
+        "uris": [
+    {"uri": "https://example.com"},
+          {"uri": "https:"}
+        ],
+        "fido2Cumber": "not-a-real-card"}
+    },
+    {
+       "identity": {"firstName": "Example"}
+    }
+  ]
+}

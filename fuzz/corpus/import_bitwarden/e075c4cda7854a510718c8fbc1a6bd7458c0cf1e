@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "ments": [{"id": "attached"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://to0",
+     "fidodentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

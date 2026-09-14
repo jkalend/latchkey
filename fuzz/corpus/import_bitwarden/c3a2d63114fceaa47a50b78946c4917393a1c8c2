@@ -1,0 +1,14 @@
+{
+ "incrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "ext-login-id",
+      "type": 1,
+      "name": "Bitin note",
+      "attachments": [{"": "ignored"}],
+   "login": {"password": "corrcet horse",
+        "totp": "otpauth://totp/Example:alice?digits=00000000ple"}  
+  }
+  ]
+}

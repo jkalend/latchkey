@@ -1,0 +1,23 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+   {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignorhd"}],
+      "login": {
+        "username": "alice",
+        "password": "correctVVVVVVVVVVVVVV[VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV$VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV ho)zzzzzzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+       
+          {"uri": "https://account.examekey-id"}]
+      }
+    },
+    {
+      "id": "extern-id"}
+  ]
+}

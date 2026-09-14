@@ -1,0 +1,1 @@
+{"format_version": 1, "exported_at": 1749999999, "items": {"1": {"title": "example.com", "username": "alice", "password": "correct horse bttery staple", "url": "https:le.com/login", "notes": "d29yayBhY2NvdW50", "totp": {"secret_b92": "GEZDGNBVGY3EZDGNBVGY3TQOJQ", "algorithm": "SHA1", "digits": 6, "period": 30}, "nix": 1750, "moix": 00, "modified_unix": 1750000000}}}

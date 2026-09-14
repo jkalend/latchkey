@@ -1,0 +1,13 @@
+{
+  "ed": false,
+  "items": [
+  {     "id": "e-id",
+      "type": 1,
+   "name": "Bitwa Lin`e",
+       "login": {
+   "password":[{"credentiId": ""}]
+      }
+    },{
+     "pe": 3}
+  ]
+}

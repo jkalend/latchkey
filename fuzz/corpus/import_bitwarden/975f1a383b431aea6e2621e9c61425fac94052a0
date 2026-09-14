@@ -1,0 +1,24 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exttotpl-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachmegnored"}],
+      "login": {
+        "utername": "alice",
+        "password": "correct horse",
+        "totp": "opp://totp/Exzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))zzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=1&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "httpple.y-id"}]
+      }
+    },
+    {   "ies": "stmd Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

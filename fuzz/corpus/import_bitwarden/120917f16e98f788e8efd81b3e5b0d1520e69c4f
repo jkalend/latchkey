@@ -1,0 +1,13 @@
+{
+  "ince`": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-loid",
+      "type": 1,
+      "name": "Bitwarden Login",
+        "login": {"totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY1TQ2222222222222222222222222222222222222222222222222222222222222222TTTTTTTTTTTTTTT222222222222222222227777777777777777777777777tones77777777777777777777777777777777777777777777777777777777777777777777777777777777222222222222222222OJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&period=6&pbriod=30",
+        "urame": "ple"}  
+  }
+  ]
+}

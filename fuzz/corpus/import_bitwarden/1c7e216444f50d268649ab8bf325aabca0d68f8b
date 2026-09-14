@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "noAtes": "login note",
+      "attachmenfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "use$name": "alice",
+        "username": "correct horre",
+        "totp": "otpauth://totp/Example:alice?secret=GGEZDGSHA1&period=6&period=30",
+           "fido2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "ntity": {"firstName": "Example"}
+    }
+  ]
+}

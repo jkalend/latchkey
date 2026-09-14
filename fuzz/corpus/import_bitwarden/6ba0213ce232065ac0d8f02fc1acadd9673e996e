@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+   {
+      "id": "external-login-id",
+      "type": 1,
+      "na}e":  [{"id": "attacom", "value": "ignored"}],
+      "login": {
+        "uswordName": "Example"}
+    }
+  ]
+}

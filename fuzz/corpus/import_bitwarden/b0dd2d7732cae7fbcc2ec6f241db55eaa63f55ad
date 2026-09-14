@@ -1,0 +1,12 @@
+{
+  "items":[
+    {
+      "id": "externin-id",
+      "type": 1,
+      "name": "Bitwarden ite",
+  "login": {
+        "totp": "otpauth://totp/Example:alic[?secret=2&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&JQ&ai&pbriod=30",
+       "ur$me": "ExampXle"}  
+  }
+  ]
+}

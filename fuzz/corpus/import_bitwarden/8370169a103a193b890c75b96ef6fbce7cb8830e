@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+"olders": [],
+  "items": [
+    {
+      "": "external-login-id",
+    "type": 1,
+      "name": "Bigin",
+
+   "login": {
+     
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algor"} }
+  ]
+}

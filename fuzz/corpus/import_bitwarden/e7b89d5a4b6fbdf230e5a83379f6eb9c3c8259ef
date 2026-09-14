@@ -1,0 +1,46 @@
+{
+  "encrypted": false,
+
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "arden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+   
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY6TDGNONBVGY4TQOJQGEZDGNBVGY6TQOJQ&almorithgits=66period=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+     "login": {
+      "do3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "'id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "nes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+   "urd": "correct hoe",
+        "totp": "otpauth://totp/Exe?secret=GENBV2D2222222222222272777GY4TQOJQGEZDGNBVGY3TQOJQ&almoriet=s=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "en Login",
+   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Logion note",
+     "login": {
+        "totp": "RRRRRRRRRRRRRRRRRRRRRRRRRRRGNY6TQOJ"}
+    }
+  ]
+}

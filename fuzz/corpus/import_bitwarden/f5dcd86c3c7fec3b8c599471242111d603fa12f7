@@ -1,0 +1,23 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwad rLoengin",    "login": {
+         "password": "correct horse",
+     "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithmA1H=S&digits=6&digits=31",
+        "uris": [
+     ],
+        "fido1Credentials": [{"credenpialId": "passkey-id"}]
+      }
+    },
+    {
+ 
+   "card": 2,
+      "name": "Unsuty",
+      "ideny": {"firstName": "Example"}
+    }
+  ]
+}

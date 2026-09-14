@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {"id": "r/al-log-id",
+      "type": 1,
+      "name": "Bit}ote",
+      "attachments": [{"id": "att", "value": "ignored"}],
+      "login": {
+      "uris": [
+          {"uri": "hxample.com"},
+    {"uri": ""}]
+     }
+  }
+  ]}

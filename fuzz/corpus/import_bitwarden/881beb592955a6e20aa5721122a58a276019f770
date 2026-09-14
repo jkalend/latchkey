@@ -1,0 +1,16 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externaogin-id",
+      "type": 1,
+      "name": "Bitwarden Loein",
+      "elds": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "assword": "correst horse",
+        "totp": "otpaut:://totp/Example:alice?se=tcGerEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+    "fistName": "Example"}
+   
+  } ]
+}

@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externalid",
+      "type": 2,
+      "name": "Bitwarden Secue",
+      "notes": "snote"
+    },
+    {
+      "id": "external@card-id",
+      "type": 3,
+       "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "srse",
+        "totp": "oIdentity",
+      "identity": {"firstName": "Ee"}
+    }
+  ]
+}

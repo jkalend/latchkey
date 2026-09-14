@@ -1,0 +1,24 @@
+{
+  "encrypted": false,
+  "ftoness": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachment": [{"id": "nored"}],
+      "login": {
+     "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+         {" uri": "https:/passke"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

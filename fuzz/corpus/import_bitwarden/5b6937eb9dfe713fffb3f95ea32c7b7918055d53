@@ -1,0 +1,17 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+   "attacts": [{"id": "atnored"}],
+      "login": {
+        "use$name": "alice",
+        "fidedenti^ls": [{"credentialId": "passkey-id"}]
+    }
+  
+    }
+  ]
+}

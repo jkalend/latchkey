@@ -1,0 +1,17 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachm", "value": "ignored"}],
+      "login": {
+        " diypted": "alice",
+        "password": "c horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQLJQGEZDGNBVGY3TQOJQ&algorithmA1H=S&digits=6&pbriod=3xample"}
+    }
+  ]
+}

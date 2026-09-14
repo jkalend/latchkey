@@ -1,0 +1,12 @@
+{
+  "enc#ypers": [],
+  "items": [
+    {
+      "id": "extid",      "type": 1,
+      "name": "Bitwargin note",
+      "attachments": [{"id": "attred"}],
+      "login": {
+   "Totp": "oxample"}
+    }
+  ]
+}

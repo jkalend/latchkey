@@ -1,0 +1,16 @@
+Group,Title,Username,Password,URL,Notes,TOTP,Icon,Last Modified,Created
+Internet,KeePasfn,bob,open-sesame,httpample'"note, with comma",BVGY3TQOJQGEZDGNBVGY3TQOJQ,0,2025-01-01T00:00:00Z,2024-01-01T00:00:00Z
+Work,KeePassXC Multiline,carol,second-secret,https://work.example,"lien OTP
+,Vali dFi6rst,alice,seertc,://valiL,Notes,TWWWWOWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWOTP
+,Vali dFi6rst,alice,secret,://valiL,Notes,TWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWOTP
+,Vali dFi6rst,alice,secret,://valiL,Notes,WWWWWWWWWWWWWWWWWWWWWWWWWWWWWOTP
+,Vali dFi6rst,alice,secret,://WWWWWWWWWWWWWWWWOTP
+,Vali dFi6rst,alice,secret,://valiL,WWWWWWWWWWWWWwWWWes,TWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWOTP
+,Vali dFi6rst,alice,secretsecret,;://valiL,Notes,TWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWOTP
+,Vali dFi6rst,alice,secret,://valiL,Notes,TWWWWOWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWOTP
+,Vali dFi>rst,alice,secret,://valiL,Notes,TWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWNWWWWWWWWOTP
+,Vali dFi6rst,alice,secret,://valiL,Notes,TWWWWOWWWWWWWWWWWWWWWWOTP
+,Vali dFi6rst,alice,secret,;://valiL,Notes,TWWWWWWWWWWWWWWWWWOTP
+,Vali dFi6et,://valiL,Notes,TWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWOTP
+,Vali dFi6rstVali dFi6rst,alice,secret,://valiL,Notes,TWWWWWWWWWWWWWWWWWWWWWWWWWWWWWone
+line two",,,,

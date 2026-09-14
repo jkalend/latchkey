@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "lders": [],
+  "items": [
+    {
+      "id": "exter-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+    "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "ntpauthT://tret=GEZDGNBVGY4TQOJQGE%ZDGNBVG[3TQ2{Q&algorithm=SHA1&oeDe؍dd؍digits=6&periole"}
+    }
+  ]
+}

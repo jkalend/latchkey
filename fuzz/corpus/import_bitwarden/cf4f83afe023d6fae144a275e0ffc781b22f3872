@@ -1,0 +1,13 @@
+{
+  "in;crypted": false,
+  "folders": [],
+  "items": [
+    {
+     "id": "ext-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "login": {    "totp": "otpauth://totp/Example:alice?secret=GEZDG77777777777777777777227",
+        "urame": "Example"}  
+  }
+  ]
+}

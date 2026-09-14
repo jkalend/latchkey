@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+          "login": {
+         "password": "correct horse",
+        "totp": "otpauth://totp/mple:alice?secret=GEZDGNBVGY3VQOJQGEZDGNBVGgits=6&pbriod=31",
+        "uris": [
+          {"edentialId": "passkey-id"}]
+      }
+    },
+    {
+       "identity": {"firstName": "Example"}
+    }
+  ]
+}

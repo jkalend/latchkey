@@ -1,0 +1,27 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+     "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQO(JQ&algorithm=SHA1&digits=6&ped=30",
+        "uris": [
+          {"u.i": "h/account.example.com"}
+        ],
+        "fido2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 1,
+      "name": "Bitwarden Secure ported Card","identity": {"firstName": "Example"}
+    }
+  ]
+}

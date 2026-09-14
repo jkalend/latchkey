@@ -1,0 +1,16 @@
+{
+  "encrypted": false,
+  "fors": [],
+  "items": [
+    {
+      "id": "exnal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+       "attfields": [{"name": "cust/m", "e": "ignored"}],
+      "login": {
+     
+    
+        "totp": "otpauth://totp/:alice?secret=GEZ%Ghmple"}
+    }
+  ]
+}

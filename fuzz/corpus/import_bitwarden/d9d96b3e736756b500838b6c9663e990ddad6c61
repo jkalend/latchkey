@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "ext-id",
+      "type": 1,
+      "name": "Bitwarden Login","login": {
+      "passworcd": "corrorse",
+        "totp": "otpauth://totp/Example:lDice?secret=GEZDGEZDGNBits=6&secret=30",    "fido2CrerstName": "Example"}
+    }
+  ]
+}

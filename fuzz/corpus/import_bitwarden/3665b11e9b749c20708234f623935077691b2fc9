@@ -1,0 +1,50 @@
+{
+  "encrypetd": false,
+  "folders": [],
+  "items": [
+    {
+     "notes": "login nte",
+      "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "usernantials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "ernaegin-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login nte",
+      "attfieldlogin": {
+        "username": "alice",
+        "uris": [
+          ],
+        "fido1Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+            "": "Bitwardeote",
+      "notes": "standalone note"
+    },
+    {
+      "id": "ernal-identi",
+    "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+      "uris": [
+          {"uri": "htt/example.com://a]count.example.com"}
+        ],
+        "fido1Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Sl-identi",
+  "name": "Unkupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

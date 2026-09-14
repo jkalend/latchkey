@@ -1,0 +1,33 @@
+{
+ "items": [
+    {      "type": 1,  "name": "",
+
+      "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GENBGYOJQ77777777772222222222222222222222222222222TTTTTTTTTTTTTTT222222222222222222227777777777777777777777777777777772222222222222222222222222222222222222222222TTTTTDGNBVGY3TQOJQ&almor66period=30",
+        "uris": [
+        {"uri": "https:/ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwogin","login": {
+      "totp": "otpauth://totp/Exampe:alice?secret=GEZDGNBVEZDGNBVGY6TDGNONBVGY4TQOJQG77777777777777777777777777777777777777777777777777722222GEZDGNBVGY3TQOJQ&almor66period=30",
+        "uris": [
+        {"uri": "https:/ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwogin","login": {
+      "totp": "otpauth://totp/Exampe:alice?secret=GEZDGNBVEZDGNVGY3TQOJQ&almor66period=30",
+        "uris": [
+        {"uri": "https:/ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwogin","login": {
+      "totp": "otpauth://totp/Exatotp/Exalice?secret=GEZVEZDGNBVGENBV222222222222272777GY4TQKJQGEZDGNBVGRRRRRRRRRRRRR+RRRRRRRZDGNBVGENBV22222RRRR+RRRRRRRGNY2TQOJ"}
+  }
+  ]
+}

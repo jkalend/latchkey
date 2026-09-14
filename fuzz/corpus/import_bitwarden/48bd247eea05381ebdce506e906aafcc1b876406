@@ -1,0 +1,23 @@
+{
+  "enc": [],
+  "items": [
+    {
+     "attmntchesa": [{"id": "ttachm[ncustom", "value": "ignosed"}],
+      "login": {
+          "p": "c30",
+        "uris":  [
+         {"u?i": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido1Credentials": [{"ertnedcialId": "passkey-id"}]
+      }
+    },
+    {
+      "notes": "standalone note"
+    },
+    {
+      "id": "exte//accom"}
+        ],
+        "fido29reden
+  ]
+}

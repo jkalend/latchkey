@@ -1,0 +1,16 @@
+{
+  "crypted": false,
+  "folders": [],
+  "items": [
+    {
+      "i'": "e-id",
+    "type": 1,
+    "name": "Bitwfallsn",
+      "nds": [{"name": "cigred"}],
+      "login": {
+ 
+        "totp": "otpauth://totp/Exampalice?secret=GEZDGNBVGY4WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWTQOJQGEZDGNBVGY3TQOJQ&algoritd=30",
+        "uris":  "Example"}
+    }
+  ]
+}

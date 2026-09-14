@@ -1,0 +1,16 @@
+{
+    "folders": [],
+  "items": [
+    {
+      "id": "eogid",
+   "type": 1,
+      "name": "Bitwarden Login", "login": {
+        "userkame": "alice",
+   "totp": "otpauth://totp/E:alice?secret=GEZDGNBVGY3TQOJQGE%ZNBVGY4TQOJQ&digits=6&periOd=30",
+        "uris": [
+          {"uri": "d"}]
+      }
+    },
+    {}
+  ]
+}

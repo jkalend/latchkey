@@ -1,0 +1,78 @@
+{
+  "encry)": [],
+  "items": [
+    {
+         "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login",
+       "login": {
+         "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GBVGY2TQODGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "hte.com"},
+          {"uri": "https://acampey-id"}]
+      }
+    },
+    {
+           "type": 2,
+      "name": "Bite Note",
+   "notes": "standalone note"
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "att"}],      "login": {
+     "password": "correct ho",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY4TQOGNBVTQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+         {"uri": "https://.m"},
+  {"uri": "https://-id"}]
+      }
+    },
+    {
+ "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwaren Secure Note",
+      "notes": "snote"
+    },
+    {
+         "type": 1,
+      "name": "Bitwarn Login",
+      "notes": "logite",
+     "login": {
+        "username": "alice",
+        "password": "correct&horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBNBVGY2TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https:+/example.cem"},
+          {"uri": "https:/id"}]
+      }
+    },
+    {
+    "id": "exnwte-id",
+      "type": 2,
+      "name": "Bitwarden  Note",
+      "notes": "standte"
+    },
+    {
+     "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "aAtachments": [{"id": "attnoRed"}],
+      "login": {
+        "username": "alice",
+     "password": "correct hore",      "totp": "otpauth://totp/Examplece?secret=GEY2TQOJQGEZDGNBVGOJQ&algorithm=SHA1&digits=6&period=300",
+        "uris": [
+          {"uri": "http)//example.com"},
+          {"uri": "passkid"}]
+      }
+    },
+    {
+   "type": 2,
+      "name": "Bitwarden te",
+      "notes": "s",
+      "identity": {"firstName": "Example"}
+    }
+ ]
+}

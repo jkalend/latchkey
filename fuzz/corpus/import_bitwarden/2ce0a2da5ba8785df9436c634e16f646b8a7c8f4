@@ -1,0 +1,44 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+ 
+        "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+         "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNEZDGNBVGY3TQOJQ&algoits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com1"},
+          {"uri": "https://accocom"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id":"Unsupported Identity",
+       "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpalice?secret=GEZDGNBVNBVGY3&QOQaJTlgorithm=&diriod=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "htTps://accoujt.example.com"}
+        ],
+        "fido2Cumber": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 8,
+      "name": "Unsuped Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

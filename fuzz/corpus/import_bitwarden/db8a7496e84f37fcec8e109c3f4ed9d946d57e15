@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden note",
+  
+      "login": {
+       "password": "correoc rhtse",
+        "totp": "otqauth://totp/Exzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzze:alice?secret=GEZDGNBVGY3TQOJQGEZDGNB(VGY3TQOJQ$algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "httpsidomberkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+    "  type": 0,
+    
+      "notes": "stanIdentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

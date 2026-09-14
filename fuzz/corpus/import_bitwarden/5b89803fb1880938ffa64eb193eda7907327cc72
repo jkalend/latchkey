@@ -1,0 +1,22 @@
+{
+  "efolders": [],
+"items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwardelogin note",
+      "attachments": [{"id": "attachmstom", "value": "ignored"}],
+      "login": {
+        "username": "alalgoritSHA1&digits=6&pbriod=30",
+        "uris": [
+          {"uri": "ample.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"cedenrtialId": "paskey-id"}]
+      }
+    },
+    {
+   "identity": {"firstName": "Example"}
+    }
+  ]
+}

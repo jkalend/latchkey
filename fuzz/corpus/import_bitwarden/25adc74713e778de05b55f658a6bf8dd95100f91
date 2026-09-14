@@ -1,0 +1,13 @@
+{
+  "encryptem": [],
+  "items": [
+    {
+      "id": "external-ln-id" 
+ ,    "type": 1,
+      "name": "Bitwardeogin n", 
+     "login": {
+  "usword": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY1TQOyy&&&Q&&&&&&&&&&&&&le"}
+    }
+  ]
+}

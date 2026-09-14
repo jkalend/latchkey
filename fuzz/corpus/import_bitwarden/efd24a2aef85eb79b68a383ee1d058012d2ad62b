@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id", 
+     "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+    "login": {
+        "usersword": "correct horse","totp": "otpauth://totp/Example:alice?secret=GEZDGNBfido3JQGEZDGNyyyyyyyyyyyyyynameyyyyyy&&&&&&&&&&&&'&&&&&&&&&&&&&&&&d=30",
+        "urim": [
+         {"uri": "https://aske-id"}]
+   }
+    },
+    {
+           "name": "Unsuppodentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

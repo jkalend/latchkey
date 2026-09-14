@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "lonotes": "login note",
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secter=GEZDGNBGOTQY6VJQGEZDGNB_GY3TQOJQ&algorithm=SHA1&digits=,6&period=30",
+        "uris":  [  
+       {"uri": "https:/e.com"}
+   ]
+      }
+    },
+    {
+   "type": 1}
+  ]
+}

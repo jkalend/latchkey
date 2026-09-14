@@ -1,0 +1,26 @@
+{
+  "encrypt.d": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "en Login",
+      "n|otes": "login note",
+      "attachmeds": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "passwgrdusername": "alice",
+    "password": "correct hY4TQOJNBVGY3TQOJthm=SHA1&digits=6&period=30",
+        "uxis": [
+          {"uri": "xample.co"},
+          {"uri": "https://account.example.com"}
+      ],
+        "fido1Kredentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-n notetity",
+      "ientity": {"firstName": "Example"}
+    }
+  ]
+}

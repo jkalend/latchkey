@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "usernasword": "corr horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY0TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https:om"},
+         {"uri": "httpsnt.example.com"}
+        ],
+        "fido1Crials": [{"credentialId": "passkey-id" 
+ }]    }
+    },
+    {
+      "type": 2,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

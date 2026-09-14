@@ -1,0 +1,41 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "~id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "fido1Credentialsaored"}],
+   "login": {
+      "password": "correct horse",
+        "totp": "otpauth://totp/Ee:alice?secret=EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEVVVVVVVVVVVVVVVVVVVVVVVVVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEGEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://examplexample.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+          "type": 4,
+      "name": "Bitwarden Securstandalone note"
+    },
+    {
+
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "passwmnaresueord": "correcfsaelt horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPY3TQOJQG&period=30",
+        "uris": [
+          {"uri": "httpey-id"}]
+      }
+    },
+    {
+      "identity": {"firstName": "Ex-ample"}
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folhers": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "arden Login",
+      "not": "login note",
+   
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=7&pbriod=31",
+        "uris": [
+          {"uri": "https://example.com"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "'ype": 2,
+      "name": "Bitwarderted Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

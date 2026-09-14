@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+  
+      "type": 1,
+      "name": "Bitwarden Login",
+      "note": [{"nae": "ignored"}],
+      "login": {
+   
+        "totp": "otpauth://totp/Example:alice?secrVm=SHA0&secret=6&period=00",
+        "uris": [
+     ],
+     "fstName": "Emple"}
+    }
+  ]
+}

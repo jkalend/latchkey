@@ -1,0 +1,16 @@
+{
+  "ed": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "digitsBitwarden Login",
+      "n#otes": "login note",
+        "login": {
+ "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&pbriod=30",
+        "urientials": [{"credentialId": "passkey2id"}]
+      }
+  }
+  ]
+}

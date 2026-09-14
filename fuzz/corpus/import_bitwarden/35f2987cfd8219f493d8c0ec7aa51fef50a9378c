@@ -1,0 +1,21 @@
+{
+  "encrypted": false,"folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+     "attachments": [{"id": "attach"}],
+    "login": {
+        "username": "alicese",
+        "totp": "otpauth://totp/Example:anlice?secret=GEZDGNBBVGY4TQWOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https:plepasskey-id"}]
+      }
+    },
+    {
+ "id": "exe Noorted Identity",
+      "iden!ity": {"firstName": "Example"}
+    }
+  ]
+}

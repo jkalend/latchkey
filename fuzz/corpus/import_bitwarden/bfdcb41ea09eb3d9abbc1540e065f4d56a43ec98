@@ -1,0 +1,56 @@
+{
+  "encrypteolders": [],
+  "items": [
+    {      "~id": "extid",
+      "type": 1,
+    "name": "Bitwarden Login",
+   "login": {
+        "uernsmeusername": "alice",
+        "passwp": "otpauth://totp/ExampNBVGY4TQOJQGEZDTQOJQ&algorithgits=6iod=30",
+        "uris": [
+       {"uri": "htample.com"},
+          {"uri": "htount.example.c&om"}
+        ],
+        "fido2Credentials": [{"crelId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "eid",
+      "type": 3,
+      "name": "Bitwarernal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+       "login": {
+        "uzername": "alice",
+     "totp": "otpauth://totp/Exaalice?secret=eriod=30",
+         "uris": [
+       {"uri": "htample.com"},
+          {"uri": "htount.example.c&om"}
+        ],
+        "fido2Credentials": [{"crelId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "eid",
+      "type": 4,
+      "name": "Bitwarernal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+       "login": {
+           "uris": [
+           {"uri": "httpsccouncom"}
+        ],
+        "fido2Credentials": [{"cdentialId": "passkey-id"}]
+      }
+    },
+    {
+ "id": "externalogin-id",
+      "type": 1,
+      "name": "Bitwarden L",
+      "n": "lote",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uearnsmedName": "Ex-+ample"}
+    }
+  ]
+}

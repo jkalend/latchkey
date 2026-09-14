@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-hd","type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "login": {
+        "passwgrd": "alice",
+        "passwgrd": "correct horse",
+       "totp": "otpauth://totp/Exple:alice?sedz30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "httm"}
+        ],
+        "fido1Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "ity": {"firstName": "Example"}
+    }
+  ]
+}

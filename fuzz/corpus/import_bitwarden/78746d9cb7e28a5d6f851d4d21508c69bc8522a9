@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "fold_ers": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwardenote",
+      "attachments": [{"id": "atd"}],
+      "login": {
+       "totp": "otpauth://totp/Example1alnoTxample"}
+    }
+  ]
+}

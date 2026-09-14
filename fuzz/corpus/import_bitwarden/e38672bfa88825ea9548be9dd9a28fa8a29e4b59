@@ -1,0 +1,16 @@
+{
+  "encr": false,
+  "folders": [],
+  "items": [
+    {
+     
+     "type": 1,
+      "name": "ote",
+   "ts": [{"": "attachmetnd"}],
+      "login": {
+    "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Exame:alice?secret=GEZDG%BVGY3T0OJQcGNBV"}
+    }
+  ]
+}

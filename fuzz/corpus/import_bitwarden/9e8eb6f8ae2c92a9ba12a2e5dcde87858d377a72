@@ -1,0 +1,23 @@
+{
+  "encrypders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aed.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "coorse",
+        "totp": "otpauth://totp/Example:anlice?secret=GEZDGNBVGY3TQWOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"cedentialId": "passkey-id"}]
+      }
+    },
+    {
+        "identity": {"firstName": "Example"}
+    }
+  ]
+}

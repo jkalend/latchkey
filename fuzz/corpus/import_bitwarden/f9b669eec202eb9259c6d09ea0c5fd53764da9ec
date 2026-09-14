@@ -1,0 +1,16 @@
+{
+  "encrypted": false,
+  "folentsders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Loe",
+      "attachments": [{"id": "txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "usernameord": "correct horse",
+        "totp": "otpauth://totr/Example:alice?secrle"}
+    }
+  ]
+}

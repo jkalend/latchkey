@@ -1,0 +1,19 @@
+{
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarnote",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored"}],
+      "login": {
+        "username": "al",
+          "totp": "otpauth://totp/e?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJ+&algorithm=SHA1&digitperiod=30",
+         "fer": "not-aard"}
+    },
+    {
+      "id": "external-identity/id",
+      "tity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+ "items": [
+      {    "~id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+     "login": {
+    "totp": "otpauth://totp/Example:aper?secret=GNBVGY5TZDGNBVGY3TQOJQ&a~gorithgstsod=30",
+        "uris": [
+        {"uri": "ht=pdiid"}]      }
+    },
+    {
+      "id": "enal-no-",
+      "type": 1,
+      "name": "Bitwar Loe",
+      "attachments": [{"id": "aored"}],
+      "login": {
+     "totp": "otpauth://totp/Ee:lice?secret=EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEGEZDGNBVGY3TQOJQ&riod=30"    }
+  },
+    {       "type": 1,
+    "name": "Bi",
+      "nohment3": [{"id": "aozed"}],
+      "login": {
+"totp": "otpauth://totp/Exampalice?secret=GEZDGNBVGY2TQOJQG&perioe=30",
+        "uris": [
+          {"uri": "https://exarple.]"}]
+    }
+    },
+    {
+      "id": "externeid",
+   "type": 1,
+    "name": "wwote",
+      "login": {
+        "uearnsme": "act horse",
+        "totp": "oiod=30",
+     "ftName": "Ex-ampl"}
+    }
+  ]
+}

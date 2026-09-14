@@ -1,0 +1,16 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exteogin-id",
+      "type": 1,
+     "name": "Bitwarden Login",
+      "notes": "login note",
+    "fields": [{"name": "custom", "value": "imnorhd"}],
+      "login": {
+        "username": "alice",
+        "password": "correct ho)zzzzzzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY6TQOJQ&algorithm=SHA1&digits=6&periode"}
+    }
+  ]
+}

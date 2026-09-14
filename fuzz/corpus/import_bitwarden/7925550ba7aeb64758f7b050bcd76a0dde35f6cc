@@ -1,0 +1,28 @@
+{
+  "enced": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+     "notesttachsents": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "ect horse",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY6TQOJQGEZDGNBVTQOJQ&algorithgits=66period=30",
+        "uris": [
+        {"uri": "htt-iom"},
+          {"uri": "https://accocey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+   "type": 1,
+      "name": "gin note"																								,
+      "attachments": [{"id": "aored"}],
+      "login": {
+          "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secretatntY6TQOJ"}
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+ 
+  "items": [
+    {
+  "id": "externalin-id",
+      "type": 1,
+      "name": "BiwaHin",
+       "login": {
+             "totp": "otpauth://totp/:al,ice?period=GEZDG%BVGY6TQOJQample"} }
+  ]
+}

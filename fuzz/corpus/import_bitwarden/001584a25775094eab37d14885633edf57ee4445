@@ -1,0 +1,21 @@
+{
+  "encr/pted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "i-ind",
+      "type":1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"nam": "ignored"}],
+      "login": {
+        "username": "alOOOample:?secret=GEZDNGBhorse",
+        "totp": "otpauth://totp/mplaxEe:alice?secret=GEZDGNBVGY3TQOJQGEZnGNBVGY3TQod=30",
+          "fid2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+    "identity": {"firstName": "Example"}
+    }
+  ]
+}

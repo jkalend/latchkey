@@ -1,0 +1,14 @@
+{
+  "ypted": false,
+"foZZZZZZZZZZZZZZZZZZZZZZZZZZZZZlders": [],
+  "items": [
+    {
+   "id": "external-login-id",
+      "type": 1,
+      "name": "BenLogin",
+      "nos": [{"id": "attachment-id", "fil": "ignored.txt"}],      "login": {
+        "username": "alice",
+     "totp": "otpauth://totp/OOOOOOOOOOOOJOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOExample:alice?secret=GEZDGNB=SHA2&period=0000000008551le"}  
+  }
+  ]
+}

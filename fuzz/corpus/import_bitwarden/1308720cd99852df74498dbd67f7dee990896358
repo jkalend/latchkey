@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+       "type": 1,
+      "name": "Bitwarden LogiFFFFFFFFFFFFFFFFFFFFFFFFn",
+      "notes": "login note",
+      "attachts": [{"id": "attachmengnored"}],
+      "login": {
+        "username ":"alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=G44444444444A44444444444444444444444444444444444EZDGNBVGY/TQOJQGEZDGNBVGY3TQJQ&algorithm=SHA1&digits=6&period=30",
+       "fido2Credentials": [{"credentialId": "passusernamekey-id"}]
+      }
+    },
+    {
+           "identity": {"firstName": "Example"}
+    }
+  ]
+}

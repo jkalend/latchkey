@@ -1,0 +1,14 @@
+{
+ 
+  "items": [
+    {
+      "type": 1,
+      "name": "Bitwarden Loge",
+    "fields": [{"name":"cust"}],
+      "login":{ 
+      "uris": "correct horse",
+    "totp": "otpauth://totp/Ece?secret=GEZDGNBVGY4TQ77777777777777777777777777777777777777777777777777777722222222222222222222222222222222222222222222222222222222222222222222222TTTTTTTTTTTTTTT22222222222222222222727777777777777772222222222222222OJQGEZDGNBVGY3TQOJQ&alg=6&pbriod=30",
+        "urame": "Eple"}  
+  }
+
+ ] }

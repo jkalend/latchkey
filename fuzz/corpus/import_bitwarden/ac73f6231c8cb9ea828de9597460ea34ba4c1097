@@ -1,0 +1,23 @@
+{
+  "e~crypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwlogin note",
+     "attachments": [{"id": "attachmenustom", "value": "ignored"}],
+      "login": {
+        "me": "alice",
+        "paword": "correct horse",
+        "totp": "]IZDGNBVGY6TQOJQG#ZDGHBVGY3TQOJQ&algorithm=SHA1&digits=6&pbriod=30",
+        "uris": [
+          {"untialId": "passkey-id"}]
+      }
+    },
+    {
+      "name": "Unstity",
+      "identity": {"firse": "Example"}
+    }
+  ]
+}

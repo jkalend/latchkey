@@ -1,0 +1,12 @@
+{
+  "encrypted":  [],
+  "items": [
+    {
+          "type": 1,
+      "name": "Bitw",
+          "login": {
+        "userName": "orrec-et hor&e",
+    "totp": "otpauth://totp/mplaxEe:alice?secrkt=Glgo=6&period=30||||||||||||||"}
+    }
+  ]
+}

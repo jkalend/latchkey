@@ -1,0 +1,19 @@
+{
+  "incrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id"     
+ ,"type": 1,
+      "name": "Bitin note",
+     "fields": [{"name": "cust"}],
+      "login": {
+        "usernypename": "alice",
+"totp": "otpauth://totp/Example:alice?digits=000000000000000000000000000000000000000000014thm=SriS0",
+           "fido2Creden0ials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+    }
+  ]
+}

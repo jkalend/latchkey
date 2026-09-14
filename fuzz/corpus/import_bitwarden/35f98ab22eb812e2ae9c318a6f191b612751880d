@@ -1,0 +1,25 @@
+{
+  "encrypteolders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "ad.tx@"}],
+ "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "usee": "alice",
+        "password": "correct horse",
+        "totp": "otpau horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQG1&digits=6&perioth://totp/Example:alice?secret=GEZDGNBVGY4TQOJQGETQOJQ&algmr=toihSHA1&digitperiodriod=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"usi": "https://accounte.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {}
+  ]
+}

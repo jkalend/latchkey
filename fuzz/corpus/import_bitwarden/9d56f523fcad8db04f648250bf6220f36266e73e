@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exterglinaol-n-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+         "alds": [{"name": "", "value": "ignored"}],
+      "login": {
+        "username": "alicerrect horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY8TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&secret=6&period=30",
+        "uris": [
+          {"uri": "https:d"}]
+      }
+    },
+    {
+      "id": "extiddentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

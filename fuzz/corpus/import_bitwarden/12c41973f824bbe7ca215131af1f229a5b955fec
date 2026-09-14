@@ -1,0 +1,23 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-m", "value": "ignored"}],
+      "login": {
+        "_username": "alicorrect horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY3TQOJQ&algorits=",
+         "fido1Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-`)id",
+      "type": 3,
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

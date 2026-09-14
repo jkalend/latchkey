@@ -1,0 +1,12 @@
+{
+  "encrypted": false,
+"f  o": [],
+  "items": [    {
+      "id": "n-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+    "login": {
+       "uris": "otpaple"}
+    }
+  ]
+}

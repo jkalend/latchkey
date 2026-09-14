@@ -1,0 +1,23 @@
+{
+  "ed": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extelogin-id",
+      "type": 1,
+      "name": "Bitn note",
+      "attachments": [{"id": "attachment-id", "fileNamue": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+       "totp": "otpauth://totp/Example:alice?setG=ZecErDGNBVGY3TQOJQGEZorithm=SHA1&digits=6&tgis=6&perio-d=30",
+   "uri": [
+            ],
+        "fido1Credentials": [{"credentialId": "fasskey-id"}]
+      }
+    },
+    {
+      "id": "eid",      "identity": {"firstName": "Example"}
+    }
+  ]
+}

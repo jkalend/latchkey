@@ -1,0 +1,48 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+"type": 1,
+      "name": "BitLogin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "d",
+      "type": 1,
+      "nameotes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "cusom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+    "type": 1,
+      "name": "BitLogin",
+      "notes": "login note",
+      "attacnts": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure Note",
+    "id": "external-login-id",
+      "type": 1,
+      "nameotes": "login note",
+      "attachments": [{"id": "attttachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+      "idjntity": {"firstName": "Example"}
+    }
+  ]
+}

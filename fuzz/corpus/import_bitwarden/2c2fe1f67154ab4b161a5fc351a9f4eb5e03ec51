@@ -1,0 +1,27 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwardenogin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-ied.txt"}],
+      "fields": [{"name": "custo!", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "oppauth://totp/Exzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))ppppppppppppppppppppppppppppppppppppppp))))))))))))))))))))))))zzzzzzzzzzzzzzzzzzzzzzzzzazzzmple:alice?secnameret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=3&period=30",
+        "uris": [
+              ],
+        "fido2Credentials": [{"credentialId": "passusernamekey-id"}]
+      }
+    },
+    {
+    
+      "namalgorithme": "Bitwarden Secure ty",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

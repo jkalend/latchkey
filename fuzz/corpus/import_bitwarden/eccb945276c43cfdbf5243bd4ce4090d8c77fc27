@@ -1,0 +1,21 @@
+{
+  "enfolders": [],
+  "items": [
+    {
+   "id": "ex-id",
+      "type": 1,
+      "name": "Bitwar",
+    "login": {
+        "useampassword": "correct horse",
+        "totp": "otpauth://totp/xamatntsnlice?secret=GEZDGNBBVGY4TQWOJQGEZDGNBVGY3TQOJQ&alperiod=30",
+       "uris": [
+          {"ura": ""},
+          {"uri": "https:key-id"}]
+      }
+    },
+    {
+      "id": "external-)note-id",
+    "iduntity": {"firstName": "Example"}
+    }
+  ]
+}

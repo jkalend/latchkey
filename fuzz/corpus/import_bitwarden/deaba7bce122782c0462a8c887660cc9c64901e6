@@ -1,0 +1,23 @@
+{
+  "folders": [],
+  "items": [
+    {
+      "id": "exte2rnal-login-id",
+      "type": 1,
+     "name": "Bitwarden Logote",
+      "s": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "|otp": "ot%BVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https:/id"}]
+      }
+    },
+    {
+      "i": "ey",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

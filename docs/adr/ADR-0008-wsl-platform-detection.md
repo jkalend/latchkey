@@ -23,8 +23,9 @@ world or silently no-ops.
    branch tag for WSL2. Used only if both env vars are absent, since
    some distros customize the string.
 
-3. **Platform routing on WSL:** as ADR-0003 specifies — clipboard via
-   `clip.exe` stdin, registry probe via interop, no Wayland/X11
+3. **Platform routing on WSL:** clipboard via the PowerShell
+   `Set-Clipboard` bridge (secret as UTF-16LE-in-base64 on stdin —
+   ADR-0003 amendment 2), registry probe via interop, no Wayland/X11
    heuristics.
 
 4. **Platform routing on plain Linux:** best-effort clipboard across

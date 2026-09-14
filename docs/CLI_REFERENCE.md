@@ -24,7 +24,7 @@ Three tiers:
 
 - **Errors** — never suppressible, always printed to stderr, exit code 1+.
 - **Security warnings** (Clipboard History active, `--reveal` to stdout,
-  Vault History Cloud enabled, etc.) — printed to stderr by default;
+  etc.) — printed to stderr by default;
   the only tier `-q` hides. TUI: printed once to stderr before the
   interface starts (a one-shot startup warning, not a banner).
 - **Usability warnings** (empty vault, vault not found, backup path
@@ -61,14 +61,14 @@ copy-history warnings every time; errors must still reach a human.
 
 ### `latchkey init`
 
-- Prompts for the master password twice; refuses empty passwords and a
-  small embedded deny-list of common passwords (THREAT_MODEL §5.1).
+- Prompts for the master password twice; refuses passwords shorter
+  than 8 characters, empty passwords, and a small embedded deny-list
+  of common passwords (THREAT_MODEL §5.1).
 - Refuses to overwrite an existing vault without `--force` (which
   renames the old vault to `vault.bin.bak.<n>` first).
 - Prints the vault path and the measured Argon2 wall-clock time, so the
   user sees what "≥ 1 s" means on their machine.
-
-### `latchkey add <title> [--username <u>] [--url <u>] [--notes <n>] [--generate]`
+### `latchkey add <title> [--username <u>] [--url <u>] [--notes <n>] [--generate] [--totp] [--totp-alg <alg>] [--totp-uri]`
 
 - No duplicate-title rejection — it's valid to have several items with
   the same title ("github.com" / personal + work). Collisions are
@@ -102,7 +102,7 @@ copy-history warnings every time; errors must still reach a human.
 - Warns (once per invocation) if Windows Clipboard History is detected
   as enabled; `-q` suppresses.
 
-### `latchkey generate [--length <n>] [--symbols] [--passphrase] [--words <n>] [--hex] [--no-ambiguous] [--copy]`
+### `latchkey generate [--length <n>] [--symbols] [--passphrase] [--words <n>] [--hex] [--no-ambiguous] [--copy] [--timeout <secs>]`
 
 - Defaults: 20 chars, 62-char alphabet, ~119 bits (ADR-0006).
 - Prints the entropy estimate alongside the password.
@@ -155,9 +155,10 @@ copy-history warnings every time; errors must still reach a human.
   process exit. Never landed to a temp file, never piped through a
   shell redirect that could end up in scrollback (the command refuses
   to write to stdout unless the user explicitly passes `--out -`).
-- **Schema (v1)** — keyed by `item_id` (stable, never reused — see
-  VAULT_FORMAT §5), with titles duplicated for human readability but
-  not authoritative on import:
+- **Schema (v1)** — keyed by `item_id` for readability, but the
+  `item_id` keys are not authoritative on import — a native record
+  updates the live entry whose title matches exactly; otherwise it is
+  added with a generated `item_id`:
 
   ```json
   {
@@ -220,8 +221,8 @@ copy-history warnings every time; errors must still reach a human.
 
 ### `latchkey backup [--out <file>]`
 
-- Copies the vault file to a backup path (or prints one if `--out` is
-  omitted: `<vault-dir>/vault-backup-<unix-timestamp>.bin`, e.g.
+- Copies the vault file to a backup path (or, when `--out` is omitted,
+  writes `<vault-dir>/vault-backup-<unix-timestamp>.bin`, e.g.
   `%LOCALAPPDATA%\latchkey\vault-backup-1725800000.bin` on Windows).
 - The backup is **just a copy of the encrypted file** — nothing
   decrypted, nothing transformed. It's safe to move, sync, or back up

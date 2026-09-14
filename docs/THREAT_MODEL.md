@@ -1,6 +1,6 @@
 # Threat Model
 
-**Status:** Current pre-release implementation (`latchkey` 0.1.0)
+**Status:** Public-preview implementation (`latchkey` 0.2.0)
 **Covers:** Current `main` branch
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
@@ -109,9 +109,11 @@ These are **not defended against**, stated plainly so nobody relies on them:
   This is enabled by default on some setups. Auto-clear after timeout does
   **not** remove entries already captured by history.
 - **WSL specifics:** there is no native Linux clipboard under WSL2 without
-  WSLg/an X server. Copying means shelling out to `clip.exe` (or
-  `powershell.exe Set-Clipboard`), which puts plaintext on the Windows side
-  and into a process argument observed by WSL interop logging.
+  WSLg/an X server. Copying means shelling out to `powershell.exe
+  Set-Clipboard`, with the secret piped as UTF-16LE-in-base64 over
+  stdin — it crosses to the Windows side but never appears in a
+  process argument (`clip.exe` was rejected: it decodes stdin through
+  the OEM code page — ADR-0003 amendment 2).
 - **Mitigations:**
   - Auto-clear timeout (default **30 s**, CLI-configurable). On expiry
     the pre-copy clipboard content is restored — but **only if the
@@ -265,6 +267,6 @@ These are **not defended against**, stated plainly so nobody relies on them:
   would enlarge the memory-exposure and IPC attack surfaces.
 - Sync remains explicitly bring-your-own; the format is safe as an opaque file
   under naive sync (atomic writes, no partial states).
-- Bitwarden JSON and KeePassXC CSV imports are proposed for 0.2.0 through the
-  existing local, preview-and-confirm path
-  ([next-release proposal](NEXT_RELEASE.md#43-imports-from-established-managers)).
+- Bitwarden JSON and KeePassXC CSV imports are implemented in 0.2.0
+  through the existing local, preview-and-confirm path
+  ([release notes](NEXT_RELEASE.md#43-imports-from-established-managers)).

@@ -171,9 +171,9 @@ Short numbered records. Seed list:
    daemon is a post-v1 candidate ADR.
 3. Sync: **bring-your-own** — the format is designed to be safe as an
    opaque file under naive sync (atomic writes, VAULT_FORMAT §8).
-4. ~~Import from other managers?~~ — **Post-v1** (roadmap item, not v1
-   scope; JSON self-export/import for backup restore is in the CLI
-   reference).
+4. ~~Import from other managers?~~ — **Post-v1** at the time of writing
+   (superseded: Bitwarden/KeePassXC import shipped in 0.2.0 —
+   NEXT_RELEASE §4.3; JSON self-export/import is in the CLI reference).
 5. ~~MSRV~~ — **Resolved: 1.98**, enforced via `rust-version` in
    `Cargo.toml` + a pinned-toolchain CI job (DEVELOPMENT.md).
 

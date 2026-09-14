@@ -1,6 +1,6 @@
 # Vault File Format
 
-**Status:** Implemented; not yet publicly released
+**Status:** Public-preview implementation (`latchkey` 0.2.0)
 **Covers:** Format version 1 (`LKv1`)
 **Companion specs:** [CRYPTO_SPEC.md](CRYPTO_SPEC.md), [THREAT_MODEL.md](THREAT_MODEL.md)
 
@@ -48,7 +48,7 @@ from causing unbounded allocation.
 
 ```
 Offset  Length  Value
-0       3       "LKv"                    (0x52 0x50 0x76)
+0       3       "LKv"                    (0x4C 0x4B 0x76)
 3       1       version byte, 0x01
 ```
 
@@ -140,7 +140,7 @@ Index (serialized, then encrypted as ONE AEAD ciphertext):
     u32    item_id        (monotonic, never reused, even after delete)
     u32    slot           (position in the items region)
     u8     state          (0x01 = live, 0x02 = tombstone)
-    str    title          (length-prefixed UTF-8, max 256 bytes; unique — §5a)
+    str    title          (length-prefixed UTF-8, max 256 bytes; not unique — duplicate titles are valid, identity is item_id)
     str    username       (length-prefixed UTF-8, max 512 bytes)
 ```
 

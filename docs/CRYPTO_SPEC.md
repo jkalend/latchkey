@@ -1,6 +1,6 @@
 # Cryptography Specification
 
-**Status:** Current pre-release implementation (`latchkey` 0.1.0)
+**Status:** Public-preview implementation (`latchkey` 0.2.0)
 **Covers:** Vault format 1 (`LKv1`)
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
@@ -185,11 +185,13 @@ vs. in an item, so an attacker cannot use failures as an oracle.
   by v1.
 - **KDF sanity:** a pinned Argon2id output produced by an independent
   implementation verifies the wrapper's parameter and version mapping.
-- **Fuzzing:** the vault parser and the decrypt path get dedicated fuzz
-  targets (corpus: valid vaults + single-bit mutations).
-- **Test vectors in-repo:** a `test-vectors/` directory with a small set
-  of golden vaults (empty, one item, many items, pre-rotation, post-
-  rotation) so an independent implementation can check compatibility.
+- **Fuzzing:** the vault parser surface, the otpauth parser, and the
+  import adapters get dedicated fuzz targets (corpus: valid inputs +
+  single-bit mutations; see fuzz/README.md for the eight-target
+  inventory).
+- **Test vectors in-repo:** a `test-vectors/` directory with a golden
+  vault exercising index, item, TOTP, optional-field, and duplicate-title
+  paths, cross-checked against an independent Python reader.
 
 ## 11. Crate choices & pinning
 
@@ -220,5 +222,5 @@ vs. in an item, so an attacker cannot use failures as an oracle.
    change; update `DEFAULT_ARGON2_T` in `src/crypto/kdf.rs` and §3
    together.
 2. ~~Header MAC placement~~ — **resolved:** folded into the wrapped-DEK
-   AEAD tag, whose AAD covers the full 117-byte header
-   (VAULT_FORMAT §4.3).
+   AEAD tag, whose AAD covers header bytes 4..=50 — everything the
+   reader consumes before attempting the unwrap (VAULT_FORMAT §4.3).

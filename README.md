@@ -38,9 +38,10 @@ versions are tracked independently.
 - ⏱️ **TOTP authenticator** — store TOTP secrets alongside credentials
   and generate codes locally (RFC 6238; `otpauth://` URIs accepted on
   add/edit).
-- 🔁 **Key rotation & master-password change** — re-key the DEK under
-  current-policy KDF parameters, or change the master password, without
-  re-encrypting item contents you haven't opened.
+- 🔁 **Key rotation & master-password change** — change the master
+  password without re-encrypting any item, or rotate to a fresh DEK
+  under current-policy KDF parameters (which re-encrypts the vault
+  atomically).
 - 🚫 **Zero network** — no HTTP client exists in the dependency tree at
   all, so the no-phoning-home guarantee is checkable, not a promise
   (CI-enforced).
@@ -92,7 +93,7 @@ Full contract per command: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md).
 
 ## Installation
 
-From crates.io:
+From crates.io (once the crate is published):
 
 ```console
 $ cargo install --locked latchkey --version 0.2.0

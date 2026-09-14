@@ -1,6 +1,6 @@
 # TUI Guide
 
-**Status:** Current pre-release implementation (`latchkey` 0.1.0)
+**Status:** Public-preview implementation (`latchkey` 0.2.0)
 
 ## Scope
 
@@ -20,6 +20,8 @@
 |---|---|
 | `/` | Start search |
 | `↑`/`↓` | Navigate list |
+| `PgUp`/`PgDn` | Scroll list by 10 |
+| mouse wheel | Scroll list |
 | `Enter` | Open selected item |
 | `a` | Add a credential |
 | `e` | Edit the selected credential |

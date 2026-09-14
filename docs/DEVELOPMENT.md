@@ -31,7 +31,7 @@ src/            binary + library
   tui/          interactive interface
 tests/          integration tests over real vault files
 test-vectors/   golden vaults (CRYPTO_SPEC §10)
-fuzz/           fuzz targets: vault parser, decrypt path
+fuzz/           fuzz targets: vault parser surface, otpauth, import adapters
 ```
 
 ## Spec-first rule
@@ -45,8 +45,9 @@ CRYPTO_SPEC.md or VAULT_FORMAT.md in the same PR.**
 
 - Unit tests colocated; integration tests in `tests/` operate on real
   vault files (round-trip, tamper cases from CRYPTO_SPEC §10).
-- Fuzz targets in `fuzz/` (cargo-fuzz) for the parser and decrypt path;
-  corpus seeded from `test-vectors/` plus bit-flipped mutations.
+- Fuzz targets in `fuzz/` (cargo-fuzz) for the vault parser surface,
+  otpauth, and the import adapters; corpus seeded from `test-vectors/`
+  plus bit-flipped mutations (see fuzz/README.md for the inventory).
 - Platform-sensitive tests (clipboard, file locking) are
   `#[cfg(windows)]` / `#[cfg(unix)]` gated and run in CI on both
   runners.

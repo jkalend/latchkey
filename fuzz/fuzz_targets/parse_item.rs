@@ -7,9 +7,9 @@
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
-    if let Ok((rec, id)) = rpass::vault::shape::parse_item(data) {
-        let ser = rpass::vault::shape::serialize_item(&rec, id).unwrap();
-        let (rec2, id2) = rpass::vault::shape::parse_item(&ser).unwrap();
+    if let Ok((rec, id)) = latchkey::vault::shape::parse_item(data) {
+        let ser = latchkey::vault::shape::serialize_item(&rec, id).unwrap();
+        let (rec2, id2) = latchkey::vault::shape::parse_item(&ser).unwrap();
         assert_eq!(id, id2);
         assert_eq!(rec, rec2);
     }

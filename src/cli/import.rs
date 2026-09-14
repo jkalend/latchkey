@@ -164,22 +164,22 @@ fn import_format_into_with_quiet(
 
 // ─── plan ───────────────────────────────────────────────────────────────────
 
-struct CanonicalRecord {
-    title: String,
-    username: String,
-    record: ItemRecord,
+pub struct CanonicalRecord {
+    pub title: String,
+    pub username: String,
+    pub record: ItemRecord,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-enum IdentityMode {
+pub enum IdentityMode {
     Native,
     AddOnly,
 }
 
-struct ParsedImport {
-    records: Vec<CanonicalRecord>,
-    identity: IdentityMode,
-    skipped: usize,
+pub struct ParsedImport {
+    pub records: Vec<CanonicalRecord>,
+    pub identity: IdentityMode,
+    pub skipped: usize,
 }
 
 struct PlannedAdd {
@@ -303,7 +303,7 @@ fn apply(vault: &mut Vault, plan: Plan) -> Result<()> {
 
 // ─── source adapters ────────────────────────────────────────────────────────
 
-fn parse_native(text: &str) -> Result<ParsedImport> {
+pub fn parse_native(text: &str) -> Result<ParsedImport> {
     let doc = Zeroizing::new(json::parse(text).map_err(|e| CliError::Other(e.to_string()))?);
     validate_format_version(&doc)?;
     let items = doc
@@ -331,7 +331,7 @@ fn parse_native(text: &str) -> Result<ParsedImport> {
     })
 }
 
-fn parse_bitwarden(text: &str) -> Result<ParsedImport> {
+pub fn parse_bitwarden(text: &str) -> Result<ParsedImport> {
     let doc = Zeroizing::new(json::parse(text).map_err(|e| CliError::Other(e.to_string()))?);
     if matches!(doc.get("encrypted"), Some(Json::Bool(true))) {
         return Err(CliError::Other(
@@ -432,7 +432,7 @@ fn parse_bitwarden_item(item: &Json, skipped: &mut usize) -> Result<Option<Canon
     }))
 }
 
-fn parse_keepassxc(text: &str) -> Result<ParsedImport> {
+pub fn parse_keepassxc(text: &str) -> Result<ParsedImport> {
     let mut reader = csv::ReaderBuilder::new()
         .flexible(false)
         .from_reader(text.as_bytes());

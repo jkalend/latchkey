@@ -5,7 +5,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use rpass::vault::vault_impl::Vault;
+use latchkey::vault::vault_impl::Vault;
 
 fuzz_target!(|data: &[u8]| {
     let _ = Vault::split_item_frames(data);

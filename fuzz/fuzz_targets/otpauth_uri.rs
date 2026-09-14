@@ -9,9 +9,9 @@ use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
     if let Ok(s) = std::str::from_utf8(data) {
-        if let Ok(p) = rpass::totp::parse_otpauth_uri(s) {
+        if let Ok(p) = latchkey::totp::parse_otpauth_uri(s) {
             // A parsed URI must produce a computable code.
-            let _ = rpass::totp::totp_at(&p, 59);
+            let _ = latchkey::totp::totp_at(&p, 59);
         }
     }
 });

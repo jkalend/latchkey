@@ -7,5 +7,5 @@
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
-    let _ = rpass::vault::shape::parse_index(data);
+    let _ = latchkey::vault::shape::parse_index(data);
 });

@@ -2,7 +2,10 @@
 
 cargo-fuzz targets for the parsing surface — the code that touches
 untrusted file bytes before any authentication happens (a corrupted
-vault, a USB-stick swap, or a sync conflict is the realistic threat).
+vault, a USB-stick swap, or a sync conflict is the realistic threat)
+and the import adapters that parse attacker-chosen export files
+(native JSON, Bitwarden, KeePassXC) end-to-end before the vault is
+mutated.
 
 | Target | What it covers |
 |---|---|
@@ -11,6 +14,9 @@ vault, a USB-stick swap, or a sync conflict is the realistic threat).
 | `parse_item` | ItemRecord parser + serialize↔parse round-trip invariant |
 | `split_item_frames` | on-disk frame walker (nonce ‖ ct_len ‖ ct+tag) |
 | `otpauth_uri` | `otpauth://` parsing: query split, percent-decoding, then TOTP computation |
+| `import_native_json` | hand-rolled JSON grammar + native schema-1 interpretation |
+| `import_bitwarden` | Bitwarden JSON adapter: type dispatch, field extraction, TOTP URIs |
+| `import_keepassxc` | KeePassXC CSV adapter: quoting, record/field caps |
 
 ## Running
 

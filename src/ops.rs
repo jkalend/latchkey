@@ -7,7 +7,8 @@ use crate::crypto::error::{Error, Result};
 use crate::vault::shape::{serialize_item, ItemRecord, TotpSubRecord, LIVE_STATE, TOMBSTONE_STATE};
 use crate::vault::vault_impl::Vault;
 
-#[derive(Debug)]
+// No Debug: these hold raw password/notes bytes (CRYPTO_SPEC §6 — secret
+// types do not derive Debug; the compiler enforces the redaction policy).
 pub struct NewEntry {
     pub title: String,
     pub username: String,
@@ -47,8 +48,8 @@ pub enum Change<T> {
     Set(T),
     Clear,
 }
-
-#[derive(Debug, Default)]
+// No Debug: Change<Vec<u8>> fields hold raw secret bytes (CRYPTO_SPEC §6).
+#[derive(Default)]
 pub struct EntryPatch {
     pub title: Option<String>,
     pub username: Option<String>,

@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exted",
+      "type": 1,
+      "name": "Bie",
+      "attachments": [{"id": "attachment-m", "value": "ignored"}],
+      "login": {
+        "_username": "alicorrect horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY3TQOJQ&algorits=",
+         "fido1Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exteral-`)id",
+      "type": 3,
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

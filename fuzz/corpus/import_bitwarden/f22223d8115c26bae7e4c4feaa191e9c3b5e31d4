@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extd",
+  "type": 1,
+      "name": "@itwarden Lusin",
+      "notes": "login note",
+      "attachmts": [{"nalue": "ignored"}],
+      "login": {
+        "username": "arse",   "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGYOJQGVGY3TQOJQ&algorithm=SH1gdigimple"}
+    }
+  ]
+}

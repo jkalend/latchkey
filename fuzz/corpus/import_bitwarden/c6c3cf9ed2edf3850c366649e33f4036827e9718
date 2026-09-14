@@ -1,0 +1,13 @@
+{
+  "encd": false,
+  "folders": [],
+  "items": [
+    {
+          "type": 2,
+      "name": "en Lo",
+      "notes": "login note",
+      "lon": {
+      "username": "alice/ExampExample"}
+    }
+  ]
+}

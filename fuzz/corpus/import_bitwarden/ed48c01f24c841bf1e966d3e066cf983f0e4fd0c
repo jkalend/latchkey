@@ -1,0 +1,13 @@
+{
+  "incrypted": false, "items": [
+    {
+      "id": "exterid",
+      "type": 1,
+      "name": "Bitarde",
+      "attachments": [{"": "ignoreign"}],
+"login": {
+    "totp":"otpauth://totp/Example:alice?secret=2222220000=SHA1&period=6&pbrio=3algorithm=SHA1&period=6&piod=30",
+        "rstN": "Example"}  
+  }
+  ]
+}

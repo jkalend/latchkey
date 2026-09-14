@@ -1,0 +1,12 @@
+{
+"encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "type": 1,
+"name": "Bitwarden g)",  "login": {
+       "usern]me": "acn",
+  "totp": "otpauth://totp/Example:al?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algmr=toihSHA1&digitpod=30",      "fido2Credene": "Example"}
+    }
+  ]
+}

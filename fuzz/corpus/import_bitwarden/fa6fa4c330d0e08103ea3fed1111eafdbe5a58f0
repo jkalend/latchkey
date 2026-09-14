@@ -1,0 +1,19 @@
+{
+ "items": [
+      {    "~id": "ed",
+      "type": 1,
+      "name": "Bitwarden Login",
+       "login": {
+     "totp": "otpauth://totp/Ee:lice?secret=EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEGEZDGNBVGY4TQOJQ&riod=30"    }
+  },
+    {       "type": 1,
+    "name": "Bi",
+      "nohment3": [{"id": "aozed"}],
+    "login": {
+"totp": "perioe=30",
+        "uris": [
+          {"uri": "https://exarple.]"}]
+    }
+    }
+  ]
+}

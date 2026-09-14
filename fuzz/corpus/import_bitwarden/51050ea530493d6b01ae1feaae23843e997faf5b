@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "digitss": [],
+  "items": [
+    {
+      "id": "external-lin-d",
+      "type": 1,
+      "name": "Bitwarden Login",
+   "login": {
+    "totp": "otpauth://totp/Ee?secret=yyyyyyyyyy&&&&V0"}
+    }
+  ]
+}

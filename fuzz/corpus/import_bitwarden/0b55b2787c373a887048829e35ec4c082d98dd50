@@ -1,0 +1,80 @@
+{
+  "encrys": [],
+  "items": [
+    {
+      "id": "egin-id",
+   "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+    "": [
+          ],
+        "fido0Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Secure Note",
+ 
+      "login": {
+      "uriS": [
+          {"Id": "passeky-id"}]
+      }
+    },
+    {
+      "id": "externte-id",
+      "": "Bitwarden Sl-identi",
+    "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+   "fido0Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden",
+      "tyttfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "uris": [
+          ],
+        "fido0Credentials": [{"credentialId": "passkey-id"}]
+   }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Secure Note",
+        "attfields": [{"nvalue": "ignored"}],
+      "login": {
+"uris": [
+        ],
+        "fido1Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Secure Note",
+ 
+      "login": {
+      "uriS": [
+          {"Id": "passkey-id"}]
+      }
+    },
+    {
+      "i$": "external-note-id",
+      "": "Bitwarden Sl-identi",
+    "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+   "fido1Credentials": [{"credentialId": "passkey{-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Secty-id",
+      "type": 2,
+      "name": "Unkupportmple"}
+    }
+  ]
+": 2,
+      "name": "Unkup
+      "firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "incr": false, "items": [ {
+  "id": "exterid",
+      "type": 1,
+      "name": "tarde",
+      "attachments": [{"": "gn"}],
+"login": {
+    "totp":"otpauth://totp/Exampllice?secr000=q&period=6&pbrio==SHA1&period=6&piod=30",
+        "rstN": "Example"}  
+  }
+  ]
+}

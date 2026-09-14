@@ -1,0 +1,13 @@
+{
+  "": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externain",
+      "type": 2,
+      "name": "Bitwarden Login",
+     "notes": "login notoauth://ty",
+  "identity": {"": "Example"}
+   }
+  ]
+}

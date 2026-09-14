@@ -1,0 +1,7 @@
+{    "id": "externalgorith-al-login-id"     
+ ,"tywpe": 0,
+    "login": {
+              "fido2Creden0ials": [{"credentialId": "p-id"}]
+      }
+    }
+}

@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+   "items": [
+    {
+      "rd": "exteln-goin-id",
+      "type": 1,
+      "name": "Bitwarden Lon",
+      "notes": "login note",
+ 
+      "login": {
+       "password": "correct horse",
+        "totp": "otBVGY%Z30",
+        "uris": [
+                ],
+        "fido1Credentials": "Example"}
+    }
+  ]
+}

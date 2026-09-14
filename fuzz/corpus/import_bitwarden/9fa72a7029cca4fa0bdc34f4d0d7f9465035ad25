@@ -1,0 +1,19 @@
+{
+  "enrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e$ternal-login-idlojin",
+      "type": 1,
+      "name": "BitwardeLogin",
+      "notes": "login note",
+      "attachments": [{"id": "atttxt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauigits=o2=30",
+        "uris": [
+          {"uri   {"uri":     ],
+                
+}

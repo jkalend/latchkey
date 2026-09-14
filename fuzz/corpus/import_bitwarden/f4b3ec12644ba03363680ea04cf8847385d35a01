@@ -1,0 +1,12 @@
+{
+  "encrypted": false,
+   "items": [
+    {  
+    "type": 1,
+      "name": "Bitwarden Loin note",
+       "login": {
+"totp": [     {"uri": "ht%%%%%%%%%%%%%id"}]
+      }
+   }
+  ]
+}

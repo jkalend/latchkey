@@ -1,0 +1,12 @@
+{
+  "encryrs": [], "items": [
+    {
+      "id": "extgin-id",
+  "type": 1,
+      "name": "Bitward",
+   "atta": [{"me": "0ignorred"}],
+      "login": {
+         "totp": "otpauth://totp/Ee?secret=0&digits=+&pepauth://ale"}
+    }
+  ]
+}

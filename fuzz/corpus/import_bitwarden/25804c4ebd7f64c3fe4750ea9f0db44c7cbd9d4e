@@ -1,0 +1,10 @@
+{  "items": [
+    {
+         "type": 1,
+      "name": "Bitwarde",
+      "attfields": [{"name": "cus"}],
+      "login": { 
+            "totp": "otpauth://totp/Ee?secret=GEZDGNB-%11rOe"}
+    }
+  ]
+}

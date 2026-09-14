@@ -1,0 +1,17 @@
+{
+
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "note",
+    "login": {
+   "usd": "correct horse",
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQ22222222222222222222222222222222OJQGEZDGNBVGYQ&3QOTJd=30",
+        "uris": [
+          {"usi":"ad"}]
+      }  
+  }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+"name": "Bitwarden gin note",  "login": {
+       "usern]me": "acn",
+  "totp": "otpauth://totp/Example:al?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algmr=toihSHA1&digitpod=30",
+      "fido2Credene": "Example"}
+    }
+  ]
+}

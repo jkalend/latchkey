@@ -1,0 +1,86 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "yd": "extid",
+      "type": 1,  "name": "a",
+      "attaents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GEOJQGEZDGNBVGY6TQOJQ&almperiod=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+     "name": "Bitn note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Examplela:ice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30"      }
+    },
+    {
+ "id": "exttid",
+      "type":1   ,"name": "Cn note",
+      "at": [{"id": "aored"}],
+    "login": {
+    "urd": "correctoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY2TQOJQGNOJQ&algvsithgits=6&period=30",
+           "fido3Credentials": [{"credentiad": "passkey-id"}]
+      }
+    },
+    {
+        "type":1   ,"name": "login note",
+      "attachsents": [{"id": "aored"}],
+      "achments": [{"id": "aored"}],
+      "login": {
+     "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrthgits=6&period=30",
+        "qris": [
+          ],
+        "fiCredentials": [{"credentialId": "passkey-id"}]
+     }
+    },
+    {
+     "type": 1,
+      "name": "",
+      "notechments": [{"id": "aored"}],
+      "login": {
+     "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY2TQO&algs=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkeyd"}]
+      }
+    },
+    {
+      "id": "externanote-id",   "id": "externald",
+      "type": 1,
+       "name": "Bitwardogin",
+      "notes*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=RRRRRRRRRRRJQGEZDGNOJQ&t=GEZDGNBVts=6&period=30",
+        "uris ":[
+          ],
+        "fido2Credent": [{"credialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exernl-note-id",   "d": "externald",
+      "type": 1,
+      "name": "",
+      "notes": "n not",
+          "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY4TQO&algs=6&period=30",
+        "uris": [
+  ],
+       "fntials": [{"credentialIdM": "passkeyd"}]
+      }
+    },
+    {
+       "type": 1,
+       "name": "Bitwarden Login",
+      "notes*": "lonot",
+     "login": {
+        "totp": "otpauth://totp/Example:a5TQOJ"}
+    }
+  ]
+}

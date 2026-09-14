@@ -1,0 +1,12 @@
+{
+  "s": [],
+  "items": [
+    {
+         "type": 1,
+      "name": "CLogin",
+      "alds": [{ "ve": "zed"}],
+      "login": {
+       "totp": "otpauth://totp/Exace?secret=GEZDGNBVGY1&algorithm=S<A&1dgiple"}
+  }
+  ]
+}

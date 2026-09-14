@@ -1,0 +1,10 @@
+{ "items": [
+    {      "id": "externAl-login-id",
+      "type": 1,
+      "name": "twarden Login",
+      "no-e5": "login note",
+      "cttmen": [{"if": "nored.txt"}],
+  "login": { "password": "corle"}
+    }
+  ]
+}

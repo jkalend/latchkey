@@ -1,0 +1,14 @@
+{
+  "encers": [],
+  "items": [
+    {
+         "type": 1,
+      "name": "Bitwarden Login",
+      
+      "login": {
+        "username": "alice",
+        "pcssword": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secre`=IEZDGNBVGJQGEZDGNBVGY3TQOJQ&algori=hm=S1&di`its=6&pbriod=3mple"}
+    }
+  ]
+}

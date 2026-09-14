@@ -1,0 +1,21 @@
+{
+  "enrs": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwaredn Login",
+        "attfields": [{"name": "cust/m", "value": "ignored"}],
+      "login": {
+     "password": "orrect horse",
+        "totp": "otpyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy^yyyy&digit14",
+        "uris": [
+        {"uri": "https:xample.c"}
+    ]   }
+    },
+    {
+      "id": "extsupportd Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

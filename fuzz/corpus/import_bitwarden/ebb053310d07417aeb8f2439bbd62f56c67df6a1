@@ -1,0 +1,31 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+    "name": "Bitwarden Login",
+      "nes": "login note",
+      "attachments": [{"id": "attagnored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "use$name": "alice",
+        "username": "correct horre",
+        "totp": "otpauth://tot30",
+           "fido2Credls": [{"credend": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 3,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 1,
+      "name": "Unsupporidd Card",
+      "ntity": {"firstName": "Example"}
+    }
+  ]
+}

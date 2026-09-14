@@ -1,0 +1,14 @@
+{
+   "bol": [],
+  "items": [
+    {
+      "id": "external-login-id",    "type": 1,
+      "name": "Bitwarden Logie",
+      "attments": [{"id": "nored.txt"}],
+  "login": {    "username": "e",
+        "password": "orrerd"}
+    },  {
+ 
+      "identity": {"firstNa}e": "Example"}
+    }]
+}

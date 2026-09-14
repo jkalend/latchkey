@@ -1,0 +1,10 @@
+{ "items": [
+    {
+     "type": 1,    
+  "name":"Bitnote",
+"login": {
+    "totp": "otpauth://totp/Examp?=ecA0&secret=&iod=30",
+     "fido1Credee": "Example"}
+    }
+  ]
+}

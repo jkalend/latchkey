@@ -1,0 +1,8 @@
+{ "items": [ {
+      "type": 1,    
+  "name":"",
+"login": {
+   "totp": "otpauth://totp/Examp?=ecA1&secret=&iod=30"}
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{ "items": [
+    {     "id": "ein-id",
+      "type": 1,
+      "name": "twardengin",  "login": {"password": "corle"}
+    }
+  ]
+}

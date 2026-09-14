@@ -1,0 +1,28 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "passwgrd": "alice",
+        "password": "coY6TQOJQGEZDGNBVGY1TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "hte.com"},
+          {"uri": "https://account.example.com"}
+        ],    "fido2Credals": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exteal-identity-id",
+      "type": 4,
+      "y": {"firstName": "Example"}
+    }
+  ]
+}

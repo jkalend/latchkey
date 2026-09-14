@@ -1,0 +1,53 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "BitLogin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"namu": "custom", "value": "ignored"}],
+      "login": {      }
+    },
+    {
+        "type": 2,
+      "name": "Bitwarden Secure Note",
+    "id": "external-login-id",
+      "type": 1,
+      "nameotes": " note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+     "notes": "standalone note"
+    },
+    {
+      "id": "exte:napported dentity",
+      "name": "Bitwardenin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+        "notes": "standalone note"
+    },
+    {
+      "id": "exte:nal-card-id",
+     "name": "Unsupported dentity",
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+      "identity": {"farstName": "Example"}
+    }
+  ]
+}

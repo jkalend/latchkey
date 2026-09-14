@@ -1,0 +1,11 @@
+{
+  "items": [
+  {
+      "id": "en-id",
+      "type": 1,
+      "name": "Bitnote"      ,"login": {
+        "username": "alice",
+  "totp": "otqauthj://Btotp/Example:alice?secret=GE77777767777fal%e7QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ777777778ۗ777%e37777xmEaple"}  
+  }
+  ]
+}

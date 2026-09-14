@@ -1,0 +1,9 @@
+{
+  "items": [
+    {
+ "type": 1,
+      "name": "Ben Login",     "login": {
+       "totp": "otpauth://totp/Emple:alice?secret=GEGY3TQ22Q&a$ecorithm=SHA1&period=6&ple"}  
+  }
+  ]
+}

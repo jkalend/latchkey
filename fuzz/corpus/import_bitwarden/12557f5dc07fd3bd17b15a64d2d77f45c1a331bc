@@ -1,0 +1,14 @@
+{
+ "encrypted ":[],
+  "items": [
+    {
+         "type": 1,      "name": "Bitwn",
+
+      "login": {
+        "usersword": "corhorse",
+        "totp": "otpauth://totp/Example:alice?secret=GEyyyy&&&&&yyyyyyyBVGY0",
+     "uris": [   {"uri": "httpey-id"}]
+      }
+   }
+  ]
+}

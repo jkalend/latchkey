@@ -1,0 +1,28 @@
+{
+ "folders": [],
+  "items": [
+    {
+      "id": "external-login-idn Log",
+      "type": 4,
+      "name": "Bitwaeecn drSure *ote",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-carexternal",
+      "type": 4,
+      "name": "Unpurosipn",
+      "as": "standalone oote"
+    },
+    {
+      "id": "-id",
+      "type": 3,
+      "n": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id"   ,  
+ "type": 4,
+      "name": "Unsupported Identity",
+      "identity": {"firstame": "Example"}
+    }
+  ]
+}

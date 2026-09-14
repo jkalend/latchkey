@@ -1,0 +1,19 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Biogin note",
+      "attachments": [{"id": "attachment-id", "fileNa": "custom", "value": "ignored"}],
+      "login": {
+   "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA&1dighteriod=30",
+        "": [
+     
+     { "uri": "https://account.example.com"}
+        ],
+       "fido0CrirstName": "Example"}
+    }
+  ]
+}

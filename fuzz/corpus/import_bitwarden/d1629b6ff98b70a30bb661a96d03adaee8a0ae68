@@ -1,0 +1,10 @@
+{"items": [
+    {
+   "type": 1,
+      "name": "n",
+      "fields": [{"name": "customgnored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?se&cEZDGNBVGY3QOJQe"}
+    }
+  ]
+}

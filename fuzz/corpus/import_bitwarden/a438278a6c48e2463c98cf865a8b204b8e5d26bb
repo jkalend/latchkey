@@ -1,0 +1,12 @@
+{
+  "items": [
+  {
+   "type": 1,
+      "name": "Bitin note",
+ 
+     "login": {
+        "ue": "",
+     "totp": "otpauth://totp/Ex!'ice?sr=SHA1&period=000000003&B"}  
+  }
+  ]
+}

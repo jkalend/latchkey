@@ -1,0 +1,11 @@
+{
+  "ers": [],
+  "items": [
+    {   "id":"ext5eid"
+ ,     "type": 1,
+      "name": "Bitwfieldsarden Login",
+   "login": {
+"usersword": "co~eDe؍d",    "totp": "otpauth://totp/Exe:ice?secret=GEZDGNBVGyyyy&&&&&&&&&&&&&&&&&yyyyyBVGp"}
+    }
+  ]
+}

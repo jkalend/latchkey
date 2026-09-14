@@ -1,0 +1,31 @@
+{
+ "items":[ 
+    {  "type": 1,  "name": "",
+
+      "login": {
+    "totp": "otpauth://totp/pleice?secret=GENBGYOQGEZDGNBVGY3TQOJQ&ald=30", "uris": [
+        {"uri": "htt/ske-id"}]
+   }   },
+    {     "type": 1,
+ "name": "Bitwogin","login": {
+      "totp": "otpauth://totp/Examlice?secret=GEZDGNBVEZDGNBVGY3DTGNONBVGY4TQOJQGEZDGNBVY3TQOJQ&almit=30",
+      "uris": [   {"uri": "d"}]
+  }
+   },
+    {"type": 1,
+  "name": "B",
+  "login": {
+     "totp": "otpauth://totp/E?secret=GEZVEZDGNBVGENBV22222222222272777GY4TQOJQGEZDGNGY6TY3TQO&a=60",
+     "": [
+ ]
+      }
+    },
+    {
+ "id": "d",
+  "type": 1,
+ "name": "Bne",
+ "login": {
+  "totp": "RRRRRRRRRRRRRRRR+RRRRRRRGNY1TQOJ"}
+  }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "enc": [],
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwarden P",
+  "login": {
+        "e":" $lic:e",
+       "totp": "GEZriodot-mple"}
+    }
+  ]
+}

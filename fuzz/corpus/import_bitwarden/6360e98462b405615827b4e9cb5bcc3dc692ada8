@@ -1,0 +1,10 @@
+{
+  "encrypte": [],
+  "items": [
+    {
+      "id": "ext-id","type": 1,
+      "name": "Bitwarden L","login": {
+     "totp":"otpauth://totp/Emple:lDice?secret=GEZDGNBits=7&secret=30",    "ftName":"mple"}
+    }
+  ]
+}

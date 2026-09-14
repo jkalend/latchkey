@@ -1,0 +1,12 @@
+{
+  "ind": false,
+  "items":[ 
+    {
+     
+      "type": 1,
+      "name": "Bitward ",
+      "nots": [{"id": "atment-id", "fil": "ignore.txt"}],      "login": {
+        "totp": "otpauth://totp/ample:alice?secret4GEZDGNB=SA0&period=00000000171031519gorit.mxample"}  
+  }
+  ]
+}

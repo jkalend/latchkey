@@ -1,0 +1,9 @@
+{
+    "items":[ 
+ {
+   "type": 1,
+    "name": "Bitwrd ",
+      "login": {  "totp": "otpauth://totp/amale?secZDGNB=SA0&period=0000000017131519gorit.mxampde"}  
+  }
+  ]
+}

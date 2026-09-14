@@ -1,0 +1,17 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+      "id": "external-logi8-id",
+      "type": 1,
+      "name": "Bitin note",
+      "login": {
+"usernamed": "ce",
+        "totp": "otpauth://totp/ExamalDce?secret=GEZDGNBVGY2TQOJQGEZDGPPPPPPPPPPPNBVGY2TQOJQ&alg8orithm=SH",
+        "uris": [
+          {"u.i": "https:/mt.example.com"}
+        ],  "df i  o2Credee": "Example"}
+    }
+  ]
+}

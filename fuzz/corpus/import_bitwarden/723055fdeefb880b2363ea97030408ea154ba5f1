@@ -1,0 +1,20 @@
+{
+  "der)s": [],
+  "items": [
+    {
+      "id": "exted",
+      "type": 1,
+      "name": "Bie",
+ "ants": [{"id": "attachment-m", "value": "ig;nored"}],
+      "login": {
+     "_username": "alise",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY3TQOJQ&algorits=",
+         "fido1Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id":"exteral-`)id",
+   "identy": {"firstNae": "Example"}
+    }
+  ]
+}

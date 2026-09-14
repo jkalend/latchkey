@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "id": "externin-id",
+      "type": 1,
+      "name": "Biden Logite",
+      "attachments": [{"id": "red"}],
+      "login": {
+     "totp": "otpauth://totp/Examplic[?]ecrex=GEZ&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&mpXle"}  
+  }
+  ]
+}

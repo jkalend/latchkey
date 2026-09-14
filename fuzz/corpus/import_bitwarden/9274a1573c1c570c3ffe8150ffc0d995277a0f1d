@@ -1,0 +1,11 @@
+{
+  "encrypted": false,
+"f  o": [],
+  "items": [
+    {
+     "type": 1,    "name": "Bitwarde",
+    "login": {
+"totp": "BVGYExaple"}
+  }
+  ] 
+ }

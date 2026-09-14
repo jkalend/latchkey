@@ -1,0 +1,12 @@
+{
+  "encryed": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+     "type": 3,    "otes": "lggite",
+            "name": "Bentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{"encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "l-login-id",
+      "type": 1,
+      "name": "twarden Login",
+  "login": {
+ "totp": "otpaut==========================h://totp/Exampl(e:alnot-a-real-card"}
+     }
+  ]
+}

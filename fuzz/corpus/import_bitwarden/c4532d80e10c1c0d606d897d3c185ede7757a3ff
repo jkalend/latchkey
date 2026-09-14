@@ -1,0 +1,19 @@
+{
+  "encrd": false,
+  "fders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+   "fields": [{"value": "ignored"}],
+      "login": {
+        "password": "cose",
+        "totp": "otpauth://totp/Exampl[:alice?secret=GEZDG#NB0",
+        "uris": [
+      {"uri": "htpps:/am"}
+    ],
+        "fido1CfirstName": "Example"}
+    }
+  ]
+}

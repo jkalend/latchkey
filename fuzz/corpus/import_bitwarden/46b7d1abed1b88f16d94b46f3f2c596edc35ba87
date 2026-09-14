@@ -1,0 +1,116 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {     "type": 1,  "name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "corGNBVGY3TQOJQ&almorithgits=6lgvrithgits=6&period=30",
+        "uis": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "noues": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correbt hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNOJQ&ap//totp/Example:alicd?secret=GEZDGNB0",
+        "uris": [
+          ],
+        "fido3Credentials": [{"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":0   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correbt cd?secret=GEZDGNBVEZDGNBVGY3TQO&algvgits=6=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":0   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GEnBVGY4TQOJQGEZDGNBVGY3TQOJQ&almiod=30",
+        "uris": [
+       ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id":  "ernal-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "lon note",
+     "login": {
+        "tott": "otpauth://totp/Example:alice?secret=GEZDGiod6&periofallsd=30",
+     "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "ernal-note-id",   "id": "externald",
+"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,    "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almiod=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-noteexternald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "ernal-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "lon note",
+     "login": {
+        "tott": "otpauth://totp/Example:alice?secret=GEZDGiod6&periofallsd=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "ernal-note-id",   "id": "externald",
+      "tyte": 1,
+      "name": "Bitwarden Login",
+      "notes*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY6TQOJ"}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externlogin-d",
+      "type": 1,
+      "name": "Bitwarden Loginn ",    "login": {
+        "username": "alicrrect horse",
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY1TQOJQGEZDGNBVGHA1&digits=6%&peraod=30",
+   "urisNaie": "Example"}
+    }
+  ]
+}

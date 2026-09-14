@@ -1,0 +1,15 @@
+{
+  "id": false,
+  "folders": [],
+ "items": [
+    {
+      "type": 1,
+      "name": "",
+     "ttts": [{"id": "attachment-id", "filgName": "igd.txt"}],
+      "login": {
+ 
+      }
+    },
+    {      }
+  ]
+}

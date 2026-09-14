@@ -1,0 +1,22 @@
+{
+  "enrs": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwaredn Login",
+      "notes": "login note",
+      "attfields": [{"name": "cust/m", "value": "ignored"}],
+      "login": {
+     "password": "correct horse",
+        "totp": "otpa/uth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNyyyyzyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyBVGY3TQ-e112OJQ&algorithm=SHA1&digit30",
+        "uris": [
+        {"uri": "https://account.example.com"}
+    ]   }
+    },
+    {
+      "id": "extsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

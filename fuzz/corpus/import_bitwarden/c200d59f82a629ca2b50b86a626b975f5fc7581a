@@ -1,0 +1,9 @@
+{  "items": [
+  {   "type": 1,
+     "name": "Bitin",
+    "login": {
+     
+          "totp": "otpauth://totp/:lice?secret=GEZ%GhleM"}
+    }
+  ]
+}

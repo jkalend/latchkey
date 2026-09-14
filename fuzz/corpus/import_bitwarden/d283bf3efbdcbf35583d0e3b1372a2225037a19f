@@ -1,0 +1,12 @@
+{"items": [
+  {
+  "id": "o-ngiId",
+  "type": 1,
+    "name": "BLgonote",
+
+      "login": {
+   "usenae": "alice",
+   "totp": "otpauth://totp/Ex:alice?secret=Gal%e5555555554%e77%777~7fal%e7?555554xmEaple"}  
+ }
+  ]
+}

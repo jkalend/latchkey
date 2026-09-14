@@ -1,0 +1,12 @@
+{
+  "ind": [],
+  "items": [
+    {
+      "id": "externan-id",
+      "type": 1,
+      "name": "Bite",
+      "login": {
+        "totp": "otpauth://totp/OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOVOOOOOOOOOExice?secret=GEZDGNB=SHA0&period=0000000008551le"}  
+  }
+  ]
+}

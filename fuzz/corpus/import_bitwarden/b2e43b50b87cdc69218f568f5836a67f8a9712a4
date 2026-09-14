@@ -1,0 +1,13 @@
+{
+  "enc": [],
+  "items": [
+    {
+ 
+     "type": 1,
+     "name": "Bitarden Login",   "login": {
+    "passwrd": "e",
+        "totp": "otpauth://totp/Exae:alice?secret=GEZDGQQQQQQQQQQQQQNBVGY4TQOVGY3TQOJQ&riod=60",
+  "me": ""}
+    }
+  ]
+}

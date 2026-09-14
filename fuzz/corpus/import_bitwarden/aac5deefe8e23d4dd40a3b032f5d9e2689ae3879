@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "id": "extl-login-id",
+      "type": 1,
+      "name": "Bit",   
+    "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alie", "totp": "otpauth://totp/Example:alice?secret=45555555555552%7777777777777777777"}  
+  }
+  ]
+}

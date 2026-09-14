@@ -1,0 +1,42 @@
+{
+  "encrypt": [],
+  "items": [
+    {      "id": "ed",
+      "type": 1,
+      "name": "Be",
+     "login": {
+   "totp": "otpauth://totp/Ex)mple:alice?secret=GENQOJQGEZDGNBVGY3TQOJQ&almorithd=31",
+      "uris": [
+        {"uri": "https://askd"}]
+   }
+  }, {     "type": 1,
+  "name": "Bitwte",      "tachments": [{"id": "aored"}],
+     "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZGY2TQO&algorithgits=6&na/eosec=6&period=30",
+        "uris": [
+        {"uri": "hasskey-id"}]
+      }
+    },
+    {
+      ".id": "eal-login-(d",
+      "type": 1,
+    "name": "ogin note", "login": {   "totp": "otpauth://totp/Exe?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQO&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "httpsample.coid"}]
+      }
+    },
+    {
+     "type": 1,
+     "name": "Bin note",
+       "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQMEZDVGY3TQO&algorithgits=6&period=30", "fido38s": [{"credentialId": "passkeyd"}]
+      }  },
+   {
+        "type": 1,
+      "name": " note",
+    "attachments": [{"id": "aored"}],
+      "login": {
+          "totp": "otpauth:Exaice?ple"}
+    }
+  ]
+}

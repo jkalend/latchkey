@@ -1,0 +1,5 @@
+{ "iq": [],
+"items": [{"type": 1,"name": "N",
+"login": {      "totp": "otpauth://totp/e?rte=GY54&period=6&p"} }
+  ]
+}

@@ -1,0 +1,12 @@
+{"enrs": [],
+  "items": [
+    {
+     "id": "extd",
+      "type": 1,
+  "name": "Bigin ote",
+  "login": {
+"password": "correct horye"
+,        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQG#Z/totp/Example:alice?secret=GEZDGNample"}
+    }
+ ]
+}

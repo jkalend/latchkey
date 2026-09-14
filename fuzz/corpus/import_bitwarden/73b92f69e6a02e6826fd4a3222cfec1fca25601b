@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+  
+    "type": 1,
+      "name": "Bitwarden Login",
+      "note": [{"nae": "ored"}],
+      "login": {
+   
+   "totp": "otpauth://totp/Example:alice?secret=2&period=0"}
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  
+  "items": [
+    {
+ "type": 1,
+      "name":  "",
+    "login": {
+"pa": "cor",      "totp": "otqauth://totp/ExzzzzzzzzzzzzzzzzzzzzzzzzEZDGNBVGY2TQOJQGEZDGNBample"}
+    }
+  ]
+}

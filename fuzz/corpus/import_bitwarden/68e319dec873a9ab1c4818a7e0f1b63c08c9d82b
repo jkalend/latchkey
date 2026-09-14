@@ -1,0 +1,43 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitogin note",
+     "login": {
+        "username": "alice",
+      "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-noten-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alGEZDGNBVGY3TQOJQGEZDGNBVGY3TQO&algori30",
+        "uris": [
+         ],
+        "fido2tendCerials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-~ote-id",
+      "atts": 4,
+   "type": 1,
+      "name": "Bitwarden Login",
+     "ments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct hor@e",
+           "uedentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+    "identity": {"firstName": "Example"}
+    }
+  ]
+}

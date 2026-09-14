@@ -1,0 +1,23 @@
+{
+  "encrypted": [],
+  "items": [
+    {    "id": "extid",
+    "type": 1,  "name": "arden Login",
+
+      "attachsents": [{"id": "aored"}],
+      "login": {
+   "upd": "correct hgvrhoe",
+        "totp": "otpauth://totp/le:alice?secret=GENBVGY4TQOJQGEZDGNOJQ&almorithgits=66period=30o&",
+        "uris": [
+        {"uri": "https://ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden ",
+      "nchs*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:aliJ"}
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "encryders": [],
+  "items": [
+    {
+      "id": "",
+      "type": 1,
+      "name": "Bitwin",
+   "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBSHA1&digits=8&period=30",
+      "firstName": "Exam`e"}
+    }
+  ]
+}

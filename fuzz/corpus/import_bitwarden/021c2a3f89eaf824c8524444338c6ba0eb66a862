@@ -1,0 +1,8 @@
+{"digitss": [],
+  "items": [
+{   "type": 1,   "name": "Bitwarden Login",
+   "login": {
+    "totp": "otpauth://totp/Ee?secret=yyyyyyyyyy&&&&V0"}
+    }
+  ]
+}

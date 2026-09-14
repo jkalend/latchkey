@@ -1,0 +1,41 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "rnal-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "ernal-login-id",
+      "type": 1,
+      "name": "Bytwarden Login",
+    " noest ": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQO&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.c"}]
+      }
+    },
+    {
+      "id": "external-",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQO&algoriod=70",
+        "uris": [
+          {"uri": "htt:/e.com"}
+        ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-nonal-identity-idorted Ideny",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "encr": [],
+  "items": [
+    {
+      "id": "e",
+     "type": 1,
+   "name": "Bitwardein", "login": {
+        "username": "alice",
+        "use]ns": [
+         {"uri": "hptts://exampskey-id"}]
+      }
+    },
+    {
+      "id": "ote-i",
+      "type": 2,
+      "name": "Bitwardeote"
+    },
+    {
+   "id": "ex",
+    "type": 7,
+      "name": "Unsupported Card",
+        "tQGntity": {"firstName": "Example"}
+    }  ]
+}

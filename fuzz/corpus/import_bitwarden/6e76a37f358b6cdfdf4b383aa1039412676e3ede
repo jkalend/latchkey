@@ -1,0 +1,16 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exte-login-id",
+      "type": 1,
+      "name": "Bn Login",
+      "nnuesol,lnt": "login note",
+ "login": {
+        "username": "acorrect horse",
+        "totp": "otpauth://totp/Examplelice?secret=GEZDGNBVGY3TQWOJQGEZDGNBVGY/4TQOJQ&algorithm=SHA1&digitsriod=30",
+    "fiirstName": "Example"}
+    }
+  ]
+}

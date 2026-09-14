@@ -1,0 +1,10 @@
+{"items": [
+    {
+   "type": 1,
+      "name": "n",
+      "fields": [{"name": "custoed"}],
+      "login": {
+      "totp": "otpauth://totp/Examalice?se&cEZDGBVGY1QOJQe"}
+    }
+  ]
+}

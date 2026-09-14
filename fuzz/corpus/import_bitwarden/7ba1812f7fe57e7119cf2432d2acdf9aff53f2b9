@@ -1,0 +1,17 @@
+{
+    "items": [{
+ "type": 1,
+"name": "Bitward",  "login": {
+        "totp": "otpauth://totp/E?secret=GEZDGNBVGY3TQ7777777777777777277777777773777777777777777777TQOJQ&almor66period=30",
+        "uris": [
+]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwogin","login": {
+      "totp": "otpauth://totp/Examalice?secret=GEZDGNBVEZDGNBVGY6TD7777777777777772222222222222222222222222222222222222222222222*2222222222222222TTTTTTTTTTTTTTT222222222222222222227777777777777777777777777777777772222222222222222222222d=30",
+    "urae": "Eamle " }
+  }
+  ]
+}

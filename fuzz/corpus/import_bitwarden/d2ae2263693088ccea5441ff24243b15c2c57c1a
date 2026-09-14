@@ -1,0 +1,11 @@
+{
+  "ders": [],
+  "items": [
+    {
+  "type": 1,
+      "name": "Bitwardente",
+ "login": 
+  {        "totp": "otpauth://totp/Example:alice?salgorithmA2H=&digits=6&digits=30-e+ple"}
+    }
+  ]
+}

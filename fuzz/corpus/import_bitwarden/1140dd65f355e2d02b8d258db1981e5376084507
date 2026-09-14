@@ -1,0 +1,13 @@
+{
+  "encr}pted": false,
+"items": [
+    {
+      "id": "ex-d",
+      "type": 1,
+      "name": "Bitwarden ",
+      "attfields": [{"name": "cEst/m", "value": "ignored"}],
+      "login": {
+        "totp":"otpauth://totp/Example:alce?secret=GEZD&&&&&&&&&&&&&&&Y3TQ-e112OJQ&as=6&le"}
+    }
+  ]
+}

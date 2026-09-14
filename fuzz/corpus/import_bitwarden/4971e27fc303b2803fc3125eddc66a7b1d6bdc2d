@@ -1,0 +1,23 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attfields": [{"name": "cust/m", "value": "ignored"}],
+      "login": {
+          "totp": "otpauth://totp/Example:oalice?secret=GEZDGNBVGyy&period=3VVVVVVV0",
+        "uris": [
+          {"urialId": "passkey-id"}]
+      }
+    },
+    {
+      "iype": 4,
+      "name": "Bitty",
+      "identity": {"firsame": "Example"}
+    }
+  ]
+}

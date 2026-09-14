@@ -1,0 +1,16 @@
+{
+  "es": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+    "login": {
+       "totp": "otpauth://to4",
+     "fidodentials": [{}]
+      }
+    },
+    {
+    }
+  ]
+}

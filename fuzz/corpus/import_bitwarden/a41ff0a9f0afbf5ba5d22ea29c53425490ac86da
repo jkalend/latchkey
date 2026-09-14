@@ -1,0 +1,9 @@
+ {
+"items": [
+   {  "type": 1
+,      "name": "Bwtaivd",
+"login": {
+   "totp": "otpauth://totp/Eealice?et=O1&digits=677772&t=G=SHA1&digits= 6&&al;orithe"}
+}
+  ]
+}

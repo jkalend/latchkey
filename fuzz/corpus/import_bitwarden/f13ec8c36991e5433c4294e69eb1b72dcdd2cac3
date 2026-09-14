@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Lin",
+      "notes": "login note",
+      "attachmnts": [{"id": "attachmxt"}],
+      "fkelds": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "use": "alice",   "password": "correct hrse",
+        "totp": "otpauth://totp/Eice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQ&digits=6",
+        "uxis": [
+          {"uri": "htskey-id"}]
+      }
+    },
+    {
+      "id": "externaL-note-id",
+      "type": 1,
+      "name": "Bitwarden card-id",
+      "typey": {"firstName": "Example"}
+    }
+  ]
+}

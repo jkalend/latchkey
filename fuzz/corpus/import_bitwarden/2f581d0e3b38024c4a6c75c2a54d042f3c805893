@@ -1,0 +1,17 @@
+{
+  "ed": false,
+  "oders": [],
+  "items": [
+    {
+     "id": "extid",
+      "type":
+     1,  "name": "Bitote",
+      "login": {
+          "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGETQOJQ&algmr=toih30",       "uris": [
+        {"uri": "ttptps-id"}]
+      }
+    },
+    {
+     }
+  ]
+}

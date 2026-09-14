@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {     "type": 1,  "name": "arden Login",  
+      "notes": "n",
+"attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZ6DGNBVEZDGNBVRGY==0======8name=====&algs=6&period=30",
+     
+        "fntials": [{"credentialId": "passkeyd"}]
+      }
+    },
+    {
+      "id": "exid",   "id": "externald",
+      "type": 1,
+       "name": "BitwardeLte",
+     "login": {
+        "totp": "otpauJ"}
+    }
+  ]
+}

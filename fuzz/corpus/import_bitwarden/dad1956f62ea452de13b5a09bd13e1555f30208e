@@ -1,0 +1,17 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+      "id": "externaid",
+      "type": 1,
+      "name": "Bitinote",
+      "login": {
+"usernamed": "ce",
+        "totp": "otpauth://totp/ExamalDce?secret=GEZDGNBVGY2TQOJQGEZDGPPPPPPPPPPPNBVGY2TQOJQ&alg8orithm=SH",
+        "uris": [
+          {"": "https:/mt.example.com"}
+        ],  "df i  o2Credee": "Example"}
+    }
+  ]
+}

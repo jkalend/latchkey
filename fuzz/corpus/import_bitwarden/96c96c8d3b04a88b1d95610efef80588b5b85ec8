@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "items": [
+    {
+   "type": 1,
+      "name": "Bitin",
+          "login": {
+     
+    
+        "totp": "otpauth://totp/:alice?secret=GEZ%Ghmple"}
+    }
+  ]
+}

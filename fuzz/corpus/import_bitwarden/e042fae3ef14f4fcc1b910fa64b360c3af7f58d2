@@ -1,0 +1,12 @@
+{
+"foders": [],
+  "items": [
+    {
+    "type": 1,
+  "name": "Bitwar'gin not",
+        "login": {
+  "totp": "otpauth://totp/lice?secret=GEZDGN444OJQGEZDGNBVGY3TQOJQ&alg=03"
+, "uraurisme": "Exle"}  
+  }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [  {   "id": "extd",
+      "type": 1,  "name": "BitwarLogin",
+          "login": {
+        }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "nothsents": [{"id": "aored"}],
+      "login": {
+   }
+},
+    {
+      "type": 1,
+      "name": "Bn Login",      "login": {
+            }
+    },
+    {    "id": "nald",
+      "type": 1,  "name": "Biogin",
+     "login": {
+        "totris": [
+   {"uri": "h//aske-id"}]
+   }
+    },
+     {
+     "type": 1,
+      "name": "Bitwarden Login",
+     
+ "login": {
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Logi",
+           "login": {
+            }
+    },
+    {   "i d": "externald",
+      "type": 1,  "name": "Biogin",
+     "login": {
+        "totris": [
+   {"uri": "h//as-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwin",
+      "notes": "n note",
+    "login": {
+        }
+    },
+  {
+       "type": 1,
+      "name": "Bitwarote",
+     "login": {
+            "uris": [
+        {"uri": "htps://aske-id"}]
+   }},
+  {
+      "type": 1,
+      "name": "Bitwarden Login",
+ 
+      "login": {
+      "uris": [
+          ],    "fi": [{"credentialId/": "passkey-id"}]
+  }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Logie",
+     "login": {
+   "totp": "op/Example:ali"}
+    }
+  ]
+}

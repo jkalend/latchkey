@@ -1,0 +1,19 @@
+{
+  "eders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id":  "custom"}],
+      "login": {
+          }
+    },
+    {
+      "id": "external-nid",  
+    "type": 2,
+      "name": "BitwardecSe nure Note",
+      "notes": "standatotplone note"
+    } ]
+}

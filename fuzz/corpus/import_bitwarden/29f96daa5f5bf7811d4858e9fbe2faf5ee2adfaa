@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-logi-id",
+      "type": 2,
+      "name": "Bitwarden Lo",
+      "notes": "login note",
+      "login": {
+      "username": "alice/ExampExample"}
+    }
+  ]
+}

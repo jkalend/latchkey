@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+ "items": [
+    {
+      "id": "ld",
+      "type": 1,
+      "name": "Bitogin",
+      
+     "login": {
+    "totp": "otpauth://totp/Example:al&&&t^^^&&&&&&&&?seet=GHA0&digits=860wrample"}
+    }
+  ]
+}

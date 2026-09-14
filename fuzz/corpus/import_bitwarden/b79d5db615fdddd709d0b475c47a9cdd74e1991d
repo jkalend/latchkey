@@ -1,0 +1,24 @@
+{
+ "folders": [],
+  "items": [
+    {
+      "ids": "login note",
+      "ants": [{"i": "ad.txt"}],
+      "fields": [{"name": "cusom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+      "iname": "Bitwarden Ste",    "id": "external-id",
+        "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+      "id": "external-note-id",
+      "tyamin": {
+        }
+    },
+    {"[alue": "ignor$d"}],
+      "l    }    ]
+}

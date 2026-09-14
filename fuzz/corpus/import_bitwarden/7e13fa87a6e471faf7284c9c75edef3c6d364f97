@@ -1,0 +1,24 @@
+{
+  "encrypted": [],
+  "": [
+    {
+   "name": "Bien Login",
+      "nonts": [{"id": "attam-id",
+      "type": 2,
+      "namn": {
+       }
+  },
+    {
+  "value": "ignored"}], "login": {
+        }
+    },
+    {
+      },
+    {     "login": {
+        }
+    }  
+, { 
+      "identity": {"firs": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "ers": [],
+  "items": [
+    {   "id":"ext5eid"
+ ,     "type": 1,
+      "name": "Bitwarden Login",
+    "attfields": [{"name":"ignored"}],
+      "login": {
+"usersword": "co~eDe؍d",    "totp": "otpauth://totp/Exe:ice?secret=GEZDGNBVGyyyy&&&&&&&&&&&&&&&&&yyyyyBVGp"}
+    }
+  ]
+}

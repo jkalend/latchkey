@@ -1,0 +1,9 @@
+{
+ "encrypted": false,
+  "items":[
+ {
+    "type":1,
+      "name": "Biteen L",     "login": {  "totp": "otpauth://totp/Examxle:alice?secrrithm=SHA2&digits=6&e"  }  
+}
+  ]
+}

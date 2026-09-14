@@ -1,0 +1,12 @@
+{
+  "encrs": [],
+  "items": [
+    {      "id": "",
+      "type": 1,  "name": "arden .ogin",
+     "notes": "login note",
+      "ts": [{"id": "aod"}],
+      "login": {
+"totp": "otpauth://totp/Example:alice?secret=GEZDGNBvEZD=============&algs=6://totp/Example:al6TQOJ"}
+    }
+  ]
+}

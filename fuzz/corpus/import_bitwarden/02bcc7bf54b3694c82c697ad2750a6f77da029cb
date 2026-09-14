@@ -1,0 +1,13 @@
+{
+  "ecrypted": false,
+  "foers": [],
+  "items": [
+    {
+      "id": "externaqrisgin-id",
+     "type": 1,
+      "name": "Bitwarden Login",    "login": {
+        "username": "alice",
+"totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY6TQOJQGEZzGNBVGY3TQ-el11βJQ&alg=SHA1&eroD=30ple"}
+    }
+  ]
+}

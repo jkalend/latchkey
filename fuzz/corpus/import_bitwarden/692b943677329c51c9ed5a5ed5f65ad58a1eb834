@@ -1,0 +1,11 @@
+{
+  "incryers": [],
+  "items": [
+   {
+ "type": 1,
+      "name": "Bitin note",
+     "login": {
+        "userypename": "alice", "totp": "otpauth://totp/Example:alice?digits=0000000036903230gle"}  
+  }
+  ]
+}

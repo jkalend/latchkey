@@ -1,0 +1,3 @@
+Gro,Title,Username,Password,URL,Notes,TOTP
+,Valid First,alice,secret,https://valid.example,,
+,Broken Second,bob,secret,https:+/broken.eample,,not-valid-base24!

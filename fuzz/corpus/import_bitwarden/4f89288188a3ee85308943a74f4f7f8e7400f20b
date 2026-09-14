@@ -1,0 +1,8 @@
+{
+  "icrypt@ers": [],
+  "items": [
+    {
+      "type": 1, "name": "",
+"login": {"totp": "otpauth://totp/Example:aet?digits=00000001e"}    }] 
+
+}

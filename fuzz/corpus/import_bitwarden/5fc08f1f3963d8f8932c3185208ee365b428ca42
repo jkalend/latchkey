@@ -1,0 +1,14 @@
+{
+ "folders": [],
+  "items": [
+    {
+     "ld": "l-login-id",
+      "type": 1,
+      "name": "Bte",
+ "attamens": [{"id": "att", "filgName": "ignored.txt"}],
+      "login": {
+
+    "totp": "otpauth://totp/Exae?sTQ22:222222thm=SHA1&period=&&pple"}  
+  }
+]
+}

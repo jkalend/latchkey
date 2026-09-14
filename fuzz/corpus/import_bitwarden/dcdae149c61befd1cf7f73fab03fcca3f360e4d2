@@ -1,0 +1,11 @@
+{ "folders": [],
+  "items": [
+    {   "type": 1,
+      "name":"i teiB",
+    "login": {
+      "totp": "otpauth://totp/Ex?digits=1111110111e?secr=S0",
+        "uris": []
+      }
+        }
+  ]
+}

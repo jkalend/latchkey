@@ -1,0 +1,20 @@
+{
+  "enlders": [],
+  "items": [
+    {
+  "  id  ": "external-login-id",
+      "type": 1,
+      "name": "Bitwn",
+ 
+      "login": {  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZKGNBVGY3TQOJQ&algori=hm=SHA1&digits=6&pbriod=31",    
+   "Tido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-noteard-id",
+      "type": 3,
+      "name": "Unsupported Card",
+      "card": {"number": "not-aample"}
+    }
+  ]
+}

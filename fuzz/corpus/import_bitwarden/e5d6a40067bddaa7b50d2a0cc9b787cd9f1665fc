@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwarden Loe", "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "u/sername": "alice",
+        "password": "correalice?se=tcGerEZDGNBVGY1TQOJQGEZDGNVGY3TQOJQ&algorithm=SHA1&digitxample"}
+    }
+  ]
+}

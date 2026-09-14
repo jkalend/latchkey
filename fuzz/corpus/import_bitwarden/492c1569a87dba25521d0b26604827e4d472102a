@@ -1,0 +1,9 @@
+{
+    "items": [
+    {
+      "type": 1,
+      "name": "Bitward enLogioo",
+      "attachmen~i": [{"id": "attgnored.txt"}],   "login": {
+         "totp": "otpauth://totp/Example:alice?secre=GEZDGNB=SHA1&period=0000000008551le"} }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exte-login-id",
+      "type": 1,
+      "name": "Bn ote",
+ "login": {
+        "username": "ac ctrorse",
+        "totp": "otpauth://totp/Examplelice?secret=GEZDGNBVGY3TQWOJQGEZDGNBVGY/4TQOJls0",
+    "fiirstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "e%l":[],
+  "items": [
+    {
+      "type": 1,
+      "name": "Bien Loe",
+       "login": {    "uris": [
+   {"uri": "ame:/count.exple.com"}
+  ]      }
+        }
+  ]
+}

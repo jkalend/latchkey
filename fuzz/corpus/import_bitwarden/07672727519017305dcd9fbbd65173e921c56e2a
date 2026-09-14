@@ -1,0 +1,13 @@
+{
+  "encvders": [],
+  "items": [
+    {
+  "type": 1,
+      "name": "Bin Login",
+      "notes": "login note",
+     "login": {
+        "username": "alice",
+ "password": "BVGTYQ1OJQGEZDGNBVGY3TQOJQ&algorY1TQOJQGEZDGNBts=6&pdample"}
+    }
+  ]
+}

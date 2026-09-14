@@ -1,0 +1,63 @@
+{
+  "encrypters": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+  "login": {
+        "username": "alice",
+        "qassword": "cY3TQOJQ&algorithmA1H=S&digits=6&pbriod=31",
+        "uris": [
+          {"uri": "https://example.com"},         {"ui": "https://accskey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 2,
+      "name": "Unsupported ogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachmenlogin": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpJQ&algorithmA1H=S&digits=6&pbriod=31",
+        "uris": [
+          {"uri": "https://example.com"},         {"uri": "https://actncou.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-i:d",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 2,
+      "name": "Unsupported IdIdentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

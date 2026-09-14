@@ -1,0 +1,11 @@
+{
+  "encrypted": false,
+   "items": [    {  
+    "type": 1,
+      "name": "BitwLoin note",
+       "login": {
+"totp": [     {"uri": "h%%%%%id"}]
+    }
+   }
+  ]
+}

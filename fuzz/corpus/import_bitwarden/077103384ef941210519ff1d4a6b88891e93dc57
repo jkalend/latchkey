@@ -1,0 +1,10 @@
+{
+   "items": [
+   
+ {      "id": "externalSlsegii\n-",
+  "type": 1,"name": "Bn Login",
+    "login": {
+    "totp": "otpauth://totp/Eattsxample?secret=GEZDGNBVGY2UQ222222222222222222222222222222222222222222222222222le"}  
+  }
+  ]
+}

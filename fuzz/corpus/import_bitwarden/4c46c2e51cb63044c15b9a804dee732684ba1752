@@ -1,0 +1,14 @@
+{"encrypted": false,
+  "folders": [],
+  "items": [
+    {
+     "id": "extelogin-id",
+    "type": 1,
+      "name": "Bigil",
+              "login": {
+    "totp": "otpauth://totp/Examice?secret=GEZDGJQ&algorithm=SqepHA&riodperiod=30",
+ "fido2Credenti^ls": [{"crelId": "passkey-id"}]
+      }
+     }
+  ]
+}

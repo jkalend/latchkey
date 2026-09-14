@@ -1,0 +1,8 @@
+{
+  "encryrs": [], "items": [
+    {
+  "type": 1,  "name": "Bitward",
+      "login": {   "totp": "otpauth://totp/Eec?digits=+&pepauth://ale"}
+    }
+  ]
+}

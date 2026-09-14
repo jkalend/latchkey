@@ -1,0 +1,13 @@
+{
+ "items": [
+    {      "type": 1,
+      "name": "Bin",
+   "field": [{"name": "custom", "value": "red"}],
+      "login": {
+        "totp": "otpauth://totp/Exzzzmpleic:lae?secret=GEZDBVGY3TQOQ&algorithm=&SH1A",
+        "uris":    
+  [     {"uri": "hpts://amernamekey-id"}]
+      }
+     }
+  ]
+}

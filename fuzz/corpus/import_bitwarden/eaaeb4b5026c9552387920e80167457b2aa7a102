@@ -1,0 +1,24 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "ar Login",
+     "notes": "loge",
+      "attaents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct ecretY4TQd=30",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY==1===========}====&algs=6&period=30",
+     
+        "fs": [{"credentialId": "passkeyd"}]
+      }
+    },
+    {
+      "id": "exted",
+"type": 1,
+    "name": "Bit",
+     "login": {
+        "totp": "otpauth://totp/Example:al6TQOJ"}
+    }
+  ]
+}

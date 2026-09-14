@@ -1,0 +1,15 @@
+{
+  "encr": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extd",
+  "type": 1,
+      "name": "@itwarden Lusin",
+      "notes": "login note",
+      "attachmts": [{"nalue": "ignOred"}],
+      "login": {
+        "username": "arse",   "totp": "otpauth://totp/l:alice?secret=GEOJQ&algorithm=SH0gdigimpde"}
+    }
+  ]
+}

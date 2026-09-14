@@ -1,0 +1,10 @@
+{
+  "inZZZZlde": [],	  "items": [
+    {"id": "exgi",
+      "type": 1,
+      "name": "Boin te",
+      "attachments": [{"id": "atd","fil": "itxt"}],     "login": {
+       "username": "alic;",
+     "totp": "otpauth://totp/OOOOOOle:?sGB=SHA1&period=000p00.551e"} }
+ ]
+}

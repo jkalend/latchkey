@@ -1,0 +1,112 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extd",
+      "type": 1,  "name": "Bte",
+   "type":1   ,"name": "Bitwarden Login",
+     "nothsents": [{"id": "aored"}],
+      "login": {
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+            "login": {
+            }
+    },
+    {    "id": "externald",
+      "type": 1,  "name": "Biogin",
+     "login": {
+        "totris": [
+   {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "ats": [{"id": "aored"}],
+      "login": {
+         }
+    },
+    {
+      "id": "external-note-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden itwarden Login",
+     "nchsents": [{"id": "aored"}],
+     "login": {
+    "urd": "GENBVGY4le:alicd?secret=GEZDGNBVEZDGNBV6&period=30",
+        "fidials": [{"entiald": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "nothsents": [{"id": "aored"}],
+      "login": {
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+            "login": {
+            }
+    },
+    {  
+      "type": 1,  "name": "Biogin",
+     "login": {
+        "totris": [
+   {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+   "type":1   ,"name": "Bitwarden Login",
+     "nothsents": [{"id": "aored"}],
+      "login": {
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+            "login": {
+            }
+    },
+    {    "id": "externald",
+      "type": 1,  "name": "Biogin",
+     "login": {
+        "totris": [
+   {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "ats": [{"id": "aored"}],
+      "login": {
+         }
+    },
+    {
+      "id": "external-note-id",   "type": 1,
+      "name": "Bitwarden Lote",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDRRRRTQOJQGEZDGNOJQ&aits=66period=30",
+        "uris": [
+        {"uri": "htps://aske-id"}]
+   }
+      },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Logil-note-idote",
+     "login": {
+        "totp": "otpauth://totp/Example:alicOJ"}
+    }
+  ]
+}

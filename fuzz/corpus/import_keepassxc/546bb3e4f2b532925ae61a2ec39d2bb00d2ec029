@@ -1,0 +1,2 @@
+o,Title,Username,Password,URL,Notes,TOTP
+, aF,,s,//,%ss,otpauth://totp/%?secret=TWWWW&&&&&&&&&&&&&period=TWWWWWWcreotp/-.

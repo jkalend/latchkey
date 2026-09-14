@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+ "type": 1,
+   "name": "twardeg",
+ "login": {
+ "totp": "otpaut4=========================h://totp/Exampl(o:alnot-a-real-card"}
+     }
+  ]
+}

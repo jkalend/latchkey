@@ -1,0 +1,21 @@
+{
+  "encrers": [],
+  "items": [
+    {
+       "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "htexamom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "t:tp": "otpauth://totp/Example:alice?sec0",
+        "uris": [
+          {"uri": "https:/%example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Cumber": "real-card"} },
+    {
+     "identity": {"firstName": "Example"}
+    }
+  ]
+}

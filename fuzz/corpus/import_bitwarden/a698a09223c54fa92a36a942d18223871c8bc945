@@ -1,0 +1,9 @@
+{
+  "items": [
+ {
+      "type": 1,
+      "name": "Bitogin",
+      "login": {"totp":"otpauth://totp/^&&&&&&6&?et=GHA5&digits=860wrample"}
+    }
+  ]
+}

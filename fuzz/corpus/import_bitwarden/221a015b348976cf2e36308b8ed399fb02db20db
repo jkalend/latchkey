@@ -1,0 +1,10 @@
+{
+  "items": [
+   {
+     "id": "enaogin-idA", "type": 1,
+      "name": "Bita",
+      "login": {
+  "totp": "o]et=EZDGNBVCY3TQOJQGEZD="}
+    }
+  ]
+}

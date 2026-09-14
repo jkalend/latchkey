@@ -1,0 +1,18 @@
+{
+   "fol": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Logingip note",
+      "attments": [{"id": "nored.txt"}],
+  "login": {
+    "username": "e",
+        "password": "correrd"}
+    },
+    {
+ 
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

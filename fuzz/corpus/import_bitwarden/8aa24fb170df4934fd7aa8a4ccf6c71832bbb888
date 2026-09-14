@@ -1,0 +1,36 @@
+{
+  
+  "folders": [],
+  "items": [
+    {      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "corre//totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+  "uris": [
+          {"uri": "httpm"},
+          {"uri": "h"}
+        ],
+        "fido2Credentials": [{"credentiald": "passkey-id"}]
+      }
+    },
+    {
+      "id": "externalnt-oe-id",
+      "tid": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Log+in",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horsOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https.com"}
+        ],
+        "f": "Example"}
+    }
+  ]
+}

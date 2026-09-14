@@ -1,0 +1,49 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": ".Bitwarden Login",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "c=GENfiCod3ts=algvrithgits=6&period=30",
+        "urisredentials": [{"credentitypealId": "passkey-id"}]
+      }
+     },
+    {
+      "type": 1,
+ "name": "Bitwardote",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Loote-id",   "id": "xternald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDRRRRRRRRRRRRRRRRRRRRRRRRRRRTQ",
+"uris": [
+        {"uri": "htps://aske-ie-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Be",
+      "nts": [{"id": "aored"}], 
+     "login": {
+    "totp": "otpauth://totp/Example:alictotp/Example:alice?secret=GEZDRRRRRRRRRRRRRRRRRRRRRRRRRRRTQ",
+"uris": [
+        {"uri": "htps://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarte",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDY6TQOJ"}
+    }
+  ]
+}

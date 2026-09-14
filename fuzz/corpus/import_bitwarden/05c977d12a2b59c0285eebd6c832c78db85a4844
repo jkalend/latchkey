@@ -1,0 +1,12 @@
+{
+  "encry": [],
+  "items": [
+    {
+      "id": "-log0id",
+  "type": 1,
+      "name": "Bitwarden Log",
+      "login": {
+"totp": "otpauth://totp/zzzzzzzze?seet=GEZG1TQOJQGY3TQ1&di"}
+    }
+  ]
+}

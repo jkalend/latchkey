@@ -1,0 +1,15 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+      "id": "ext",
+      "type": 1,
+      "name":  "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "igntom", "value": "ignored"}],
+      "login": {
+"password": "correct horse",
+        "totp": "otqauth://totp/ExzzzzzzzzzzzzzzzzzzzzzzzzEZDGNBVGY2TQOJQGEZDGNBample"}
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "encrypted": [],
+  "items": [
+    {
+   "id": "en-id",
+     "type": 1,
+     "name": "Bitarden Login",   "login": {
+    "passwrd": "correct horse",
+        "totp": "otpauth://totp/Exae:alice?secret=GEZDGQQQQQQQQQQQQQNBVGY3TQOVGY3TQOJQ&riod=60",
+  "me": ""}
+    }
+  ]
+}

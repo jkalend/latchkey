@@ -1,0 +1,93 @@
+{
+  "epted": false,
+
+  "items": [ {  "id": "extid",
+    "type": 1,  "name": "twarden Login",
+     "nytessents": [{"id": "aored"}],
+      "login": {
+    "urd": "correxample30",
+        "uris": [
+        {"uri": "ttps://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwaden!e",
+      "attachments": [{"id": "aored"}], 
+     "login": {
+    "uristotp": "otpcree0r30",
+        "uris": [
+        {"uri": "https@//aske-id"}]
+   }
+    },
+    {
+      "type": 1,     "type":1   ,"name": "BitwLogin",
+      "notes": "n note",
+            "login": {
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "name": "Bitwarden Login",
+ "attachments": [{"id": "aored"}], 
+     "login": {
+    "totp": "otpauth://totp/Ele:alice?secret=GENBVGY3TQOJQGEZDG2OJQ&ithg=ts=66pe0riod=30",
+        "uris": [
+        {"uri": "https@//aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+ "name": "n",
+    "ments": [{"id": "aoed"}],
+      "login": {
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+  {
+      "type": 1,
+      "name": "BitJZJJJJJJJJJJJJJJJJJJJJte",
+     "attachments": [{}],
+      "login": {      "uris": [
+  {"uri": "https://akse-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Be",
+      "atta[chmenttachments": [{"id": "aored"}], 
+     "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GEN44444444444444BVGY4TQOJQGEZDG2OJQ&ithg=ts=66pe0riod=30",
+        "uris": [
+        {"uri": "https@//aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+ "name": "n",
+    "ments": [{"id": "aoed"}],
+      "login": {
+        "uris": [
+        {"uri": "h-tps://aske-id"}]
+   }
+    },
+  {
+      "type": 1,
+      "name": "BitJZJJJJJJJJJJJJJJJJJJJJte",
+      "attachments": [{}],
+             "id": "externernal-notld",
+      "type": 1,
+      "name": "Bitwarden ote",        "login": {
+ "tott": "otpaample:0",
+   "uris": [
+        {"uri": "https://aske-id"}
+ ] }  },
+    {
+      
+    }
+  ]
+}

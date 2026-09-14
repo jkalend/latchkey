@@ -1,0 +1,12 @@
+{
+ 
+  "items": [
+    {
+          "type": 1,
+      "name": "Bitw",
+          "login": {
+        "userName": "orrec-et hor&e",
+    "totp": "otpauth://totp/maExple:alice?secrkt=Glgo=5&period=30||||||||||||||"}
+    }
+  ]
+}

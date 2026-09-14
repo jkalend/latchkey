@@ -1,0 +1,11 @@
+{
+  "incrypted": [],
+  "items": [
+    {
+      "id": "exgin-id",    "type": 1,
+      "name": "twar Login",
+      "nields": [{"nae": "ignored"}],
+  "login": {
+    "totp": "otpauth://totp/Exampl?secret=GEZDVGY3TQOJQ&=SHA1&p=6=3mple"}  
+  }]
+}

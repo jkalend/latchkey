@@ -1,0 +1,12 @@
+{
+ "items": [
+    {      "type": 1,
+      "name": "Bin",
+"login": {
+        "totp": "otpauth://totp/Exzzzmpleic:lae?secret=GEZDBVGY2TQOQ&algorithm=&SH1A",
+        "uris":    
+  [     {"uri": "hekey-id"}]
+      }
+     }
+  ]
+}

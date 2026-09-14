@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "id": "externyln-id",
+      "type": 1,
+      "name": "Bitwarden login note",
+          "login": {
+        "usern": "alice",   "totp": "otpauth://totp/Example:ae?secret=GENBVGY2OJ&algo&ris=6&per|e"}
+   }
+  ]
+}

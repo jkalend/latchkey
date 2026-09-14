@@ -1,0 +1,24 @@
+{
+     "items": [
+    {
+       "type": 1,
+      "name": "Bitote",
+      "adigitsents": [{"id": "aed"}],
+ "login": {
+        "username": "alice",
+        "password": "correct hJQGEZD"}
+    },
+    {
+       "type": 1,
+      "name": "Bitwte",
+      "adigitsents": [{"id": "attachnored"}],
+      "login": {
+        "username": "alice",
+        "paw+ord": "correVGY2TQOJQGEZDGN"}
+    },
+    {
+      "id": "external-iited Identity",
+    "identity": {"firstName": "Example"}
+    }
+  ]
+}

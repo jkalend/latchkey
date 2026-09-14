@@ -1,0 +1,50 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "arden Login",
+     "notes": "login note",
+      "atype": 1,
+      "name": "",
+      "noattachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algs=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkeyd"}]
+      }
+    },
+    {
+      "id": "external-note-id",   "id": "externald",
+      "type": 1,
+ "id": "external-note-id",   "id": "externald",
+         "name": "",
+      "login": {
+    "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",   "id": "externald",
+      "type": 2,
+      "name": "",
+      "notes": "n not",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totpuffff \uffff\uffffz": "otpauth://totp/Example:alice?secret=BVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentkals": [{"credentialId": "payisse-kd"}]
+      }
+    },
+    {
+      "id": "exttid",
+     "notes": "login note",
+ 
+      "ogin":  {  
+ "urd": "coJ"}
+    }
+  ]
+}

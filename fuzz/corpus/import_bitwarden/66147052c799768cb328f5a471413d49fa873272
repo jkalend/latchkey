@@ -1,0 +1,16 @@
+{
+  "ecrypted": false,
+  "foers": [],
+  "items": [
+    {
+      "id": "external-login-id",
+     "type": 1,
+      "name": "Bitwarden Login",
+      "nots": "le",    
+      "login": {
+        "username": "alice",
+"totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY6TQOJQGEZDGNBVGY3TQ-el11βJQ&algothm=SHA1&erioD=30",
+  "firstName": "Example"}
+    }
+  ]
+}

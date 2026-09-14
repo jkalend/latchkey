@@ -1,0 +1,11 @@
+{
+ 
+  "items": [
+ {
+
+      "type": 1,
+      "name": "n",
+       "login": {
+    "totp": "otpauth://totp/:al,ice?period=GEZDG%BVple"} }
+  ]
+}

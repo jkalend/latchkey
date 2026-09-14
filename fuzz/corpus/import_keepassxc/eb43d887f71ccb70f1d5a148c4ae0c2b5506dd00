@@ -1,0 +1,2 @@
+,Title,Username,Password,URL,Notes,TOTP
+,t,,ee,iL,es,otpauth://totp/2=?=&&&&&&&&&&&&&&&&&&&&&.

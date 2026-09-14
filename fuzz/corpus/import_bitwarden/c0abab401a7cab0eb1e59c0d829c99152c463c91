@@ -1,0 +1,38 @@
+{
+  "eners": [],
+  "items": [
+    {
+      "id": "eogin-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "lze",
+      "attachments": [{"id": "atignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Examplee?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algori=hm=SHA1&digits=6&pbriod=31",
+        "uris": [
+      ],
+     "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+     "type": 2,
+      "name": "Be Note",
+      "notes": "standalone note"
+    },
+  {
+      "id": "external-card-id",
+      "type": 3,
+      "name": "Un Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+  "notes": "login nol-identity-id",
+      "type": 2,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

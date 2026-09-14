@@ -1,0 +1,17 @@
+{
+  "enc": [],
+  "items": [
+    {
+"i,d": "ehternal-log",
+    "type": 1,
+      "name": "Bitwarden L",
+  "login": {
+        "username": "alice",
+       "totp": "GEZriod=28",
+        "uris": [
+      {"uri": "nt.example.com"}
+        ],
+        "fidomber": "not-mple"}
+    }
+  ]
+}

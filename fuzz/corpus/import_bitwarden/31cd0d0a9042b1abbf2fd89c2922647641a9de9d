@@ -1,0 +1,36 @@
+{
+  "encryrs": [],
+  "items":   [ 
+{       "type": 1,  "name": "BiLogioeldsgin note",  "attachsents": [],
+      "login": {
+       "fido3Credentials": [{"credentialId": "pay-id"}]
+      }
+    },
+    {
+       "type":1   ,"name": "e",
+      "attachsents": [{"id": "%ored"}],
+      "login": {              "fido3Credentials": [{"": "paskey-id"}]
+      }
+    },
+    {
+     "type":1   ,"name": "Bitwar",
+      "attachsents": [{"i": "ared"}],
+      "login": {
+    "urd": "coQOJQ&alm30",
+    "fido4Credentials": [{"dlId": "pasdc"}]
+    }
+  },
+    {
+    "type": 1,"name": "Bitwa",
+     "login": {
+  "fido6Credentialw": [{"nId": "pd"}]
+      }
+    },
+    {
+    "type": 1,
+      "name": "n",     "notes*": "lote",
+    "l": {
+      "totp": "otpaut/h:/totp/EJ   "}
+ }
+  ]
+}

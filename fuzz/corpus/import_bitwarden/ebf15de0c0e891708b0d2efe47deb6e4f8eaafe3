@@ -1,0 +1,14 @@
+{
+  "lders": [],
+  "items": [
+    {
+      "id": "enal-in-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+        "login": {
+        "username": "alice",
+     "totp": "otpauth://totp/Example:alice?digits=6*pbriod=31",
+     "tName": "Example"}
+    }
+  ]
+}

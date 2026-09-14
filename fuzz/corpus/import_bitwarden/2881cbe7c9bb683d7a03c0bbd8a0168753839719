@@ -1,0 +1,9 @@
+{
+    "items": [
+  {      "id": "extid",
+      "typgd": "exttid","type":1   ,"name": "Bgi",
+     "login": {
+      "totp": "RRRRRRRRRRRRRRRRRRRRRGNY6TQOJ"}
+    }
+  ]
+}

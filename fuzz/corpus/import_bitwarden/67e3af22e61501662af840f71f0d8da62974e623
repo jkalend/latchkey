@@ -1,0 +1,22 @@
+{
+  "encrylders": [],
+  "items":   [ 
+{       "id": "extid",
+      "type": 1,  "name": 1   ,"name": "Bitin",
+ "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+  "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZD",
+        "ur": [{"credentialId": "pasd"}]
+      }
+    },
+    {
+    "type": 1,
+    "name": "Bitwarden gin",
+      "notes*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY5TQOJ"}
+    }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+  "enlders": [],
+  "items": [
+    {
+  "type": 1,
+      "name": "Bitwn",
+ 
+      "login": {  "totp": "otpauth://totp/Example:alice?secr=GEZGY3TQOJQ&algori=hm=SHA1ts=6&pbriod=31",    
+   "Tido2Credntials": [{"credenalId": "pasky-id"}]
+      }
+    },
+ {
+  }
+  ]
+}

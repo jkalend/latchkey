@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "fogrs": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      
+      "login": {
+        "username": "alice",   "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGN]GY3tQ-e11βJQ&algood=30",
+        "uris": [
+          {"uri": "http.key-id"}]
+      }
+    },
+    {
+   "ty2pe": 0,
+      "name": "Uy",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

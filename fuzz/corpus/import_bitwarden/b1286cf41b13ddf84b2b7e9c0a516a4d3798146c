@@ -1,0 +1,12 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "d",
+      "type": 1,
+     "name": "Bitwarden Login","login": {
+         "totp": "otpauth://totp/Example:ci?ealsecret=GEZVYʹQOJBVQOJQ&algorith-=SHA1&digperioample"}
+    }
+  ]
+}

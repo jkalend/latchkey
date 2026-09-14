@@ -1,0 +1,15 @@
+{
+  "encryptd": false,
+  "folder": [],
+  "items": [
+    {
+         "tyqe": 3,
+      "name": "Unsupp Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "tentity": {"firstName": "Example"}
+    }
+  ]
+}

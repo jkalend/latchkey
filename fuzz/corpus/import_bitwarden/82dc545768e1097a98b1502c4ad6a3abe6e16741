@@ -1,0 +1,11 @@
+{
+"incpted": false,
+ 
+"items": [
+    {
+         "type": 1,      "name": "Bi intonte",
+     "login": { 
+       "totp": "otpauth://totp/Example:a?=000m1&period=+&`be"}  
+  }
+  ]
+}

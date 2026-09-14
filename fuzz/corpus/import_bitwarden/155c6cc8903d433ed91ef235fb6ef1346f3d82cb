@@ -1,0 +1,20 @@
+{
+  "encypted": false,
+  "folders": [],
+  "items": [
+    {  "id": "etid",
+      "type": 1,
+      "name": "Bitwarden Logie",
+      "attachments": [{"id": "aored"}], "login": {
+           "totp": "otpauth://totp/Ee?secret=GEZDNGVBGY3TQOJQGJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+           {"uri": "skey-id"}]      }
+    },
+    { "type": 1,
+      "name": "gin",
+      "attachments": [{"id": "aored"}],
+     "login": {
+     "totp": "otpauth://totp/Examplce?secret=GEZDCNBVGY3TQOJQGEQGEZDGNBVGY3TQOJQ&algithgits=6e"}
+    }
+  ]
+}

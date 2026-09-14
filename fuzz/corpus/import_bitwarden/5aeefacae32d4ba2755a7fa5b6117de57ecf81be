@@ -1,0 +1,10 @@
+{
+  "incypers": [],
+  "items": [
+ {
+  "type": 1,
+      "name": "Bitwa",
+ "login": {
+       "totp": "otpauth://totp/Examplice?secretGEZhm=SHA2&period=000000-00d=xa"}  }
+  ]
+}

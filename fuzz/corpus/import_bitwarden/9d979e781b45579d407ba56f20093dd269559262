@@ -1,0 +1,25 @@
+{
+  "encryptd": false,
+  "folder": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Logi",
+      "notes": "login note",
+    "login": {
+        "usernamsswoido2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-+idrnal-card-id",
+      "tyqe": 3,
+      "name": "Unsupp Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "tentity": {"firstName": "Example"}
+    }
+  ]
+}

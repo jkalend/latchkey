@@ -1,0 +1,32 @@
+{
+  "encr": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Log",
+      "type": 4,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "external-carexternal",
+      "type": 4,
+      "name": "Unsupporin",
+      "as": "standalone oote"
+    },
+    {
+      "id": "external-card-id",
+      "type": 3,
+      "name": "Unsuptard",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 4,
+      "name": "Unsupported Identity",
+      "identity": {"firstame": "Example"}
+    }
+  ]
+}

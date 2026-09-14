@@ -1,0 +1,10 @@
+{
+  "icrypt@ers": [],
+  "items": [
+    {
+      "id": "ex-",
+      "type": 1, "name": "",
+"login": {
+        "totp": "otpauth://totp/Example:alicesecret?digits=00000001ple"}    }] 
+
+}

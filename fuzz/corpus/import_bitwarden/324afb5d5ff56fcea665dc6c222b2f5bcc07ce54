@@ -1,0 +1,19 @@
+{
+  "encrypt": [],
+  "items": [
+    {     "type": 1,
+      "name": "BitwardLogin",
+      "noteents": [{"id": "attac.mgnxt"}],
+     "login": {
+        "userme": "alice",
+       "totp": "otpauth://totp/Example:al&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&ice?seet=GEZDGNBVGY1TQOJQGEZDGNBVGY3TQOJQ&algoritonesthm=SHA1&digits=860wrierin",
+            "uris": [
+          {"uri": "httpaccount.examplid"}]
+      }
+    },
+    {
+      "id": "external-no-id",
+   "typey": {"firstName": "Example"}
+    }
+  ]
+}

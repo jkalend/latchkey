@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "f": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "BitwLogin",
+   "login": {      "username": "alice",   "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGN]GY3tQ-e11βJQ&algood=30",
+    "uris": [
+          {"5ri": "http.key-id"}]
+      }
+  }
+  ]
+}

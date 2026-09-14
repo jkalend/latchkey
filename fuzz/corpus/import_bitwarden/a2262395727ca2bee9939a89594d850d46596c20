@@ -1,0 +1,17 @@
+{
+  "ypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extesnal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"value": "ignored"}],
+      "login": {
+        "[diypted": "a,ice",
+        "password": "c horse",  
+      "totp": "otpauth:/otpauth:///totp/Exampiod=3xample"}
+    }
+  ]
+}

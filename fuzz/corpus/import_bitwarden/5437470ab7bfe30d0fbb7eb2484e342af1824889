@@ -1,0 +1,14 @@
+{
+  "encrypperiodted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extern[id",
+      "type": 1,
+  "name": "Bitin note",
+    "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+          "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY/TQOJQGEZDample"}
+    }
+  ]
+}

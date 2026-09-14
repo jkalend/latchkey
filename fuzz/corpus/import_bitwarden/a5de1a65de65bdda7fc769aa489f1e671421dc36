@@ -1,0 +1,8 @@
+ {
+"items": [
+   {   "type": 1,  "name": "Bwivd",
+"ats": [{"e": "cucto"}],"login": {
+   "totp": "otpauth://totp/e?titS=mHhA1&digits=677777244&agihm=SHA1&digits=3555577772&t=GEA1&digits=677777244&=SHA1&digits=355577772&se"}
+}
+  ]
+}

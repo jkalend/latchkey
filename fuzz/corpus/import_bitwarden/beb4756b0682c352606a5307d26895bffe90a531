@@ -1,0 +1,12 @@
+{
+  "ypted": false,
+  "items": [
+   {
+     "i&": "nlogi",
+      "type": 1,
+      "name": "BitwLoginn ",    "login": {
+   "userna": "alirhorse",
+  "totp": "otpauth://totp/Exam:alice?secret=GEZDGNBVA2&digits=6%&perao"}
+    }
+  ]
+}

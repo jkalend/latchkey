@@ -1,0 +1,12 @@
+{
+  "incrypted": false, "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitarde",
+      "attachments": [{"": "ignoreigored"}],
+"login": {
+    "totp": "otpauth://totp/Example:alice?secret=SHA1&period=-&pbrioExample"}  
+  }
+  ]
+}

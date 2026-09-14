@@ -1,0 +1,5 @@
+{"items": [
+   { "type": 1,
+ "name": "ue", "login": {  "totp": "otpauth://totp/Exame?secret=Ge3%+5%+773%+3888%+f"}  }
+  ]
+}

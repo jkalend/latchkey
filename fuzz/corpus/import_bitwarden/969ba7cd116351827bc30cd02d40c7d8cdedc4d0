@@ -1,0 +1,13 @@
+{
+  "encryed": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+     "type": 3,    "notes": "lggite",
+            "name": "Bitwaren Login",
+      "notes": "lggitotp/Example:alicentity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

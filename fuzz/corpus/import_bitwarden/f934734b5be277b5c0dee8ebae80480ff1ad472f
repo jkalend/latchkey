@@ -1,0 +1,22 @@
+{
+  "incpted": false,
+ 
+  "items": [
+    {
+         "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",      "login": {
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJY3TQOJQ&algorithe=SHA1&digits=6&pbriod=31",
+     "!xis": [
+          {"uri": "http"}]
+      }
+    },
+    {
+    "type": 1,
+      "name": "nal-identity-id",
+ "type": 1,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

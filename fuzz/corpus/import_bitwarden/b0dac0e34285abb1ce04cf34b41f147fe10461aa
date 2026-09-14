@@ -1,0 +1,51 @@
+{  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "Bitwarden Lte",
+    "atachsents": [{"id": "aored"}],
+      "login": {
+   }
+    },
+    {
+      "type": 1,
+   "name": "Bitwarden Login",
+     
+            "login": {
+        "fido3Credentials": [{"credentialId": "ey-id"}]
+      }
+    },
+    {
+      
+      "type": 1,
+      "name": "Bitwarden Login",
+     "login": {
+        "tott": "ot=GEZGDiod=30",
+     "uris": [
+   {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+ "attachts": [{"id": "aored"}], 
+     "login": {
+    "totp": "GEZDRRRRRRRRRRRRRRRRRRRRRRRRRRRTQ",
+"uris": [
+        {"uri": "htps://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bin Login",
+      "notes": "n note",
+         "login": {
+      "uris": []
+  }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Logil-note-idote",
+     "login": {
+        "totp": "otpauttEZ!DY6TQOJ"}
+    }
+  ]
+}

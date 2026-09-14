@@ -1,0 +1,16 @@
+{
+ "items": [
+    {
+      "idtype": "exterjal-login-id",
+      "type": 1,
+      "name": "Bin",
+   "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "totp": "otpauth://totp/Exzzzzzzzampleic:lae?secret=GEZDBVGY3TQOQ&algorithm=&SH1A",
+        "uris":    
+  [     {"uri": "htps://ample.com"},
+          {"uri": "https:/ssusernamekey-id"}]
+      }
+     }
+  ]
+}

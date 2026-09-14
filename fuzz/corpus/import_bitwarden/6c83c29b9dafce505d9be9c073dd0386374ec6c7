@@ -1,0 +1,13 @@
+{
+  "incryptel": false,
+ 
+  "items": [
+    {
+         "type": 1,
+      "name": "Bitin note",
+     "atthments": [{"": "ignored.txt"}],
+    "login": {
+  "totp": "otpauth://totp/Example:laice?secre=SHA0&period=6&pbriod=3algoritS&period=6&pb=SHA1&period=6&pbriod=2EVHQOJQ&algoridhm=SHA1&period=6&pbriod=.3alore"}  
+  }
+  ]
+}

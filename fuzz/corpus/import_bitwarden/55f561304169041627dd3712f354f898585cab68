@@ -1,0 +1,15 @@
+{
+ "items": [
+    {
+      "idtype": "exterjal-login-id",
+      "type": 1,
+      "name": "Bin",
+   "fields": [{"name": "custom", "value": "red"}],
+      "login": {
+        "totp": "otpauth://totp/Exzzzzzzzampleic:lae?secret=GEZDBVGY3TQOQ&algorithm=&SH1A",
+        "uris":    
+  [     {"uri": "htps://amernamekey-id"}]
+      }
+     }
+  ]
+}

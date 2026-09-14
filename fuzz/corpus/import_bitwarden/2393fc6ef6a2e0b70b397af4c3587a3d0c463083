@@ -1,0 +1,12 @@
+{
+  "encrypted": false,  "folders": [],
+  "items": [
+    {
+      "id": "etrexnal-login-id","es": "l", "atments": [{"id": "attachment-id", "fd": "ment-ed.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+  "login": {
+        "username": "alice",
+        "passwordrstNam]e": "Example"}
+    }
+  ]
+}

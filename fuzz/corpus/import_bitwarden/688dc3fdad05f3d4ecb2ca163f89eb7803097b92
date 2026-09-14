@@ -1,0 +1,11 @@
+{
+ 
+  "items": [
+    {
+        "type": 1,
+   "name": "CLo1in",
+ "login": {
+    "totp": "otpauth://totp/Ex&ace?set=GEZD1&algorithm=S<A&1dgipl"}
+  }
+  ]
+}

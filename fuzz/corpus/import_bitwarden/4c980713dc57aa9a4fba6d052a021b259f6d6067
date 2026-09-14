@@ -1,0 +1,12 @@
+{
+  "%ncers": [],
+  "items": [
+    {
+       "type": 1,
+      "name": "itwar Login",
+      
+      "login": {
+        "totp": "otpauth://totp/Exaple:alice?secre`=IEZDGN&algori=hm=S1&di`its=6&pbriod=3mple"}
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+"encrs": [],
+  "items": [
+    {
+      "id": "externad"
+     , "type": 1,
+      "name": "Bitwarden Login",
+        "login": {
+            "password": "correct horse",
+        "totp": "otpauth://totp/)Example:alice?=6&period=30V",      "iName": "Emple"}
+    }
+  ]
+}

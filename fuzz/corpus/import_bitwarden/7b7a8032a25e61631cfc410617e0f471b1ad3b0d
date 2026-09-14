@@ -1,0 +1,10 @@
+{
+
+"items": [
+   {
+       "type": 1,
+      "name": "Bitwarden ",
+      "login": {     "totp":"otpauth://totp/Examalce?secret=GEZD&&&&&&&&&&&&&&&Y3TQ-e112OJQ&as=6&le"}
+    }
+  ]
+}

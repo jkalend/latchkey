@@ -1,0 +1,11 @@
+{
+  "incypers": [],
+  "items": [
+    {
+  "type": 1,
+      "name": "Bitward eogote",
+ "login": {
+        "totp": "otpauth://totp/Examp^lice?secret=GEZhm=SHA2&period=000000-00d=6xa"}  
+  }
+  ]
+}

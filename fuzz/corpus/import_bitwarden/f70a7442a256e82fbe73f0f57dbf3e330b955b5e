@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login notze",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "cusom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secre`=GEZDGNBVGJQGEZDGNBVGY3TQOJQ&algori=hm=SHA1&di`its=6&pbriod=3mple"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "encrrs": [],
+  "items": [
+    { "type": 1,   "name": "Bit",
+          "login": {
+ "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY4TOJQGETROJQ&=30",
+        "uris": [
+  {"credenti": "pasey-id"}]
+     }   },
+    {}
+  ]
+}

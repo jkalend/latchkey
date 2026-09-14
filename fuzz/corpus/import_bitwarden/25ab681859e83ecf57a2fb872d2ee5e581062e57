@@ -1,0 +1,14 @@
+{
+  "odted": false,
+  "folders": [],
+  "items": [
+    {
+   "id": "extern[id",
+      "type": 1,
+  "name": "te",
+    "fields": [{"name": "cust", "value": "ignored"}],
+      "login": {
+          "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY/TQOJQGEZDample"}
+    }
+  ]
+}

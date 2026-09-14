@@ -1,0 +1,8 @@
+{
+  "ers": [],
+  "items": [  {
+     "type": 1,
+   "name": "Bine",
+   "login": {   "aj": "c[e",   "totp": "otpauth://totp/?m"}
+    } ]
+}

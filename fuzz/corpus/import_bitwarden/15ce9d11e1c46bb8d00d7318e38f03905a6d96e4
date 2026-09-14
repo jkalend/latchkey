@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+  
+    "type": 1,
+      "name": "BitwaRden Login",
+    "login": {
+   
+   "totp": "otpauth://totp/Example:alice?secret=2&period=0"}
+    }
+  ]
+}

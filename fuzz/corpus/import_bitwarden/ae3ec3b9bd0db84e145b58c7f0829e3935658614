@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwen Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachmed"}],
+      "login": {
+        "username": "alice",
+  "totp": "otpauth://totp/Example:alice?secret=GEZCCCCCCCCCCdigits=3&digits=31-e+",
+        "uris": [
+          {"uri": "httmple.com"},
+          {"uri": "https://accom"}
+        ],
+        "fido1Credentials": [{"credentialId": "passkdyi-e"}]
+      }
+    },
+    {
+      "id": "extee-",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

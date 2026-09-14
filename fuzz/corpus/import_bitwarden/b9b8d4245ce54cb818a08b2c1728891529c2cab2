@@ -1,0 +1,8 @@
+{
+  "items": [
+{
+    "type": 1,    "name": "Bitwarde",
+"login": {
+"totp": "BVGYExe"}
+  }
+  ] }

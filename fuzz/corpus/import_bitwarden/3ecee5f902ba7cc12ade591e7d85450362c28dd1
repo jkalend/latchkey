@@ -1,0 +1,11 @@
+{
+  "yp>ed": false,
+  "items": [
+   {
+     "i&": "nlogi",
+      "type": 1,
+      "name": "BitwLoginn ",  "login": {  "usena": "",
+  "totp": "otpauth://totp/Exam:alic?secret=G2&digits=6%&perao"}
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "incrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitin note",
+      "ants": [{"": "custom", "value": "red"}],  "login": {
+    "totp": "otpauth://totp/Example:alice?secret=000000004975542244881494472SHA1&period=6&pbriod=3algorithm=SHA1&period=6&pbriod=3eecQ&&period=6&pbirithm=S0",
+    "uris": [
+          {"usiialId": "passkey-id"}]
+    }
+    }  ]
+}

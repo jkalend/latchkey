@@ -1,0 +1,17 @@
+{
+  "elders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "ments": [{"id": "attached"}],
+      "login": {
+       "totp": "otpauth://to0",
+     "fidodentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "enders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,     "name": "arden Login",
+     "notes": "login note",
+      "ats": [{"ne": "ignored"}],
+      "login": {
+        "me": "auth://to=260",
+  "uris": [
+          {   },
+    {
+      "id": "external@om"}
+        ],
+            "totp": "otpauth://totp/Examplei:alce?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY7QOJQ&s=6&period=300",
+        "uristName": "Example"}
+    }
+  ]
+}

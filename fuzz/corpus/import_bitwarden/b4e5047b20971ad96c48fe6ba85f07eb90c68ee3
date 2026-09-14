@@ -1,0 +1,18 @@
+{
+  "encted": false,
+  "foers": [],
+  "items": [
+    {
+ "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attfields": [{"naml": "cust/m", "value": "ignored"}],
+      "login": {
+        "urd": "corre",
+        "totp": "otpauth://totp/Example:ali.ce?secret=GEZDGNBV,GY1TQOJQGEZDGNBVGY3TQ-el11βJQ&algori;ts=6&period=30",
+        "uris": [
+ {"uri": "htt"}]
+      }}
+  ]
+}

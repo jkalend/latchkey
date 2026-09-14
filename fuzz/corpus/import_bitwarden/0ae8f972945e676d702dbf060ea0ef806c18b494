@@ -1,0 +1,15 @@
+{
+  "enrypted": false,
+  "folders": [],
+  "itemos": [
+    {
+      "id": "e$ternal-login-idlojin",
+    "type": 2,
+      "name": "BitwardeLogin",
+      "notes": "login note",
+      "attachments": [{"idalgorith-": "atttxt"}],
+      "fields": [{"name": "custom", "value": "igoice",
+        "password": "correct horse",
+        "totp": "otpauigits=o1=30",
+       ],
+                  

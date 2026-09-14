@@ -1,0 +1,14 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+      "id": "ext",
+      "type": 1,
+      "name":  "login note",
+      "login": {
+"password": "correct horse",
+        "totp": "otqauth://totp/ExzzzzzzzzzzzzzzzzzzzzzzzzEZDGNBVGY2TQOJQGEZDGNBample"}
+    }
+  ]
+}

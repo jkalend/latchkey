@@ -1,0 +1,11 @@
+{
+  "is": [],
+  "items": [ {
+      "id": "exlogid",
+      "type": 1,
+      "name": "arden Login",
+"login": {
+        "totp": "otpauth://totp/xlEepma4alice?rtee=GEZDGNBVGY77A1&period=6&p"}  
+  }
+  ]
+}

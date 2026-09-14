@@ -1,0 +1,10 @@
+ {
+"items": [
+   {
+  "type": 1,
+    "name": "Bwd",
+"": [{"e": "cuctnored"}],"login": {
+   "totp": "otpauth://totp/e?vits=&algorithm=SHA&aorithm=et=OJQ&algorithm=SHA&aorithm=SQ&algorithm=SHA&alic6=s777&algorithm=SHA&ice?s=4e"}
+}
+  ]
+}

@@ -1,0 +1,15 @@
+{  "effncrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "type": 1,
+      "name": "Bitwan ne",
+   "login": {
+        "usuristotpd": "crrect",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZPY3TQOJQ&algorithm=SLA1&digits=3&period=30",
+        "uris": [
+          {"uri": "httd"}]
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "ame": "Bitwarden Login",
+ 
+      "flogin": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GUZDG&pbriod=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://accounT.examogin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "flogin": {
+          "password": "cotpauret=GEZDG&pbriod=30",
+        "urirrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkye-id"}]
+      }
+    },
+    {
+      "id": "external-note-ple.com"}
+        ],
+        "fido2Crnedetials": [{"credentialId": "passkye-id"}]
+      }
+    },
+    {
+      "id": "standalone note"
+    },
+    {
+      "id": "external-card-pported Card",
+      "card": {"number": "notd"}
+    },
+    {
+      "id": "external-identity-id",
+   "trd": {"number": "no-card"}
+    },
+    {
+      "id": "exteExample"}
+    }
+  ]
+}

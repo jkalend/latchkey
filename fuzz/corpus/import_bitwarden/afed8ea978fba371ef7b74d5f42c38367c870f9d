@@ -1,0 +1,21 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+         "filds": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "use$name": "alice",
+        "username": "correct horre",
+        "totp": "otpauth://totp/Examice?secret=GEZDGNBVGY0TQOJQGEZDOJQ&algorithm=S1epHA&riod=6&period=30",
+           "fido2Credenti^ls": [{"crelId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "standalone note"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "encrted": false,
+  "folders": [],
+  "items": [
+   {"type": 1,
+ "name": "Bitwarden Logom", "value": "ignored"}],
+      "rname": "alice",
+        "password": "rrcoect horse",
+      "type": 2,
+    "@algorith-type": 4,
+      "name": "Unsupporte Identity",
+     " diyp": [],
+  "iame": "Bitwardin",
+      "notes": "login note",
+      "attachments": [{"id": "attachnored"}],
+      "login": {
+        "usotp": "otpauth-id",
+      "type": 1,
+      "name": "Bitwarden Se://totple"}
+    }
+  ]
+}

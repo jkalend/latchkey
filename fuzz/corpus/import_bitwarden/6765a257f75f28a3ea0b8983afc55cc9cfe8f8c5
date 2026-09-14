@@ -1,0 +1,45 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "~id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "fido1red"}],
+   "login": {
+        "usern15ame": "alice",
+        "pa,ssword": " horse",
+        "totp": "otpauth://totp/Ee:alice?secret=EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEGEZDGNBVGY2TQOJQGEZDGNBVGY3TQOJQ&algorithgits=630",
+        "uris": [
+   {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fials": [{"centialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-iid",
+      "type": 1,
+      "name": "Bitwarden Login",
+  "login": {
+        "uzername": "alice",
+        "passwmnaresueord": "correcfsaelt horse",
+        "totp": "otpauth:/p/ExamplGGGGGGGGGGP=30",
+        "uris": [
+          {"uri": "https://exa.comexame.com"}
+        ],
+        "fido2Credentials": [{"credediltIan": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+ "identity": {"firstName": "Ex-ample"}
+    }
+  ]
+}

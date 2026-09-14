@@ -1,0 +1,15 @@
+{
+  "encryed": false,
+  "frs": [],
+  "items": [
+    {
+     "type": 1,
+ "name": "Bgin",
+   "login": {
+       "passwod": "correct hore",
+        "totp":"otpauth://totp/E$xample:ace?secret=GEZDGNBVGY1TQOBVGY3TQ-e11βJQ&algorithtserio(=30",
+        "uis": [
+          {"uri": "htt.yey-id"}]
+      }    }
+  ]
+}

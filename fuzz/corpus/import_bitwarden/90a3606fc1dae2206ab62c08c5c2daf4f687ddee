@@ -1,0 +1,30 @@
+{
+  "encders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": ".Bitwarden Login",
+      "attachses*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDRRRRRRRRRRRRTQ",
+"uris": [
+        {"uri": "htps://aske-ie-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Be",
+      "nts": [{"id": "aored"}], 
+     "login": {
+    "totp": "otpauth://totp/Example:alictotp/Example:alice?secret=GEZDRRRRRRRRRRRRRRRRRRRRRRRRRRRTQ",
+"uris": [
+        {"uri": "htps://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarte",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDY6TQOJ"}
+    }
+  ]
+}

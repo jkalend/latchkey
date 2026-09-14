@@ -1,0 +1,12 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+ "type": 1,
+      "name":  "login note",
+    "login": {
+"password": "correct orse",      "totp": "otqauth://totp/ExzzzzzzzzzzzzzzzzzzzzzzzzEZDGNBVGY2TQOJQGEZDGNBample"}
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+
+  "items": [
+    {
+      "id": "ex-gi",
+      "type": 1,
+      "name": "Bilo",
+     "login": {
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY&period=30",
+        "uris": [
+          {"u uri": ".com"}
+]
+  }
+    },
+    {
+       }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "encryed": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+     "type": 3,      "identity": {"firstName": "Example"}
+    }
+  ]
+}

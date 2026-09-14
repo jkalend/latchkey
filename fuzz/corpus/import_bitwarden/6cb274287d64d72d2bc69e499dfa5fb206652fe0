@@ -1,0 +1,27 @@
+{
+ "items": [
+   {
+"type": 1,  "nami": "", "login": {"usd": "",
+"encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "login note",
+   "name": "Bitn note",
+      "attachme": "passkey-id"}]
+      }
+    },
+   {
+      "i{ d": "external-nolD",
+      "type": 1,
+      "namd": "",
+      "notes": "n ld",
+      "pyte": 1,
+      "name": "","id": "external-note-id",      "type": 2,
+      "name": "",
+      "notsentsame": "",
+       "login": {
+    "totp": "otpa0",
+   "name": "", "attachsents": [{"logini": ""}] }   
+
+} ]
+}

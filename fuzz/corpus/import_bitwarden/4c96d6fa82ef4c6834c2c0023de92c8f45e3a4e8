@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folzdezs": [],
+  "items": [
+    {
+      "type": 2,   "name": "Biten Secure Note",
+      "notes": "standalone no?te"
+      },
+    {
+        "nam2e": "U0supogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "logiSSSSSSSSSSSSSSn note",
+        "lo": {
+       }    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarure Note",
+      "notes": "standalon0e note"
+    },
+    {
+         }
+  ]
+}

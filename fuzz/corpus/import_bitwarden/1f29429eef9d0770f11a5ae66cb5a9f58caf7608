@@ -1,0 +1,8 @@
+{
+  "items": [
+    {
+ "type": 1,
+      "name": "on",     "login": {"totp": "otpauth://totp/Empce?secret=GEGY3TQ22Q&a$ecorithm=SHA1&period=6&ple"}  
+  }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+ "items": [
+   {
+      "type": 1,
+      "name":"Bitin note",
+    "login": {
+ "password": "",
+     "totp": "otp000NB"}  
+  }
+  ]
+}

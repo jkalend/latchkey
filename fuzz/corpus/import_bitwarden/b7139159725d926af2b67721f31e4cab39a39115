@@ -1,0 +1,10 @@
+{"items": [
+   {
+   "type": 1,
+      "name": "n",
+      "fields": [{"name": "custod"}],
+     "login": {
+      "totp": "otpauth://totp/ice?se&cEZDGBVGY1QOBQe"}
+    }
+  ]
+}

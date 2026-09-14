@@ -1,0 +1,26 @@
+{ "items": [
+    { "i": "",     "type": 1,
+  "name": "Bitard",
+   "login": {
+  "uerame": "ali=65",
+   "uris": [  ],"r": [{"cr?lId": "d"}]
+   }
+    },
+    {  "name": "Bid",
+   "type": 1,
+
+      "login": {
+   "totp": "otpauth://totp/Exaalie?secret=GEZDGNBVGY5TQOJQG&period=30",
+   "uris": [
+   ],
+     "fido": [{"d?d": "pad"}]
+    }
+    },
+    {"id": "extenad",
+      "type": 1,
+      "name": "Bitwarden L",
+    "login": {
+ "medName": "Ex-+ample"}
+    }
+  ]
+}

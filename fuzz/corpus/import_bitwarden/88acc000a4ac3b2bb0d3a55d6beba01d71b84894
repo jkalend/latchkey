@@ -1,0 +1,16 @@
+{"encrypted": false,
+  "lders": [],
+  "items": [
+    {
+      "id": "l-login-id",
+      "type": 1,
+      "name": "Bitxten",
+  "login": {
+      "totp": "otpaut=="}
+    },
+    {
+"id": "extei-id",
+      "tidentity": {"me": "Etruele"}
+    }
+  ]
+}

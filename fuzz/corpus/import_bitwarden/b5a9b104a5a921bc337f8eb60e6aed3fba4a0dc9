@@ -1,0 +1,76 @@
+{
+  "eners": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+ "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+      "  password": "cithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+         false,
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "paid"}]
+      }
+    },
+    {
+      "id": "external-note-id",  "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "ace",
+        "password": "correct$hors://totpOJQ&ale"}
+    }
+  ]
+}

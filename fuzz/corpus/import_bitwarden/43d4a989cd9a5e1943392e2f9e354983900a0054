@@ -1,0 +1,15 @@
+{
+  "ypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "ar Login",
+        "login": {
+    "urd": "correct ecretY4TQd=30",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNB==}====&algs=6&period=30"}
+    },
+  {    "login": {
+        "totp": "oauth://totp/Ex?al6TQOJ"}
+    }
+  ]
+}

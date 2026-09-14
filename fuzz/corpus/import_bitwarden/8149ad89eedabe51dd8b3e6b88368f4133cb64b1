@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+     "id": "extelogin-id",
+    "type": 1,
+      "name": "Bigin",
+              "login": {
+    "totp": "otpauth://totp/Examice?secret=GEZDGNBVGY0TQOJQGEZDOJQ&algorithm=SqepHA&riodperiod=30",
+ "fido2Credenti^ls": [{"crelId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "standalone note"
+    }
+  ]
+}

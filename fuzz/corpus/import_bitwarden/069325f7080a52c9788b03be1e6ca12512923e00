@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+"items": [
+    {
+      "id": "extgin-d",
+      "type": 1,
+      "name": "Bitwarden ",
+      "attfields": [{"name": "cEst/m", "value": "ignored"}],
+      "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQGEyyyyyyy&&&&&&&&&&&&&&&&yyyyyyyBVGY3TQ-e112OJQ&as=6&le"}
+    }
+  ]
+}

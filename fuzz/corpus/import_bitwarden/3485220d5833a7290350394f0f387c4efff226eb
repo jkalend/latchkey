@@ -1,0 +1,15 @@
+{
+  "": [],
+  "items": [
+    {
+        "type": 1,
+    "name": "Bitote",
+      "attah": [{"": "ignored/txu"}],
+ "login": {
+ "totp": "otpauth://totp/Example:alice?digits=0000000300000&0=SriS",
+       "fid(o2Creden0ial": [{"credent": "passkey-id"} 
+    ] }
+     
+  }
+  ]
+}

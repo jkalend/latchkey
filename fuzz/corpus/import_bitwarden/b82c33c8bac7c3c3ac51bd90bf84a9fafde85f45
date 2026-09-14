@@ -1,0 +1,10 @@
+{
+  "ders": [],"items": [
+    {
+  "type": 1,
+      "name": "Bwarden/te",
+ "login": 
+   {       "totp": "otpauth://totp/le:alice?sorithmA2H=&digits=6&digits=30-e+ple"}
+    }
+  ]
+}

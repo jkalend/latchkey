@@ -1,0 +1,10 @@
+ {
+"items": [
+  {
+    "type": 1,
+ "name": "Bwtaivd",
+"login": {
+   "totp": "otpauth://totp/e?T=OJH72&d=GE&a=MHA144&altigrhm=A1&digits=6e"}
+}
+  ]
+}

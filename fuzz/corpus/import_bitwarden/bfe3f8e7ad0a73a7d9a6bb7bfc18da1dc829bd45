@@ -1,0 +1,13 @@
+{
+  "ypted": false,
+  "folders": [],
+  "items": [
+    {
+     "id": "externlogi",
+      "type": 1,
+      "name": "BitwLoginn ",    "login": {
+        "userna": "alirhorse",
+  "totp": "otpauth://totp/Exam:alice?secret=GEZDGNBVA1&digits=6%&perao"}
+    }
+  ]
+}

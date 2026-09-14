@@ -1,0 +1,13 @@
+{
+ "encrypted": false,
+  "frs": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",    "attachments": [{"id": "attachment-i`", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {"edentiame": "Example"  }  
+}
+  ]
+}

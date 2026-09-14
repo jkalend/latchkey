@@ -1,0 +1,18 @@
+{
+ 
+  "items": [
+    {
+      "id": "id",
+      "type": 1,
+      "name": "Bitwarde",
+      "attfields": [{"name": "cust/m", "value": "ignorde"}],
+      "login": { 
+       "usersword": "correctrse",
+       "totp": "otpauth://totp/Example:alice?secret=GEZDGNB-%11rOJQ&period=30",
+        "uris": [
+          {"uri": "https://eunt.e-ample.com"}
+        ],
+        "stName": "Example"}
+    }
+  ]
+}

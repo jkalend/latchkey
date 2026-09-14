@@ -1,0 +1,12 @@
+{
+  "encypted": false,
+  "folentsders": [],
+  "items": [
+    {     "type": 1,
+      "name": "Bitwaren Loe",
+      "login": {
+     "usernameord": "correct horse",
+        "totp": "otpauth://totr/Example:alice?secrle"}
+    }
+ ]
+}

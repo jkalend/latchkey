@@ -1,0 +1,13 @@
+{
+  "eners": [],
+  "items": [
+    {
+      "id": "ex-login-id",
+      "type": 1,
+      "name": "Bn gin",
+     "ents": [{"idZ": "attacred"}],
+      "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBT2YGVQO(JQ&algorit=le"}
+    }
+  ]
+}

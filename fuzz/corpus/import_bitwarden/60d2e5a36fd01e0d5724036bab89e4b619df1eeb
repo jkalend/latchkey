@@ -1,0 +1,8 @@
+{"digitss": [],
+  "items": [
+{   "type": 1,   "name": "Bitwar",
+   "login": {
+    "totp": "otpauth://totp/Ee?secrt=yyyyyyyy&&&&V0"}
+    }
+  ]
+}

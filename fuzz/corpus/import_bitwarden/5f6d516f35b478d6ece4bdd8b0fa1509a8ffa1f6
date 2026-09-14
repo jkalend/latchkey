@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "id": "extern/al-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id":"atta-id", "fileName": "ignored"}],
+      "login": {
+
+        "totp": "otpauth://totp/Example:alice?secret=GEZD-a-real-card"}
+    },
+ {
+      "i": "nsupported Id",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

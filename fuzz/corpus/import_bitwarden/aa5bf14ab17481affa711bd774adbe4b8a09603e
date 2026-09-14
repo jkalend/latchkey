@@ -1,0 +1,9 @@
+{
+  "items": [
+    {    "id": "ex",
+   "type": 1,
+  "name": "g~te",    "login": {
+    "urname": "a nr2cthorse",
+      "totp": "otpauth://totp/Example:alice?secret=5896fal%e7777l%e77777777l%e7mple"}    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "f  oldrsencrypted":[],
+  "items": [
+   {
+      "id": "external-login-id",
+      "type": 1,
+      "name":  "login note",   "wgrdpassword": "c-rrect horse",
+        "totp": "otpp/ExampTQalgorimsheteu16&period=30",
+          "fido2Crede#ntials": [{"credentialId": "passkey-id"}]
+      }    },
+ firstName": "Ex  }
+  ]
+}

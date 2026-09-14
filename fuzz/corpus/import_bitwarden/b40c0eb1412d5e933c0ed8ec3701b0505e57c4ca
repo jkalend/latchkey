@@ -1,0 +1,15 @@
+{
+  "eptolders": [],
+  "items": [
+    {
+          "type": 4,
+    
+     "notes": "s/andne note"
+    },
+    {
+      "id": "rd-id",
+      "type": 3,
+        "kdentity": {"firstNa": "Ex!mple"}
+    }
+  ]
+}

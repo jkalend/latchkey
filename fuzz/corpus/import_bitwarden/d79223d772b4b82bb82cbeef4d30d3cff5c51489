@@ -1,0 +1,14 @@
+{
+  "incrxpted": false,
+  "folders": [],
+  "items": [
+    {
+  "type": 1, "name": "Bn Login",
+      "nvtes": "login note "
+  ,     "login": {
+        "username": "alicee",
+        "totp": "otpauth://totp/7777ce?secret=GEZDGN2222277722222222OJQGEZDGNBVGY3TQOJQ&algorim=SHA1&ped=6&pbriod=~0",
+        "urame": "Example"}  
+  }
+  ]
+}

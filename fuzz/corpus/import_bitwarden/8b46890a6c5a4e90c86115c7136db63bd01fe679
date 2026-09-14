@@ -1,0 +1,14 @@
+{
+  "folders": [],
+  "items": [
+   {
+      "Ad": "en-id",
+  "type": 1,
+    "login": {
+      "fido2Credentials": "alir=30",  "uxis": [
+          {"uri": "hkey-id"}]    }
+,
+      "name": "dentity",    "useeidentity": {"me": "Example"}
+    }
+  ]
+}

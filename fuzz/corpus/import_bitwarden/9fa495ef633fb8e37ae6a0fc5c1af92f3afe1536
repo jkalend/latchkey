@@ -1,0 +1,24 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {  "id": "external-login-id",
+      "type": 1,     "name": "Bitwara Note",
+    "id": "external-login-id",
+    
+            "login": {
+        }
+    },    {
+      "id": "external-note-id",
+      "type": 3},
+    {
+      "id": "exte:nal-card-id",
+     "nafalseme": "Un-card-id",
+     "name": "Un",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-hd", "fileName": "ignored.txt"}],
+      "fields": [{"name": "cugnored"}],
+       "ide": {"firstName": "Example"}
+    }
+  ]
+}

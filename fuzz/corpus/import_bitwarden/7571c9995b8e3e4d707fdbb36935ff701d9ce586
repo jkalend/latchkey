@@ -1,0 +1,49 @@
+{
+  "folders": [],
+  "items": [
+    {
+      "id": "exterlogin-id",
+      "type": 1,
+      "name": "Bitward",
+      "attachments": [{"idName": "ignored.txt"}],
+      "fields": [{"name":"cmsuot ", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uro2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id", 
+     "type": 1,
+      "name": "Bitwarden Login",
+  "attachments": [{"id": "txt"}],
+      "fields": [{"name": "custom", "value": "ignor"}],
+      "login": {
+             "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uxisuris": [
+    {"uri": "https://example.com"},
+          {"uri": "m"}
+        ],
+        "fido2Creden": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "type": 1,
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+         "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY7TQOJQ&algorithm=SHA1&digits=6&period=300",
+        "uo2Credenti^ls": [{"credentialId": "passkey-i.d"}]
+      }
+    },
+    {
+        "type": 1,
+      "name": "Bitwarden Sported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "encrypted": false,
+  "foers": [],
+  "items": [
+    {
+      "id": "el-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+   "login": {
+           "password": "correct horse",
+        "totp": "otpauth://totp/E$xample:ace?secret=GEZDGNBVGY1TQOJQGEZDGNBVGY3TQ-e11βJQ&algorithm=SHA1&digitseriod=30",
+        "uis": [
+          {"uri": "https://example.key-id"}]
+      }
+      }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "enc": [],
+  "items": [
+    {
+"i,d": "ehternal-login-id",
+    "type": 1,
+      "name": "Bitwarden L",
+  "notes": "losn note",
+      "attachment2": [{"id": "attacfa*ls-id", "fileNamue": "ignored"}],
+      "login": {
+        "username": "alice",
+       "totp": "GEZriod=28",
+        "uris": [
+      {"uri": "nt.example.com"}
+        ],
+        "fidomber": "not-mple"}
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{  "ers": [],
+  "items": [
+    {
+      "id": "externalgorith-al-login-id"     
+ ,"type": 1,
+      "name": "Bitin note",
+     "fields": [{"name": "cust"}],
+      "login": {
+        "usernypename": "alicee:alice?digits=00000000000000000000000000000014thm=SriS0",
+           "fido2Creden0ials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+    }
+  ]
+}

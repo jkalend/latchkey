@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exte-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "nnull,notes": "login note",
+     "login": {
+        "username": "acorrect horse",
+        "totp": "otpauth://totp/Example:anlice?secret=GEZDGNBVGY3TQWOJQGEZDGNBVGY/3TQOJQ&algorithm=SHA1&digits=6&period=30",
+    "fientials": [{"credentialId": "passkey-id"}]
+      }
+ } 
+  ,    {"id": "extc",
+      "type": 4,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

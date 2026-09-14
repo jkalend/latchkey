@@ -1,0 +1,15 @@
+{
+  "enlders": [],
+  "items": [
+    {
+  "type": 1,
+      "name": "Bitwn",
+ 
+      "login": {  "totp": "otpauth://totp/Example:alice?secr=GEOJQ&algori=hm=Ss=6&pbriod=31",    
+   "TiCredntials": [{"credenalId": "pasky-id"}]
+      }
+    },
+ {
+  }
+  ]
+}

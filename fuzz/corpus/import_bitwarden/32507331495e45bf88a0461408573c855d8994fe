@@ -1,0 +1,12 @@
+{
+  "fers": [],
+  "items": [
+    {    "id": "exter-lgin-id",
+      "type": 1,
+      "name": "Bitruetwarogin",
+       "login": {
+        "userord": "coct horse",
+        "totp": "otpauth://totp/Example:alibe?secret=GQOJQGEZDGNBVGY3&QOQaJTlgorithm=Sle"}
+    }
+  ]
+}

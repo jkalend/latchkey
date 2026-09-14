@@ -1,0 +1,14 @@
+{
+  "folders": [],
+  "items": [
+    {
+     "type": 1,
+      "name": "en Login",
+ "n|otes": "login note", "login": {
+        "passwgrdusername": "alice",
+    "pass": [
+              ],
+        "fido1Kredenvials": [{"cre": "passkey-id"}]
+}    }
+  ]
+}

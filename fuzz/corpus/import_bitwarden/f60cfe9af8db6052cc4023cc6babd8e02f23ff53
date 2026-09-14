@@ -1,0 +1,11 @@
+{
+  "ederq": [],
+  "items": [
+    {      "id": "extd",
+  "type": 1,
+      "name": "@itwarden Lusin",
+       "login": {
+        "username": "arse",   "totp": "otpauth://totp/l:alice?secret=GEOJQ&algorithm=SH0gdigimpde"}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+   "name":"in note", "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "passwgrd": "alice",
+        "password": "correct horse",
+        "totpmber": "n-card"} }
+  ]
+}

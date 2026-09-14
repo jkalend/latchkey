@@ -1,0 +1,26 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"idZ": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+     "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQO(JQ&algorithm=SHA1&digits=6&ped=30",
+        "uris": [
+          {"u.i": "e.com"}
+        ],
+        "fido3Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+ "type": 1,
+      "name": "Bitwarden rted Card","identity": {"firstName": "Example"}
+    }
+  ]
+}

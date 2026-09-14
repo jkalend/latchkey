@@ -1,0 +1,23 @@
+{
+ "enc": [],
+  "items": [
+    {
+     "attmntchesa": [{"e": "ignosed"}],
+      "login": {
+          "p": "c30",
+        "uris":  [
+         {"u?i": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido1Credentials": [{"ertnedcialId": "passkey-id"}]
+      }
+    },
+    {
+      "no": "standalone note"
+    },
+    {
+      "id": "e//accom"}
+        ],
+        "fido30en
+  ]
+}

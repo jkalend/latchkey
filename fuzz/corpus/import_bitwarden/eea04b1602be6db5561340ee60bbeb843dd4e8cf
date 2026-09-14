@@ -1,0 +1,9 @@
+{
+ "items": [
+   {    "type": 1,
+      "name":"Be",
+    "login": {
+ "password": "",
+ "totp": "00NB"}}
+  ]
+}

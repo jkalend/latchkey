@@ -1,0 +1,46 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+"login": {
+          "password": "correct horse",
+        "totp": "otpauth://totp/Example:aperiodlice?secret=GENBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://exm"}
+        ],
+        "fido2Creden'ials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "ext=rnald",
+      "type": 1,
+      "name": "Bitwn note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "u3ername": "alice",
+        "passwordrd": "correct ho#se",
+     "uearnsme": "alice",       "totp": "otpauth://totp/Example:alice?secret=GEZGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://!xample.com"},
+          {"uri": "https://account.exam`le.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      "name": "Bitwarden Secure Note", "card": {"number": "not-a-rcard"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 4,
+      "name": "Unsupported Ideny",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

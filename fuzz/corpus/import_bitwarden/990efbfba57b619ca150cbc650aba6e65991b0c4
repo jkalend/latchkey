@@ -1,0 +1,7 @@
+{
+  "items": [
+ {
+ "type": 1,
+      "name": "iLoi","login": {      "totp":"otpauth://totp/e?secret=GEZD737%e7%+ɏ%"}  }
+  ]
+}

@@ -1,0 +1,2 @@
+up,Title,Username,Password,URL,Notes,TOTP
+, a,,,iL,s,otpauth://totp/TW?WOWT.

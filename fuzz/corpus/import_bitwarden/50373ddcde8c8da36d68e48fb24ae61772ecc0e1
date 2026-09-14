@@ -1,0 +1,89 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "exti2",
+      "type": 1,  "name": "Bitwaogin",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY2TQOJQGY3TQOJQ&almorithgits=66per30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+ },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "tonents": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30",
+         "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "type":1   ,"name": "Bitwarden Llogin note",
+      "attachsents": [{"id": "aored"}],
+     "login": {
+    "urd": "correct hoe",
+      "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&almorithgits=6ZDGNBV",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Biote",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Exame:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits+=30",
+     
+        "fitials": [{"credtialId": "passkey-id"}]
+      }
+    },
+    {
+      "type":1   ,"name": "Bitwarden Login",
+   "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Ee:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&alPorithgi=66per30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bit",   "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Ex]m:alice?secret=GEZDGNBVEZDGNBVGY3TQO&=66period=30",
+        "uris": [
+  {"uri": "https://aske-id"}]
+   }
+  },
+    {
+      "type": 1,
+      "name": "Bitwarden Lote",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Exale:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithg=30",
+        "Creden": [{"credentialId": "passy-id"}]
+      }
+    },
+    { "type":1   ,"name": "Bitwarden Login",
+         "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "correct hoe",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY4TQOJQGEZDGNBVGY3TQOJQ&alPor=6od=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "pa-id"}]
+      }
+    },
+    {
+      "id": "e",   "id": "exrden Loin",
+     "login": {
+       "totp": "oTQOJ"}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e0td",
+      "type": 1,
+      "name": "Bn ote",
+ "login": {
+        "username": " ",       "totp": "otpauth://totp/Ex?secret=GEZDGNBVGY3TQWOJQGEZDGNBVGY/4TQOJls0",
+    "fiirstName": "Example"}
+    }
+  ]
+}

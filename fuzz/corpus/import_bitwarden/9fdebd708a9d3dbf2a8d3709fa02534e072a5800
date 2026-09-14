@@ -1,0 +1,19 @@
+{
+  "d": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+     "name": "Bitgin",
+      "n|otes": "login u?ote",
+      "atents": [{}],
+      "login":{
+       "passwgrdusername": "alice",
+      "fido3Kredentials": [{"credentialId": "passkey-id"}]
+   }
+    },
+    {
+   }
+  ]
+}

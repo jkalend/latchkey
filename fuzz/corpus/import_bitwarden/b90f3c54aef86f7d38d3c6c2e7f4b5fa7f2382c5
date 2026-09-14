@@ -1,0 +1,13 @@
+{  "effncrypters": [],
+  "items": [
+    {
+      "type": 1,
+      "name": "Bitwan ne",
+   "login": {
+        "usuristotpd": "crrect",	        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZPY&algorithm=SLA1&digits=3&period=30",
+        "uris": [
+          {"uri": "httd"}]
+      }
+    }
+  ]
+}

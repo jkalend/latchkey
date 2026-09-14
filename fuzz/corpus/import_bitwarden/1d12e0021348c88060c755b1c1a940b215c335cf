@@ -1,0 +1,10 @@
+{
+    "items": [
+    {
+    "type": 1,
+      "name": "",
+       "login": {
+   "totp": "otpauth://totp/E?ealsecret=GEZDGNQGEZDGNBVQOJQ&agl/rithm=SHA0&digperiod=30",
+        "ue": "Examle"}    }
+  ]
+}

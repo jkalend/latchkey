@@ -1,0 +1,28 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {  "id": "external-login-id",
+      "type": 1,     "name": "Bitwara Note",
+    "id": "external-login-id",
+    
+            "login": {
+        }
+    },    {
+      "id": "external-note-id",
+      "type": 3},
+    {
+      "id": "exte:nal-card-id",
+     "nafalseme": "Un-card-id",
+     "name": "Unsupported dentin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        }
+    },
+   
+   {    "ide": {"firstName": "Example"}
+    }
+  ]
+}

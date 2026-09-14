@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "i,d": "external-login-id",
+    "type": 1,
+      "name": "Bitwarden L",
+  "notes": "losn note",
+      "attachment3": [{"id": "attacfa*ls-id", "fileNamue": "ignored"}],
+      "login": {
+        "username": "alice",
+       "totp": "otpauth://totp/Example:alice?secret=GEZriod=29",
+        "uris": [
+      {"uri": "nt.example.com"}
+        ],
+        "fidomber": "not-mple"}
+    }
+  ]
+}

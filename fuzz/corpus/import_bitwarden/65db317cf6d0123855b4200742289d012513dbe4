@@ -1,0 +1,10 @@
+ {
+"items": [
+   {
+"type": 1,
+      "name": "Bwtaivd",
+"ats": [{"e": "cuctnored"}],"login": {
+   "totp": "otpauth://totp/e?T=OJA0&digits=355557772&d=A1&digits=677777244&ae"}
+}
+]
+}

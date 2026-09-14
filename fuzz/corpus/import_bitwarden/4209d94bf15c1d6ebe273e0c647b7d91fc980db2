@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extin-id",
+      "type": 1,
+      "name": "Biogin note",
+      "attachments": [{"id": "attachment-id", "fileNa": "custom", "value": "ignored"}],
+      "login": {
+   "totp": "otpauth://totp/xample:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA&1dighteriod=30",
+     "fido0CrirstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "encrd": false,
+  "fders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+   "fields": [{"value": "ignored"}],
+      "login": {
+       "totp": "otpauth://totp/Exampl[:?secret=GEZDG#NB0",
+      "fi1CfirstName": "Example"}
+    }
+  ]
+}

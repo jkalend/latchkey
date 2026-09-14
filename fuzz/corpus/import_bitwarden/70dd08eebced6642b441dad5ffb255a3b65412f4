@@ -1,0 +1,13 @@
+{
+"folders": [],
+  "items": [
+    {
+      "id": "extenal-login-id",
+      "type": 1,
+    "name": "Bitwar'gin not",
+        "login": {
+  "totp": "otpauth://totp/Exa:alice?secret=GEZDGN444OJQGEZDGNBVGY3TQOJQ&alg=03"
+,        "urame": "Exle"}  
+  }
+  ]
+}

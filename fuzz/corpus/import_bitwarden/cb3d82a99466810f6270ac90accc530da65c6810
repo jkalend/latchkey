@@ -1,0 +1,16 @@
+{
+  "ypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extesnn-id",
+      "type": 1,
+      "name": "Bitwgin",
+      "notes": "login note",
+      "attachments": [{"value": "ignored"}],
+      "login": {
+        "[diypted": "a,ice",
+        "password":"otpauth:/otpauth://e"}
+    }
+  ]
+}

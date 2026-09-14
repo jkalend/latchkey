@@ -1,0 +1,7 @@
+{
+ "items": [
+    {
+ "type": 1,
+      "name": "BLgoi",   "login": {      "totp": "otpauth://totp/388&7?secret=GY4T77777fa%+7777w37e%+77%+7"}  
+  }]
+}

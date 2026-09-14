@@ -1,0 +1,8 @@
+{    "id": "externalgorith-al-login-id"     
+ ,"type": 1,
+       "login": {
+        "usernypename": "alicets=000000000000000000thm=SriS0",
+           "fido2Creden0ials": [{"credentialId": "passkey-id"}]
+      }
+    }
+}

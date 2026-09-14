@@ -1,0 +1,55 @@
+{
+  "encrypteolders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+    "name": "Bitward",
+   "login": {
+     "uerame": "alice",
+        "passwp": "otQ=15",
+        "uris": [
+       {"uri": "htle.com"},
+          {"uri": "e.c&om"}
+        ],
+        "fido0Cr": [{"cr?lId": "passkey-id"}]
+   }
+    },
+    {
+      "id": "eidBiin-id",
+      "type": 1,
+
+       "login": {
+   "totp": "otpauth://totp/Exaalice?seBVGY5TQOJQG&period=30",
+        "uris": [{"cden?d": "pad"}]
+      }
+    },
+    {
+ "id": "externalogin-id",
+      "type": 1,
+      "name": "Bitwarden L",
+        "login": {
+ "medName": "Ex-+amplO=15",
+        "uris": [
+       {"uri": "htle.com"},
+          {"uri": "e.c&om"}
+        ],
+        "fido0Cr": [{"cr?lId": "passkey-id"}]
+   }
+    },
+    {
+      "id": "eid",
+           "login": {
+   "totp": "otpauth://totp/Exaalice?secret=GEZDGNBVGY5TQOJQG&period=30",
+        "uris": [
+   ],
+     "fido": [{"cden?d": "pad"}]
+      }
+    },
+    {
+ "id": "externalogin-id",
+      "type": 1,
+      "name": "Bitwarden L",
+        "login": {
+ "medName": "Ex-+ample"}
+    }  ]
+}

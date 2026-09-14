@@ -1,0 +1,10 @@
+{  "is": [],
+  "items": [{
+      "id": "exlogid",
+      "type": 1,
+      "name": "n",
+"login": {
+        "totp": "otpauth://totp/pma4alice?rte=GEZDNBVGY77A1&period=6&p"}  
+  }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "encryed": false,
+  "frs": [],
+  "items": [
+    {
+     "type": 1,
+ "name": "Bgin",
+   "login": {
+        "totp":"otpauth://totp/E$xample:ace?secret=GEZDGNBVGY0TQOBVGYT-1e3Q1βJQ&algorithtserio(=30",
+  "uis": [
+          {"uri": "htt.yey-id"}]
+      }    }
+  ]
+}

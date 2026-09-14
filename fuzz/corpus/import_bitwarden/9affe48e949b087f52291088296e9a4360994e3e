@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "id": "extern",
+      "type": 1,
+  "name": "n Lg~o note",    "login": {
+    "username": "alir2cthorse",
+        "totp": "otpauth://totp/Example:alice?secret=7948fal%e777777777fal%e777777777777fal%e7mple"}  
+  }
+  ]
+}

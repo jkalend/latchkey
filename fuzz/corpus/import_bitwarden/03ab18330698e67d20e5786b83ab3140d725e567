@@ -1,0 +1,34 @@
+{
+  "encryptd": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitward",
+      "atta&hments": [{"idName": "ignored.txt"}],
+            "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:e?secret=GEZDGNBVGY4TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uro2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-n-id", 
+     "type": 1,
+      "name": "Bitwarden Login",
+  "attachments": [{"i": "https://etom", "value": "ignored"}],
+      "login": {
+         "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY7TQOJQ&algorithm=SHA1&digits=6&period=300",
+        "uo2Credenti^ls": [{"credentialId": "passkey-i.d"}]
+      }
+    },
+    {
+      "id": "exteal-note-id",
+      "type": 2,
+      "name": "Bien Spoentity",
+  "identity": {"firstName": "Eample"}
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+ 
+  "items": [
+    {
+         "type": 1,
+      "name": "Bitwarde",
+      "attfields": [{"name": "cust/m", "value": "ignorde"}],
+      "login": { 
+       "userrd": "correctrke",
+       "totp": "otpauth://totp/Ee?secret=GEZDGNB-%11rOe"}
+    }
+  ]
+}

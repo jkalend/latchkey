@@ -1,0 +1,19 @@
+{
+  "encrypted": false,
+  "folders":[],
+  "items": [
+    {
+      "id": "external-login-id", "type": 1,
+      "name": "Bitware",
+   "attachments": [{"id": "attachment-id", "fame": "ignored.txtm", "value": "ignored"}],"login": {      "fids": [{"credentialId": "passuy-id"}]
+    }
+    },
+    {
+      "id": "exte1n!l-note-id",
+      "type": 2,
+     "name": "Bitwarden Secure Note",
+      "notes":"stannsupportedE ",
+      "idtenity": {"firstName": "Ex~mple"}
+    }
+  ]
+}

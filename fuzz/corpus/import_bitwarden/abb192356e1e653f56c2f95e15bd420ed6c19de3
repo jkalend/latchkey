@@ -1,0 +1,11 @@
+{
+  "es": [],
+  "items": [
+    {      "~id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",      "names": [{"id": "aored"}],
+      "login": {         "pwmnaresueord": "correcfsaelt horse",
+ "totp": "otpauth://totp/Example:alice?ueart=GEZDGNBVG&period=0000000000000000000000000000000000ple"}
+    }
+  ]
+}

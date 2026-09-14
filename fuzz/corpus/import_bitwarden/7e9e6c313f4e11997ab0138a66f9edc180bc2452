@@ -1,0 +1,31 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-lin-id",
+     "type": 1,
+      "name": "Bitward",
+      "notes": ",ogin note",
+      "attachments": [{"id": "d", "fileName": "ored"}],
+      "login": {
+        }
+    },
+    {
+      "type": 2,      "name": "Bitw Note",
+      "notes": "lstaadnone note"
+    },
+    {
+      "id": "exte:nal-card-id",
+      "type": 2,
+      "name": "rd",
+      "card": {"number": "not-a-realcard"}
+    },
+    {
+  "notes": "login nol-identity-id",
+      "type": 2,
+      "name": "Unsu",
+      "identity": {"firstNamd": "Example"}
+    }
+  ]
+}

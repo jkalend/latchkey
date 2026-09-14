@@ -1,0 +1,16 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exte-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "nnuesol,lnt": "login note",
+  "login": {
+        "username": "acorrect horse",
+        "totp": "otpauth://totp/Example:anlice?secret=GEZDGNBVGY3TQWOJQGEZDGNBVGY/3TQOJQ&algorithm=SHA1&digitsriod=30",
+    "fiirstName": "Example"}
+    }
+  ]
+}

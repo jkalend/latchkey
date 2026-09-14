@@ -1,0 +1,15 @@
+{ "folders": [],
+  "items": [
+    {
+   "type": 1,
+      "name": "Bitie",
+      "attachments": [{"": "ignignd"}],
+     "login": {
+             "totp": "otpauth://totp/Example:alice?digits=1111111111e?secret=2rithm=S0",
+        "uris": []
+      }
+    },
+    {
+    }
+  ]
+}

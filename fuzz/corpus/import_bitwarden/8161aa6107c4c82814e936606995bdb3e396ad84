@@ -1,0 +1,25 @@
+{
+  "encr": [],
+  "items": [
+    {
+      "id": "e",
+     "type": 1,
+   "name": "Bitwardein", "login": {
+        "username": "alice",
+        "userns": [
+          {"uri": "hptts://exampskey-id"}]
+      }
+    },
+    {
+      "id": "exteal-note-i",
+      "type": 2,
+      "name": "Bitwardeote"
+    },
+    {
+      "id": "ex",
+    "type": 7,
+      "name": "Unsupported Card",
+        "tQGEZDGNBVGY3TQOJnamentity": {"firstName": "Example"}
+    }
+  ]
+}

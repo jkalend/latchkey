@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "olders": [],
+  "items": [
+    {  
+    "id": "external-log-niid",
+      "type": 1,
+      "name": "Bitwarden Loin note",
+       "login": {
+        "username": "aliSH30",
+        "totp": [
+          {"uri": "ht%%%%%%%%%%%%%%%%%ekey-id"}]
+      }
+    },
+    {
+      "id": "exterity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

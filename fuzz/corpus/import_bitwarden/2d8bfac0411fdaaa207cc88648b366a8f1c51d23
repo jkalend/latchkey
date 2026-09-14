@@ -1,0 +1,12 @@
+{
+  "encers": [],
+  "items": [
+    {
+  "id": "externld",
+      "type": 1,
+      "name": "iBatrn",     "nolds": [{"name": "cust/m", "e": "ored"}],
+    "login": {
+      "totp": "otpauth://totp/e?secret=GEZDG&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&y&yyyyyyBVGYple"}
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "eners": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+     "ents": [{"idZ": "attacred"}],
+      "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBT2YGVQO(JQ&algorit=le"}
+    }
+  ]
+}

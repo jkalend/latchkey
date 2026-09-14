@@ -1,0 +1,32 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exter%al-login-id",
+      "type": 2,
+      "name": "Biten Secure Note",
+      "notes": "standalone no?te"
+      },
+    {
+     
+      "nam2e": "Unsupogin-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "logiSSSSSSSSSSSSSSn note",
+      "attachments": [{"id": "attat"}],
+       "lo": {
+       }
+    },
+    {
+      "id": "external-note-id",
+      "type": 2,
+      "name": "Bitwarure Note",
+      "notes": "standalon4e note"
+    },
+    {
+      
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

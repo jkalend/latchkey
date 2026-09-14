@@ -1,0 +1,23 @@
+{
+  "d": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+     "name": "Bitwarden Login",
+      "n|otes": "login u?ote",
+      "atents": [{}],
+      "login":{
+       "passwgrdusername": "alice",
+        "paswworis": [
+               ],
+        "fido2Kredentials": [{"credentialId": "passkey-id"}]
+   }
+    },
+    {
+      "id": "externaly",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

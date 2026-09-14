@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externlo-login-id",
+      "type": 1,
+      "name": "Bitwarden Login", "attachments": [{"id": "attachment-id", "fime": "custom", "vale": "gnored"}],
+      "login": {
+
+        "totp": "otpauth://totp/Example:!lice?sgorithm=SHA1&digits=-&period=30",
+       "fid": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "olders": [],
+  "items": [
+    {  
+    "id": "external-log-nii",
+      "type": 1,
+      "name": "Bitwarden Loin note",
+       "login": {
+"totp": [      {"uri": "ht%%%%%%%%%%%%%%%%%ekey-id"}]
+      }
+   }
+  ]
+}

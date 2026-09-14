@@ -1,0 +1,17 @@
+{
+  "eders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 2,
+      "name": "Bitwarden Login",
+      "notes": "login noue",
+      "attach&: ": {
+    }
+    },
+    {
+      "id": "",  
+    "type": 2,"name": "ecSe nu(e Note",
+      "notes": "sndtotplone note"
+    } ]
+}

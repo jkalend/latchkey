@@ -1,0 +1,138 @@
+{
+  "epted": false,
+
+  "items": [ {  "id": "extid",
+    "type": 1,  "name": "twarden Login",
+     "nytessents": [{"id": "aored"}],
+      "login": {
+    
+        "uris": [
+        {"uri": "ttps://aske-id"}]
+   }
+    },
+    {
+"type": 1,
+      "name": "Bitwaden!e",  "attachments": [{"id": "aored"}], 
+     "login": {
+    "uristotp": [
+        {"uri": "https@//aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+ "name": "n",
+    "ments": [{"id": "aoed"}],
+      "login": {
+        }    },
+  {
+      "type": 1,
+      "name": "B$tJZJJJJJJJJJJJJJJJJJJJJte",
+      "attachments": [{}],  "login": {      "uris": [
+  {"uri": "hse-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Ben note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "logi note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+            "login": {
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "externald",
+      "type": 1,
+      "name": "Bitw`rden Ln",
+     "login": {
+   "uris": [
+   {"uri": "htske-id"}]
+   }
+    },    
+{
+      "type": 1,
+      "name": "Bitwarden Login",
+ "attachments": [{"id": "aored"}], 
+     "login": {
+    "totp": "otpauth://totp/Ele?secret=GENBVGY3TQOJQGEZDG2OJQ&ithg=riod=30",
+        "uris": [
+    {"uri": "https@//aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+ "name": "n",
+    "ments": [{"id": "aoed"}],
+      "login": {
+    }
+    },
+  {
+      "type": 1,
+    "name": "BitJZJJJJJJJJJJJJJJJJJJJJte",
+     "attachments": [{}],
+      "login":{    }
+    },
+    {
+      "type": 1,
+      "name": "Be",
+      "atta[chmenttachments": [{"id": "aored"}], 
+     "login": {
+    "tousitp": "otpGY4T30",
+        "urs": [
+        {"uri": "https@//aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+ "name": "n",
+    "ments": [{"id": "aoed"}],
+      "login": {
+        "uris": [
+       {"uri": "h-tps://aske-id"}]
+   }
+    },
+  {
+      "type": 1,    "name": "/itJZJJJJJJJJJJJJJJJJJJJJte",
+      "attachments": [{}],
+          "login": {
+     "totp": "otpauth://totp/Eample:alice?secret=GEZDGNBVEZDGNBVG&algvri:thgod=30",
+        "uris": [
+          ],
+        "als": [{"credentialId": "passk"}]
+      }
+    },
+    {
+      "id": "externern",
+      "type": 1,   "name": "Bitwarden Login",
+      "tes*": "lon note",
+     "login": {
+        "totis": [
+        {"uri": "htps://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",        "login": {
+ "tott": "otpa$ample:0",
+   "uris": [
+   ] }  },
+    {
+      
+    }
+  ]
+}

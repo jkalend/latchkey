@@ -1,0 +1,11 @@
+{
+"items": [
+    {
+        "type": 1,
+      "name": "Bitwarn Log/in", "attts": [{"idme": "ustom", "vale": "gnored"}],
+      "login": {
+
+        "totp": "otpauth://totp/Eamxpel:!lice?rithm=HA0&digits=-&periople"}
+    }
+  ]
+}

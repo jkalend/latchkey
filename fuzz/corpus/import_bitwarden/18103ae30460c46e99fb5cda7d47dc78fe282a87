@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+   
+      "type": 1,
+     "name": "Bit",   
+    "felds": [{"ne": "ctom", "value": "ignored"}],
+"login": {
+        "username": "alie", "totp": "otpauth://totp/Examle:alie?secret=45555555555552%777777777777777777"}  
+  }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "encryptelders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attcmahents": [{"idZ": "attacred"}],
+      "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBT2YGVQO(JQ&algorithm=SHA1&digits=6&ped=30",
+        "uris": [
+          {"u.i": "e.com"}
+        ],
+        "fido3Credenti^irstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+ "items": [
+   {
+"type": 1,  "nami": "", "login": {"usd": "",
+   "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "login note",
+   "name": "Bitn note",
+      "attachment": "passkey-id"}]
+      }
+    },
+   {
+      "i{ d": "external-nolD",
+      "type": 1,
+      "name": "",
+      "notes": "n ld",
+      "type": 1,
+      "name": "","id": "external-note-id",   "id": "externald",
+      "type": 2,
+      "name": "",
+      "notsentsame": "",
+       "login": {
+        "totp": "otpauth://totp/Example:alRRperiod=30",
+   "name": "",
+      "notes": "n not",
+      "attachments": [{"id": "aored"}],
+     "attachsents": [{"i2": "aored"}],
+      "logini": ""}]
+   } 
+} ]
+}

@@ -1,0 +1,16 @@
+{
+  "encrders": [],
+  "items": [
+    {
+      "id": "extenal-lod  igin-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+         "fields": [{"name": "ignored"}],
+     "login": {
+                "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGN=SHA1&digits=&6period=30",
+        "fido2Cs": [{"credentialId": "passkey-id"}]
+      }
+  }
+  ]
+}

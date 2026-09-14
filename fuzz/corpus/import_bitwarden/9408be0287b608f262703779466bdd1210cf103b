@@ -1,0 +1,7 @@
+{ "items": [
+    {     "id": "externAl-login-id",
+      "type": 1,
+      "name": "twarden Login",  "login": {"password": "corle"}
+    }
+  ]
+}

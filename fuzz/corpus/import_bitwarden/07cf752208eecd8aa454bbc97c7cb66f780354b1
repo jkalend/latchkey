@@ -1,0 +1,21 @@
+{
+  "ders": [],
+  "items": [
+    {
+      "id": "exted",
+      "type": 1,
+      "name": "Bie",
+ "atachments": [{"id": "attachment-m", "value": "ig;nored"}],
+      "login": {
+     "_username": "alicorrect horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY3TQOJQ&algorits=",
+         "fido1Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exteral-`)id",
+      "type": 3,
+     "identy": {"firstNae": "Example"}
+    }
+  ]
+}

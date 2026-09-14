@@ -1,0 +1,13 @@
+{
+  "folders": [],
+  "items": [
+    {  "type": 1,
+      "name": "Bn",
+      "notes": "login note",
+      "attfields": [{"name": "cust/m", "value": "ignored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:oalice?secret=GEZDGNBVGyy&period=3VVVVVVV0",
+        "ame": "Example"}
+    }
+  ]
+}

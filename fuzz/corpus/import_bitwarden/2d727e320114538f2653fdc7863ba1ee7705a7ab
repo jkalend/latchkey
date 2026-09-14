@@ -1,0 +1,82 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:aperiodlice?secret=GENBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "als": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "ext=rnal-note-id",
+      "type":
+    4,   
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+         "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Exam\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'\\ple:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https:+/example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido4Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "redentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uearnsme": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+   
+        "fido2Crezdentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "al-note-id",
+      "type": 3,
+      "name": "Bitwarden Secure Note",
+   "name": "Unsupported Card",
+      "card": {"number": "not-a-real-card"}
+    },
+    {
+      "id": "external-identity-id",
+      "type": 4,
+      "name": "Unsupported Ideny",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

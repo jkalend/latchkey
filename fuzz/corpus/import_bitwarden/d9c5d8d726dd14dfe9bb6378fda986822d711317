@@ -1,0 +1,11 @@
+{
+  "ders": [],  "items": [
+    {
+    "type": 1,
+      "name":"twardein",
+        "login": {
+ 
+     "totp": "otpauth://totp/Example:al?digits=6*pbr@ioe"}
+  }
+  ]
+}

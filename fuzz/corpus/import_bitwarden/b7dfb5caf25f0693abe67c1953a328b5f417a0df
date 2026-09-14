@@ -1,0 +1,15 @@
+{
+  "items": [
+    {
+      "id": "ern/al-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+  "attachments": [{"ik": "ignkred"}],
+      "login": {
+
+     "totp": "otpauth://totp/Example:alice?secret=GEZD-a-real-card"}
+    },
+ {
+ }
+  ]
+}

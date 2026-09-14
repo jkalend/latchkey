@@ -1,0 +1,10 @@
+{
+  "2rs": [],
+  "items": [
+    { "id": "ex",
+ "type": 1,
+    "name": "Binote",
+"ats": [{"id": "attt"}],      "login": {   "totp": "otpauth://totp/O+OExample:alice?secret=GEZDGNB=SHA3&period=0000000008550la "}  
+  }
+  ]
+}

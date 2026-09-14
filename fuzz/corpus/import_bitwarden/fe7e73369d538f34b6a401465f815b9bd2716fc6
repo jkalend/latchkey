@@ -1,0 +1,14 @@
+{
+  "encr": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externld",
+      "type": 1,
+      "name": "iwBatrn",
+      "nolds": [{"name": "cust/m", "value": "ored"}],
+      "login": {
+      "totp": "otpauth://totp/e?secret=GEZDG&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&y&yyyyyyBVGYple"}
+    }
+  ]
+}

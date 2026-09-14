@@ -1,0 +1,25 @@
+{
+  "enced": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+     "noachsents": [{"id": "aored"}],
+      "login": {
+        "username": "alicerse",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGY6TQOJQGENBVTQOJQ&algorithgits=6630",
+        "is": [
+        {"uri": "https://accy-id"}]
+      }
+    },
+    {
+      "id": "extd",
+   "type": 1,
+      "name": "gin note"																								,
+      "awttachments": [{"id": "aored"}],
+      "login": {
+            "totp": "otpauth://totp/Example:alice?secretatntY3TQOJ"}
+    }
+  ]
+}

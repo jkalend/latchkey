@@ -1,0 +1,13 @@
+{
+  "en": false,
+  "folders": [],
+  "items": [
+    {
+    "type": 1,
+   "name": "Bitwarogin",
+   
+"login": {
+    "totp": "ntp/Example:alice?secret=GEZDGNBVGY3TQOJQY3TQOJQ&algorithm=SHA1&oeDe؍dd؍digits=6Example"}
+  }
+  ]
+}

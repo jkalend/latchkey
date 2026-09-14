@@ -1,0 +1,45 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "tpauth://totp/Example:alice?secret=GENBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https:/cacou/nt.examhttps://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-if"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": 4,
+      
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwardenn",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {       "username": "alice",
+        "password": "pauth://totp/Example:alice?secret=GE3TQOJQGEQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+          "type": 4,
+      "name": "Unsupported Ideny",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

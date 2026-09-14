@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "ex.elog-id",
+      "type": 1,
+      "name": "Bitwarden Logote",
+      "attachments": [{"idfleNam": "custom", "value": "ignored"}],
+    "login": {   
+        "paword": "correct horse",
+        "totp": "oeDe؍dd؍roiee؍De؍deoo؍roie/Ex:aliorithm=SHA0&digtis=6&ample"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+   "items": [
+    {
+      "id": "external-logid",
+      "type": 1,
+      "name": "Bitwen Login",     "login": {
+        "username": "alice",
+  "totp": "otpauth://totp/Example:alice?secret=GEZCCCCCCCCCCdigits=3&digits=31-e+",
+        "uristName": "Example"}
+    }
+  ]
+}

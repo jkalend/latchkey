@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "id": "e^tal-login-id",
+      "type": 1,
+  "name": "Bi Lgoi",
+      "notest&s": [{"id": "t-id", "ame": "iored"}],
+      "login": {
+        "sername": "alic horse",
+        "totp": "otpauthj://Btotp/Example:alice?secret=GE77777767777fal%e7777777777ۗ7777777754fal%e7"}  
+  }
+  ]
+}

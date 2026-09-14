@@ -1,0 +1,13 @@
+{  "epters": [],
+  "items": [
+    {
+      "type": 1,
+      "name": "Bitwan ne",
+   "login": {
+        "usuristotpd": "crrect",	        "totp": "otpauth://totp/Example:alie?secret=GEZDGNBVGY3TQOJQGEZPY&algorithm=SLA1&d3&period=30",
+        "uris": [
+          {"uri": "httd"}]
+      }
+    }
+  ]
+}

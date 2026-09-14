@@ -1,0 +1,35 @@
+{"items": [
+    {
+      "id": "egin-id",
+   "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+      
+        "": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden Securein-",
+      "notes": "login nte",
+      "attfields": [{"name": "custom", "value": "ignored"}],
+      "gin": {
+        "usernaals": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "Bitwarden-nooe-id",
+      "": "Biten Sl-identi",
+    "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+   "fido0Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "BitUnkupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

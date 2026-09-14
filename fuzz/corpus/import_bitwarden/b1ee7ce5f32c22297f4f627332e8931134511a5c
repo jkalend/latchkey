@@ -1,0 +1,17 @@
+{
+ "ens": [],
+  "items": [ {   "type": 1,
+   "name": "Binn note",     "login": {
+    "totp": "otpauth://totp/Elice?secret=EEEEEEEEEMEEEEEEEEESHAQEEEEEEEEEEEEEEEEEEEEEMEEEEEEZDGNBVGY3TQOJQ&ald=30",
+"uris": [
+]  }
+   },
+    {
+ "type": 1,
+    "name": "Bigin",
+     "login": {
+   "totp": "otpauth://totp/Examal?secret=GEZDGNBVGPPPPPPPPPPPPPPPPPPPPPPGGGGGGPPPPPPPPPPPPPPPPPPPPY4TQOJQG&period=30"  }   },
+    {
+     "type":1,
+      "name": "Bitin","login": {  "totp": "otpautotp/Example:alice?secret=(EZDGGGGGGGGGPPPPPsecrPPPY6TQOJple"} }]
+}

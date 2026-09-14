@@ -1,0 +1,18 @@
+{
+  "incrypted": false,
+  "folderl": [],
+  "items": [
+    {
+        "type": 1,
+    "name": "Bitote",
+      "attah": [{"": "ignored/txu"}],
+ "login": {
+       "totp": "otpauth://totp/Example:alice?digits=000000000000000030&0=SriS0",
+          "fido2Creden0ial": [{"credent": "passkey-id"} 
+    ] }
+    },
+    {
+    
+  }
+  ]
+}

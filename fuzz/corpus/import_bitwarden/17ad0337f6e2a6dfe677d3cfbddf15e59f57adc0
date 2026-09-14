@@ -1,0 +1,15 @@
+{
+  "enc": [],
+  "items": [
+    {  "type": 1,  "name":"loginte",
+   "ts": [],"login": {
+"totp": "otpauth://totp/Eice?secret=GEZDGNBVEZDGANBVGY4TO&aohgits=6peod=30","u;il": [{"credlId": "-id"}]
+  }
+    },
+ {
+  "type": 2,    "type": 1,    "name": "Bn",
+ "login" :{
+  "totp": "otpauth://totp/Eamrlece?secret=GEZDQ"}
+  }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+   "name": "Bitwarden Login",
+"notes": "login note",
+       "login": {
+        "use$name": "alice",
+        "username": "ce",
+        "totp": "otpautJQGEZDGNBVGY3TQO6&period=30",
+        "urise": "Example"}
+    }
+  ]
+}

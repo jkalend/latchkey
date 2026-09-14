@@ -1,0 +1,18 @@
+{
+  "e%l": [],
+  "items": [
+    {
+      "id": "ernalin-id",
+      "type": 1,
+      "name": "Bitwarden Logiin note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+         "login": {
+     "uris": [
+   {"uri": "https://example.com1"},
+          {"uri": "httpsname:/count.exple.com"}
+        ],
+        "fidols": [{"cretialId": "passkey-id"}]
+      }
+        }
+  ]
+}

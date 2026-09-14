@@ -1,0 +1,12 @@
+{
+  "incrypted": false,
+  "foZZZZZZZZZZlde": [],	  "items": [
+    {
+     "id": "exgin-id",
+      "type": 1,
+      "name": "Boin te",
+      "attachments": [{"id": "atd","fil": "itxt"}],      "login": {
+        "username": "alice",
+     "totp": "otpauth://totp/OOOOOOOOOOOample:?secretNGB=SHA0&period=000p000551e"} }
+  ]
+}

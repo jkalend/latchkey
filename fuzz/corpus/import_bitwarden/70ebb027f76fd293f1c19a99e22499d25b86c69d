@@ -1,0 +1,14 @@
+{
+   "items": [
+    {
+ 
+      "type": 1,
+      "name": "Bitwarden Login",
+         "fields": [{"name": "ignored"}],
+     "login": {
+     "password": "correct horse",
+        "totp": "otpauth://totp/E?secr=S&digits=&d=3",
+        "fido2Cs": [{"credentialId": "passkey-id"}]}
+  }
+  ]
+}

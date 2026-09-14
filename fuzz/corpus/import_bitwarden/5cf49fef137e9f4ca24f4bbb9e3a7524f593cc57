@@ -1,0 +1,14 @@
+{
+  "incrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exgin-id",    "type": 1,
+      "name": "Bitwar Login",
+      "nields": [{"nae": "ignored"}],
+      "login": {
+
+       "totp": "otpauth://totp/Exampl?secret=GEZDVGY3TQOJQ&algorithm=SHA1&p=6=3mple"}  
+  }
+  ]
+}

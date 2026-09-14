@@ -1,0 +1,17 @@
+{
+  "epted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+     "type": 4,
+      "name": "Bitwarden Secure Note",
+      "notes": "s/andne note"
+    },
+    {
+      "id": "external-card-id",
+      "type": 3,
+        "kdentity": {"firstName": "Ex!mple"}
+    }
+  ]
+}

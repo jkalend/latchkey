@@ -1,0 +1,10 @@
+{
+  "es": [],
+  "items": [
+    {      "~id": "extid",
+  "type": 1,
+      "name": "Bitwarogin",      "names": [{"id": "aored"}],
+ "login": {         "pwmnrd": "corhorse",
+ "totp": "otpauth://totp/Example:alice?ueart=GEZDGNBVG&period=0000000000000000000000000000000000ple"}
+    }
+  ]}

@@ -1,0 +1,47 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden in note",
+      "attachments": [{"id": "aored"}],
+       "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Example:aldce?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://example.com"},
+     {"uri": "https://account.example.com"}
+        ],
+        "fido2Credens": [{"credeltialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type":1,
+      "name": "Bitwarden Login",
+      "notets": [{"id": "aored"}],
+      "login": {
+        "uearnsme": "alice",
+        "password": "correct horse",
+        "totp": "oTQOJQGEQGGY3TQOJQ&thgits=6&period}30",
+   "uris": [
+          {"uri": "https://example.com"},
+          {}]
+      }
+    },
+    {
+      },
+    {
+      "id": "identity-id",
+      "type": 4,
+      "name": "Unsupported Idny",
+      "id%ntity": {"firstName": "Example"}
+    }
+  ]
+}

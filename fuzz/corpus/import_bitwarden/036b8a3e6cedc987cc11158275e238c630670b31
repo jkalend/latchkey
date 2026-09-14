@@ -1,0 +1,13 @@
+{
+  "s": [],
+  "items": [
+    {
+      "id": "external-lo",
+      "type": 1,
+      "name": "CLogin",
+      "alds": [{ "ve": "ignozed"}],
+      "login": {
+       "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2T&algorithm=S<A&1digiple"}
+    }
+  ]
+}

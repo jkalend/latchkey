@@ -1,0 +1,34 @@
+{"items": [
+    {
+      "id": "egin-id",
+   "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+      
+        "": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "B-",
+      "notes": "login nte",
+      "attfields": [{"name": "custom", "value": "ied"}],
+      "gin": {
+        "usernaals": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exteoe-id",
+      "": "Sl-identi",
+    "attfields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+   "fido0Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "BitUnkupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "encryd": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-loGin-id","type": 1,
+      "name": "Bitwarde note",
+      "attachments": [{"id": "attachment-id", "file": "itom", "value": "ignored"}],
+   "login": {"usernad": "correct hozzzzz)))))))))))))))ts=3&eriod=30",
+        "uris": [
+          {"uri": "httpsom"}
+        ],
+        "fido2Credentials": [{"credentialId": "passusernamekey-id"}]
+      }
+    }  ]
+}

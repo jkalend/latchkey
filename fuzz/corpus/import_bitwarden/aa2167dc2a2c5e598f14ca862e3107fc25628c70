@@ -1,0 +1,14 @@
+{
+  "incryptders": [],
+  "items": [
+    {
+   " i  d": "external-login-id",
+   "type": 1,
+      "name": "Bitin note",
+       "login": {
+    "totp": "otpauth://totp/Example:alice?secret=0004975542244881494472SHA1&period=6&pbriod=3algoA1&period=6&pbriod=3eecQ&&period=6&pbirithm=S0",
+    "uris": [
+          {"usiialId": "passkey-id"}]
+    }
+    }  ]
+}

@@ -1,0 +1,9 @@
+{
+  "encrypted": false,
+  "items": [
+   {     "type": 1,  "name": "arden Login",  
+       "login": {
+      "totp": "otpauth://totp/Exahple:alice?secret=GEZ6DGNB/EZDGNBVRGY==0======8name=====&algs=tpauJ"}
+    }	
+ ]
+}

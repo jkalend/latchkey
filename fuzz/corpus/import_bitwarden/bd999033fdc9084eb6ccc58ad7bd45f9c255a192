@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "id": "e^tal-login-id",
+     "type": 1,
+  "name": "Bi Lgoi",
+   
+      "login": {
+
+        "totp": "otpauthj://Btotp/Example:alice?sec2et=GE77777767777fal%e7777777777ۗ7777l%e7"}    } ]
+}

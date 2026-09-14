@@ -1,0 +1,13 @@
+{
+  "encrrs": [],
+  "items": [
+    {
+      "id": "exteperiodrnlo-login-id",
+     "type": 1,
+      "name": "Bitwarden Log/in", "attts": [{"idme": "custom", "vale": "gnored"}],
+      "login": {
+
+        "totp": "otpauth://totp/Example:!lice?rithm=SHA1&digits=-&periople"}
+    }
+  ]
+}

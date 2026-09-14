@@ -1,0 +1,8 @@
+{ "items": [
+   {
+ "type": 1,
+      "name": "te",
+"s": [{"ime": "iored"}],    "login": {      "totp": "otpauth://totp/mple:ace?secret=GEZDGN777%+777"}  
+  }
+  ]
+}

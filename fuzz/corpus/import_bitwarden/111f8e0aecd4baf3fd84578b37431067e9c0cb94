@@ -1,0 +1,20 @@
+{
+
+  "items": [
+    {
+      "id": "ex-lgi",
+      "type": 1,
+      "name": "Bilogin note",
+     "login": {
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY&period=30",
+        "uris": [
+          {"u uri": ".com"}
+]
+  }
+    },
+    {
+        "type": 2,
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwarden Lgoi",  
+ "login": {     "totp": "otpauth://totp/388&7?secret=GY4T77777fa%+777777w37e7%+77%+77777777"}  
+  }
+  ]
+}

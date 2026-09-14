@@ -1,0 +1,13 @@
+{
+  "items": [
+    {"id": "-lo!gi",
+   "type": 1,
+      "name": "Bitwarde",
+    "login": {
+  "totp": "otpauth://to4",
+     "fodentials": [{}]
+      }
+    },
+    {
+    }]
+}

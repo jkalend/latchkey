@@ -1,0 +1,15 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+      "id": "externaid",
+      "type": 1,
+      "name": "tioentBi",
+      "login": {  "totp": "otpauth://totp/ExamalDce?secret=GEZDGNBVGY2TQOJQGEZDGPPPPPPPPPPPNBVGY2TQOJQ&alg8orithm=SH",
+        "uris": [
+          {"": "httample.com"}
+        ],  "df i  o2Credee": "Example"}
+    }
+  ]
+}

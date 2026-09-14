@@ -1,0 +1,13 @@
+{
+  "enc": [],
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwarden L",
+  "login": {
+        "e":" $lic:e",
+       "totp": "GEZriod=28",
+    "fidomber": "not-mple"}
+    }
+  ]
+}

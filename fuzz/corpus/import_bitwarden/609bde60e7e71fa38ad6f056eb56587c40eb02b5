@@ -1,0 +1,12 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "d",
+      "type": 1,
+     "name": "Bitgin","login": {
+         "totp": "otpauth://totp/Example:ci?ealsecret=GEZVYʹQOJBVQOJQ&algorith-=SHA1&digperioample"}
+   }
+  ]
+}

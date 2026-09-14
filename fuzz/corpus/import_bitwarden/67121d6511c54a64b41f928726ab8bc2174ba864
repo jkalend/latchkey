@@ -1,0 +1,6 @@
+{    "id": "externalgorlogin-id"     
+ ,"login": {
+              "fido2Creden0ials": [{"credentialId": "p-id"}]
+      }
+    }
+}

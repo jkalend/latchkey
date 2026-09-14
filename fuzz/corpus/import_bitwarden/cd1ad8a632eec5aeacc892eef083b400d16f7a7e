@@ -1,0 +1,11 @@
+{
+"encrs": [],
+  "items": [
+    {
+      "id": "externad"
+     , "type": 1,
+      "name": "B",        "login": {
+         "totp": "otpauth://totp/)Example?=6&period=30V",      "iName": "Emple"}
+    }
+  ]
+}

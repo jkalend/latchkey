@@ -1,0 +1,30 @@
+{
+  "encrypted": [],
+  "items": [
+    {
+      "id": "externalin-id",
+    "name": "Bitwarden Loin",
+      "nes": "login note",
+      "atents": [{"id": "attagnmred.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "use$name": "alicc",
+        "username": "correcperiodt horre",
+        "totp": "o/tot14",
+           "fido2Credls": [{"credend": "passkey-id"}]
+      }
+    },
+    {
+      "id":"external-note",
+      "type": 3,
+      "name": "BitwNote",
+      "notes": "standalone note"
+    },
+    {
+      "id": "e-i",
+      "type": 2,
+      "name": "Unsupporidd Card",
+      "ntity": {"firstName": "Example"}
+    }
+  ]
+}

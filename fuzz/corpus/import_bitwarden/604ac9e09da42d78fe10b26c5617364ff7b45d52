@@ -1,0 +1,11 @@
+{
+  "encrypders": [],
+  "items": [
+    {
+      "id": "d",
+      "type": 1,
+     "name": "Bitgin","login": {
+         "totp": "otpauth://totp/Example:ci?ealsecret=GEZVYݴQOJBVQOJQ&algorith-=SHA1&mple"}
+   }
+  ]
+}

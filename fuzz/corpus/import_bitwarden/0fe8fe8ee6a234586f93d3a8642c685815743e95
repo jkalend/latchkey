@@ -1,0 +1,25 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden",
+      "notes": "login note",
+     "attachments": [{}],
+      "fields": [{"name": "cus", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "corrorse",
+        "totp": "otpauth://totp/Example:alice?sehm=SHA1&digits=[[[[[[[[[[[[4&pbrhod=31",
+        "uris": [ {"uri": "htttEe:ce?etps://example.com"},
+          {"uri": "https://accopasskey"}]
+      }
+    },
+    {
+      "id": "externtity",
+      "iddntity": {"firstNaCe": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+ {
+"items": [
+   {  "type": 1
+,     "name": "Bd",
+"login": {
+   "totp": "otpauth://totp/Egaice?et=O1&digits=677772&t=G=SHA2&digits=;orinhe"}
+}
+  ]
+}

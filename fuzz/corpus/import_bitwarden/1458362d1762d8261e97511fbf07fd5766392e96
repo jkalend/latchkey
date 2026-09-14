@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwaote",
+ "teamnt&s": [{"filgName": "iorzed"}],
+    "login": {    "totp": "otpauth://totp/Etern?secret=ZDGNBJ7[8wB777e%+777%e7%+7777e7%+7G77m7%e7%+77777777tee7%+778%e7%+7le7%+7@7%+7777777777"}  
+  }
+  ]
+}

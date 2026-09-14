@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+  "foers": [],
+  "items": [
+    {
+ "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attfields": [{"naml": "cust/m", "value": "ignored"}],
+      "login": {
+        "usernamord": "corre",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBV,GY1TQOJQGEZDGNBVGY3TQ-el11βJQ&algori;thm=SHA1&digits=6&period=30",
+        "uris": [
+ {"uri": "https://example.key-id"}]
+      }}
+  ]
+}

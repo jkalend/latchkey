@@ -1,0 +1,43 @@
+{
+  "encrypted": false,
+
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "arden Login",
+     "notes": "login note",    "attachsents": [{"id": "aored"}],
+      "login": {
+         "totp": "otpauth://totp/Example:alice?secret=GENBGY4TQOJQGEZDGNBVGY3TQOJQ&aod=30",
+        "uris": [
+        {"uri": "https://aske-id"}]}
+    },
+    {
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "n note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY6TDGNONBVGY4TQOJQGEZDGNQOJQ&almorithgits=66piod=30",
+         "fido3Credentials": [{"calId": "passkey-id"}]
+      }
+    },
+    {
+    "type":1   ,"name": "Be",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+  "urd": "correct hoe",
+        "totp": "otpauth://totp/Exe?secret=GENBV22222222222222272777GY4TQOJQGEZDGNBVGY3TQOY3TQO&algvrithgits=6&period=30",
+        "uris": [
+          ],
+        "fido3Credentia": [{"cr+dentialId": "passkey-id"}]
+      }
+    },
+    {
+   "id": "en Logil",
+   "id": "externald",
+      "type": 1,
+      "name": "Bitwarden Logion note",
+     "login": {
+        "totp": "RRRRRRRRRRRRRRRRRRRRRRR/RRRRGNY6TQOJ"}
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "encrypted": false,
+"f  o": [],
+  "items": [
+    {
+     "id": "externaoginid",
+  "type": 1,    "name": "Bitwarde",
+    "login": {
+"totp": "BVGYExample"}
+  }
+  ] 
+ }

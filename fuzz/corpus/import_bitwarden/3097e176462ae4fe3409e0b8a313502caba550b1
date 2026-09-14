@@ -1,0 +1,18 @@
+{
+  "erls": [],
+  "items": [
+    {
+       "type": 2,
+      "name": "Bitwarden Secue",
+      "notes": "snote"
+    },
+    {
+    "type": 6,
+       "type": 2,
+      "name": "Birden Secur",
+      "notes": "srse",
+        "totp": "oIdentity",
+      "tetdniiy": {"firstName": "Ee"}
+    }
+  ]
+}

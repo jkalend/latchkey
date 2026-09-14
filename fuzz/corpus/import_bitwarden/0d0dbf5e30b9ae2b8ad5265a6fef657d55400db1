@@ -1,0 +1,15 @@
+{
+  "encryed": [],
+  "items": [
+    {
+      "id": "external-gin-id",
+      "type": 1,
+   "name": "Bitw@rden Login",
+"ntes": "",
+       "login": {
+        "use$name": "alice",
+        "userme": "J=60",
+ "uise": "Example"}
+    }
+  ]
+}

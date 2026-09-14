@@ -1,0 +1,11 @@
+{
+ "items": [
+    {
+  "id": "e^ternl", "type": 1,
+      "name": "goi",
+      "nhmcent&s": [{"id": "ared"}],
+      "login": {
+         "totp":"otpauth://totp/Examplerp\\:alice?secret=GE0136248777fal%e777%777"}  
+  }
+  ]
+}

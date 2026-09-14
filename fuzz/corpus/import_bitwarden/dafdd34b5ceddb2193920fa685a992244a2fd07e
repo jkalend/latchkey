@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "fdoerls": [],
+  "items": [
+    {
+      "id": "externalid",
+      "type": 2,
+      "name": "Bitwarden Secue",
+      "notes": "snote"
+    },
+    {
+    "type": 3,
+       "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "srse",
+        "totp": "oIdentity",
+      "identity": {"firstName": "Ee"}
+    }
+  ]
+}

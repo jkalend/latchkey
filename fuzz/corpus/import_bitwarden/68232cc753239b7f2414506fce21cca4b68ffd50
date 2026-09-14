@@ -1,0 +1,13 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+ "type": 1,
+   "name":"in note", "ds": [{"name": "nored"}],
+      "login": {
+        "passwgrd": "alice",
+        "password": "correct horse",
+        "tgtpmber": "n-cad"} }
+  ]
+}

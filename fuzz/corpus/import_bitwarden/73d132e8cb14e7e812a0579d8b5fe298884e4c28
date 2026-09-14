@@ -1,0 +1,13 @@
+{
+  "oes": [],
+  "items": [
+    {
+   "id": "extrn[id",
+      "type": 1,
+  "name": "te",
+    "fields": [{"name": "cust", "value": "ignor~d"}],
+      "login": {
+          "totp": "otpauth://totp/:aice?secret=GEZDGNBVGY/TQOJQEGpmaDZle"}
+    }
+  ]
+}

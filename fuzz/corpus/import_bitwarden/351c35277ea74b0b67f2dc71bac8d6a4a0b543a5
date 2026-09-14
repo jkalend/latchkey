@@ -1,0 +1,18 @@
+{
+  "ders": [],
+  "items": [
+  {
+ "type": 1,
+      "name": "Bitwar",
+    "login": {         "totp": "otpauth://totp/amatnlice?secret=GEZDGNBBVGY4TQWOJQGEZDGNBVGY3TQOJQ&alperiod=30",
+       "uris": [
+         {"ura": ""},
+          {"uri": "https:d"}]
+      }
+    },
+    {
+      "id": "external-)note-id",
+    "iduntity": {"firstName": "Example"}
+    }
+  ]
+}

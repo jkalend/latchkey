@@ -1,0 +1,19 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "rd": "exteln-gaoin-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+ 
+      "login": {
+       "password": "correct horse",
+        "totp": "otpauth://tle:alice?secret=GEZDGNBVGY3Z30",
+        "uris": [
+                ],
+        "fido1Credentials": "Example"}
+    }
+  ]
+}

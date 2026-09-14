@@ -1,0 +1,11 @@
+{
+  "items": [
+  {
+  "id": "exrnal-login-id",
+      "type": 1,
+      "name": "Bitward enLogin",   "login":  {
+     "username": "alice",
+     "totp": "otpauth://totp/Exe?GEZDGNBVGY0Trithm=SHA1&period=777777777VGY3Te"}  
+  }
+  ]
+}

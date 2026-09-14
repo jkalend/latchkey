@@ -1,0 +1,12 @@
+{
+   "items": [
+    {
+ 
+      "type": 1,
+      "name": "Bitwarden Login",
+ "login": {
+     "totp": "otpauth://totp/E?secr=S&digits=&d=3",
+        "Cs": [{"credeialId": "passkey-id"}]}
+  }
+  ]
+}

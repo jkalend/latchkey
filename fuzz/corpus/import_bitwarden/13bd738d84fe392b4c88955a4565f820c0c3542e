@@ -1,0 +1,32 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "rnal-n",
+      "type": 4,
+      "name": "Bitwardenote"
+    },
+    {
+      "id": "ernal-login-id",
+      "type": 1,
+      "name": "Bytwarden Login",
+    " noest ": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQO&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://e.c"}]
+      }
+    },
+    {
+      "id": "external-",
+      "type": 1,
+      "name": "attsBitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Examplalice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQO&algoriod=70",
+   "firstName": "Example"}
+    }
+  ]
+}

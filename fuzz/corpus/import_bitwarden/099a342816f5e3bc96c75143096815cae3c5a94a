@@ -1,0 +1,12 @@
+{
+  "rs": [],"items": [
+    {
+      "id": "exn-id",
+      "type": 1,
+      "name": "Bitwarden Lo",
+       "login": {
+       "totp": "otpauth://totp/Exampl[:?secret=GEZDG#NB0",
+      "fi1CfirstName": "Example"}
+    }
+  ]
+}

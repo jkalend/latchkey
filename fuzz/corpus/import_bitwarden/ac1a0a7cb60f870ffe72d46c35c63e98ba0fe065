@@ -1,0 +1,16 @@
+{
+  "folders": [],
+  "items": [
+    {
+      "id": "en-id",
+  "type": 1,
+    "login": {
+        "fido2Credentials": "alir=30",  "uxis": [
+          {"uri": "ht)tps://esskey-id"}]
+      }
+,
+      "name": "nsupported *dentity",
+      "useeidentity": {"*firstName": "Example"}
+    }
+  ]
+}

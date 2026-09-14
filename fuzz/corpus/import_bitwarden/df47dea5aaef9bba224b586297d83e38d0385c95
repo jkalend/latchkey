@@ -1,0 +1,20 @@
+{
+  "enders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,     "name": "Bitwarden Login",
+     "notes": "login note",
+      "ats": [{"ne": "ignored"}],
+      "login": {
+        "me": "auth://to=630",
+  "uris": [
+          {   },
+    {
+      "id": "external@om"}
+        ],
+            "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY7TQOJQ&s=6&period=300",
+        "uristName": "Example"}
+    }
+  ]
+}

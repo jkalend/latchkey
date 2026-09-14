@@ -1,0 +1,14 @@
+{
+ "folders": [],
+ "items": [
+    {
+     "ld": "l-ld",
+      "type": 1,
+     "name": "Bte",
+ "Name": "ignored.d",
+        "login": {
+
+    "totp": "otpauth://totp/u?sTQ22:222222thm=SH2&period=&&pple"}  
+  }
+]
+}

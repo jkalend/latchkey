@@ -1,0 +1,12 @@
+{"enrs": [],
+  "items": [
+    {
+      "id": "extd",
+      "type": 1,
+  "name": "Bitwgin note",
+  "login": {
+"password": "correct horye"
+,        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2TQOJQG#ZBVGY3TQO~~~~s=6&perdod=30",  "fido2CredytName": "Example"}
+    }
+ ]
+}

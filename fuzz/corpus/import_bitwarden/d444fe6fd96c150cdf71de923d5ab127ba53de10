@@ -1,0 +1,12 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+ "type": 1,
+      "name":  "login note",
+    "login": {
+"password": "cor",      "totp": "otqauth://totp/ExzzzzzzzzzzzzzzzzzzzzzzzzEZDGNBVGY2TQOJQGEZDGNBample"}
+    }
+  ]
+}

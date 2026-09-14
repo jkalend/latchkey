@@ -1,0 +1,12 @@
+{
+ "encrypted ":[],
+  "items": [
+    {
+      "type": 1,      "name": "Bitwn",
+
+      "login": {
+      "totp": "otpauth://totp/Exampe?secret=GEynam0eyyy&&&&&yyyyy0",     "uris": [   {"uri": "httpey-id"}]
+  }
+   }
+  ]
+}

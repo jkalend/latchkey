@@ -1,0 +1,11 @@
+{
+  "enc": [],
+  "items": [
+    {
+ "type": 1,
+      "name": "BiwaP",
+  "login": {
+           "totp": "GEZriodle"}
+    }
+  ]
+}

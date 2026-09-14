@@ -1,0 +1,28 @@
+{
+  "encrypted": [],
+  "": [
+    {
+   "name": "Bien Login",
+      "nonts": [{"id": "attament-login-id",
+      "type": 1,
+      "namn": {
+       }
+    },
+    {
+  "value": "ignored"}], "login": {
+        }
+    },
+    {
+      "id": "exdernal-note-id",
+         "login": {
+        }
+    },
+    {
+       "login": {
+        }
+    }  
+, { 
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

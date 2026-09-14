@@ -1,0 +1,11 @@
+{
+  "ind": false,
+  "items":[ 
+    {
+     
+      "type": 1,
+      "name": "Bitward ",
+      "login": {  "totp": "otpauth://totp/ample8alice?secZDGNB=SA0&period=00000000171031519gorit.mxample"}  
+  }
+  ]
+}

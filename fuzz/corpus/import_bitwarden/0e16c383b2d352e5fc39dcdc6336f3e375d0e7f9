@@ -1,0 +1,12 @@
+{
+  "encrypt": [],
+  "items": [
+    {     "type": 1,
+      "name": "BitwardLogin",
+      "noteents": [{"id": "attac.mgnxt"}],
+     "login": {
+        "usErme": "alice",
+       "totp": "otpauth://totp/Example:al&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&ice?seet=GNZDGNBVGY1TQOJQGEZDGNB=SHA1&digits=860wrierin"}
+    }
+  ]
+}

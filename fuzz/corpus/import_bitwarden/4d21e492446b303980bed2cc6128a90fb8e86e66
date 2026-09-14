@@ -1,0 +1,16 @@
+{
+ "items": [
+   {
+      "id": "e-id",
+ "type": 1,
+      "name": "Biden Login",
+      "otes": "lo",
+     "atachments": [{"id": "aed.t"}],
+      "login": {
+        "username": "a",      "totp": "otpauth://totp/Example:sc?secret=GV6&digits=29",
+      "uri": [
+  ]
+      }
+     }
+  ]
+}

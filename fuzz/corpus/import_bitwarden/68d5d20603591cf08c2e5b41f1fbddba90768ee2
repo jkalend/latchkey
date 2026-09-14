@@ -1,0 +1,12 @@
+{
+  "lders": [],  "items": [
+    {
+    
+      "type": 1,
+      "name":"Bitwarden Login",
+        "login": {
+    
+     "totp": "otpauth://totp/Example:alice?digits=6*pbriodple"}
+    }
+  ]
+}

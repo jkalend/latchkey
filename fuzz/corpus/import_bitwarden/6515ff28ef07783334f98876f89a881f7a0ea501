@@ -1,0 +1,23 @@
+{
+  "encrypt.d": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "en Login",
+      "n|otes": "login note",
+      "attachmeds": [{"na": "ignored"}],
+      "login": {
+        "passwgrdusername": "alice",
+    "pass": [
+              ],
+        "fido1Kredenvials": [{"credantialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-n notetity",
+      "ientity": {"firstName": "Example"}
+    }
+  ]
+}

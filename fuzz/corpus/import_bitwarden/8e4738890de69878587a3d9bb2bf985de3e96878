@@ -1,0 +1,16 @@
+{
+  "enlders": [],
+  "items": [
+    {
+  "  id  ": "external-login-id",
+      "type": 1,
+      "name": "Bitwn",
+ 
+      "login": {  "totp": "otpauth://totp/Example:alice?secr=GEZDGNBVGY3TQOJQGEZKGNBVGY3TQOJQ&algori=hm=SHA1&digits=6&pbriod=31",    
+   "Tido2Credentials": [{"credentialId": "paskey-id"}]
+      }
+    },
+    {
+  }
+  ]
+}

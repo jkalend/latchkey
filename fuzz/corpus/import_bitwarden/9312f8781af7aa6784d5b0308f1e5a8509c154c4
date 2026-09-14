@@ -1,0 +1,13 @@
+{
+  "incd": false,
+  "folders": [],
+  "items": [
+    {
+     
+      "type": 1,
+      "name": "Bitwen Login",     "login": {
+       "totp": "otpauth://totp/Emple:alice?secret=GEGY3TQ22222222GNBVGY=TQOJQ&aecorithm=SHA1&period=6&pbriod=30",
+        "uple:alice?secret=GEZide2CordentiarstName": "Example"}  
+  }
+  ]
+}

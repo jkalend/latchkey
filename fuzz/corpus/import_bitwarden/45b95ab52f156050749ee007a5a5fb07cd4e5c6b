@@ -1,0 +1,19 @@
+{
+  "e%l": [],
+  "items": [
+    {
+      "id": "ernal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+         "login": {
+     "uris": [
+   {"uri": "https://example.com1"},
+          {"uri": "https:/count.exple.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+        }
+  ]
+}

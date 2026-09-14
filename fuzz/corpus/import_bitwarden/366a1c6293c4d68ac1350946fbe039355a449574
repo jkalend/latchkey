@@ -1,0 +1,11 @@
+{
+  "inc": [],
+  "items": [
+    {
+ "type": 1,
+      "name": "Citwgin", "not": [{"id": "atd"}],
+      "login": {
+        "username":""}  
+  }
+  ]
+}

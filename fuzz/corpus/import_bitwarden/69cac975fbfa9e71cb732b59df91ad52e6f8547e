@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+  "type": 1,
+      "name": "Bin Login",
+      "notes": "login note",
+     "login": {
+        "username": "alice",
+        "password": "BVGY1TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&pdample"}
+    }
+  ]
+}

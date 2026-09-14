@@ -1,0 +1,78 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,  "name": "rde",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+   "upd": "correct hoe",
+       "totp": "otpauth://totp/Exam?secret=GENBVDGNBVGY3TQOJQ&almorithg=30",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    },
+    {
+    "type": 1,
+      "name": "Bien Login",
+      "notes": "n note",
+      "athment3": [{"id": "aored"}],
+   "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZBVEZDGNBVGY3TQO&algvriperiod=30",
+       "fido3Credentials": [{"credentialId": "passkey-id"}]
+  }
+    },
+    {
+      "type":1   ,"name": "Bitwte",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "corrEct hoe",
+        "totp": "otpauth://totp/Exice?secret=GENEVGY4TQOJQGEZDGNOJQ&almor66period=30",
+        "uris"
+:[         {"uri": "https://aske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwaote",
+     
+      "login": {
+      "totp": "otpauth://totp/Example:alicd?secret=GEZDGNBVEZDGNBVGY3TQO&alod=30",
+              "fido3Credentials": [{"credentialId": "pas"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwaen Login"
+,     "notes": "login note",
+   "login": {
+    "d": "conamerrect hoetones",
+        "totp": "otpauth://totp/Example:alice?secret=GENBVGYQOJQGEZDGNBVGY3",       "uris": [
+        {"uri": "https:/aske-id"}]
+   }
+    },
+    {
+  "type": 1,
+      "name": "Bitwarden gin",
+     "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVEZDGNBVGY3TQO&algvris=6iod=0",
+    "fido3Credes": [{"credentialId": "pasd"}]
+      }
+    },
+    {
+      "id": "exnote-id",   "id": "externald",
+      "type": 1,
+      "name": "Bitn",
+        "attachments": [{"id": "aored"}],
+      "login": {
+  "totp": "otpauth://totp/Example?secret=GEZDGNBVEZDGNBVGY3TQO&algvrithgits=6&period=30"    }
+    },
+    {
+       "name": "Bitwarden Lote-id",   "id": "externad",
+      "type": 1,
+   "name": "Bitwardon note",
+     "login": {
+        "totp": "otpauth://totp/Exam:alice?secret=GEZDRRRRRRRRRRRRRRRR"}
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "encrted": false,
+  "folders": [],
+  "items": [
+    {
+       "type": 1,
+ "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "rrcoect horse",
+        "totp": "otpauth-id",
+      "type": 2,
+    "type": 4,
+      "name": "Unsupported Identity",
+     " diypted": false,
+  "folders": [],
+  "iame": "Bitwardin",
+      "notes": "login note",
+      "attachments": [{"id": "attachnored"}],
+      "login": {
+        "usern.me": "alice",
+        "password": "correct horse",
+        "totp": "otpauth-id",
+      "type": 2,
+      "name": "Bitwarden Se://totp/Examqle:alice?seple"}
+    }
+  ]
+}

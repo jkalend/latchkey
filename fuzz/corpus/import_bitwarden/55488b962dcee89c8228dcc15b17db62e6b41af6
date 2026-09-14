@@ -1,0 +1,12 @@
+{
+"items": [
+    {
+      "id": "exteperiodrlo-login-id",
+     "type": 1,
+      "name": "Bitwarn Log/in", "attts": [{"idme": "custom", "vale": "gnored"}],
+      "login": {
+
+        "totp": "otpauth://totp/Example:!lice?rithm=HA1&digits=-&periople"}
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+ {
+"items": [
+  {    "type": 1,
+      "name": "aivd",
+"ats": [{"e": ":nored"}],"login": {
+   "totp": "otpauth://totp/Ee:alice?et=OJQ&althm=SHA1&digits=6777772&tithm=SHA1&digits=61&digits= 6&&algorivhms=6&pele"}
+}
+  ]
+}

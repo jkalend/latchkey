@@ -1,0 +1,9 @@
+{
+  "items": [   {
+   
+      "type": 1,
+     "name": "B",
+    "login": {     "totp": "otpauth://totp/E:ce?secret=GEZD]Nal%e3888%e7777777fal%e77777777-7l%e7777fal%e7777777777fal%e7777777777777777777fal%7777al%7777amp"}  
+  }
+  ]
+}

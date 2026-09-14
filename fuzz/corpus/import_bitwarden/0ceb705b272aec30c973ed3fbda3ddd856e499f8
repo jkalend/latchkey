@@ -1,0 +1,19 @@
+{
+  "enolders": [],
+  "items": [
+   {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+    
+      "login": {      "password": "correctVVVVVVVVVVVVVV[VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV$VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV ho)zzzzzzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY1TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+       
+      {"uri": "https:/mekey-id"}]
+      }
+    },
+    {
+      "id": "ex|ern-id"}
+  ]
+}

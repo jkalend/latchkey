@@ -1,0 +1,31 @@
+{
+"items":   [ 
+{   "type": 1,  "name": "BiLoginote",  "atfalseents": [],
+     "login": {"fido3Credentials": [{"crzde": "paA"}]
+    }
+    },
+    {
+  "type":1   ,"name": "e",
+ "attachsents": [{"id": "ored"}],
+   "login": {  "fido4Credentials": [{"": "0asid"}]
+  }  
+  },
+    {
+   "type":1   ,"name": "Bitwar",  "attachsdnts": [{"i": "aed"}],
+  "login": {
+   "fido4Credentials": [{"dld": "pac"}]
+ }
+  },
+ {
+   "type": 1,"name": "Bitwa",
+   "login": {
+  "fido6Credentialw": [{"nId": "d"}]
+    }
+    },
+     { 
+"type": 1,
+"name": "n",    "notes*": "lote",
+   "l": {
+    "tp": "h:/ttp/EJ   "}
+ } ]
+}

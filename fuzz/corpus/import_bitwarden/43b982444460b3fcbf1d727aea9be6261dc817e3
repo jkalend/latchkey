@@ -1,0 +1,17 @@
+{
+  "encrers": [],
+  "items": [
+    {
+       "uris": [ 
+         {"uri": "https://example.com"},
+          {"uri": "htexamom", "value": "ignored"}],
+      "login": {
+         "password": "correctorse",     "uris": [
+          {"uri": "https:/%example.com"},
+          {"uri": "ht.example.m"}
+        ],
+        "fido2Cumber": "real-card"} },    {
+     "identity": {"firstName": "Example"}
+    }
+  ]
+}

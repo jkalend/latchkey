@@ -1,0 +1,11 @@
+{
+ "items": [
+    {
+      "id": "external-logi",
+      "type": 1,
+      "name": "Bitwen Login",     "login": {
+        "useeranm": "alice",
+  "totp": "otpauth://totp/Examp?secCdigits=3&digits=31mple"}
+    }
+  ]
+}

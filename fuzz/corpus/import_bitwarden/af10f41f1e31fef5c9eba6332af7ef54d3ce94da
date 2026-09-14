@@ -1,0 +1,11 @@
+{
+  "items":[
+    {
+      "id": "e^terd",
+      "type":   1 
+  , "name": "Bi",
+      "login": {
+         "totp": "otpauth://totp/Ee:alice?secret=49fal%54"}  
+  }
+  ]
+}

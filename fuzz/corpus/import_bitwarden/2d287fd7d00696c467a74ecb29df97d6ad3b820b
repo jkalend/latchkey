@@ -1,0 +1,22 @@
+{
+  "folders": [],
+  "items": [ {
+      "id": "exteri n-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "ats": [{"name": "custom", "value": "ignorhd"}],
+      "login": {
+    "username": "alice",
+        "password": "correctVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV$VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV ho)zzzzzzzzzzzzzzzzzzzzzzzzzzample:alice?secret=GEZDGNBVGY2TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uris": [
+       
+          {"uri": "::::::::key-i"}]
+     
+ }    },
+    {
+"id": "extern-id",
+      "tnamty": {"firstName": "Example"}
+    }
+  ]
+}

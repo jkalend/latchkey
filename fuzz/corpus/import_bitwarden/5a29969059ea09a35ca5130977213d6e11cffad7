@@ -1,0 +1,22 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "extid", "type": 1,
+     "name": "Biin",
+      "notesields": [{"name": "custored"}],
+      "login": {
+          "uris": [
+     {"uri": "https://exopmace.lm"},
+         {" urk": "https:/totp"}
+        ],
+        "fido2Credenti^ls": [{"credentialId": "`asskey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+  "identity": {"firstName": "Example"}
+    }
+  ]
+}

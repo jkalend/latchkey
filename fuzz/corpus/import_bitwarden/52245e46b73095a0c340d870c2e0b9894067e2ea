@@ -1,0 +1,11 @@
+{
+  "items": [
+    {
+      "id": "externyln-id",
+      "type": 1,
+   "name": "en lin note",
+      "login": {
+        "usern": "aice",   "totp": "otpauth://totp/Example:ae?secret=GENBVGY2OJ&go&ris=6&per|e"}
+   }
+  ]
+}

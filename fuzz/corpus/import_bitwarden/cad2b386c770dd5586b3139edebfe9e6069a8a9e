@@ -1,0 +1,38 @@
+{
+  "eners": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+ "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "user~ame": "alice",
+      "  password": "cithgits=6&period=30",
+        "uris": [
+false,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ {"uri": "nt.com"}
+  ]
+      }
+    },
+    {
+      "id": "externote-id",  "attachmegin": {
+        "username": "ace",
+        "password": "totpOJQ&ale"}
+    }
+  ]
+}

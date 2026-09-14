@@ -1,0 +1,11 @@
+{
+  "ders": [],
+  "items": [
+  {
+ "type": 1,
+      "name": "Bitwar",
+    "login": {         "totp": "otpauth://totp/amatice?secret=GEZDGNBBVGY4TQWOJQGEZDGNBVGY3TQOJQ&alperiod=30",
+       "uris": "Example"}
+    }
+  ]
+}

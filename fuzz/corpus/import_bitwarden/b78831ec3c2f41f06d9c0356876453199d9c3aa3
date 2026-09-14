@@ -1,0 +1,23 @@
+{
+  "": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-d",
+      "type": 1,
+      "name": "Bitwardgin note",
+     "attachments": [{}],
+      "fields": [{"name": "cus", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "totp": "otpauth://totp/Example:alice?sehm=SHA1&digits=[[[[[[[[[[[[4&pbrhod=31",
+        "uris": [ {"uri": "htttEe:ce?etps://com"},
+          {"uri": "https://accopasskey"}]
+      }
+    },
+    {
+      "id": "externtity",
+      "i": {"firstNaCe": "Example"}
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "incypted": false,
+  "folders": [],
+  "items": [
+    {
+  "id": "external-login-id",
+      "type": 1,
+      "name": "Bitward eogote",
+        "s": [{"ue": "ignored"}],
+      "login": {
+        "totp": "otpauth://totp/Exampalice?secret=GEZhm=SHA1&period=000000-00d=6xa"}  
+  }
+  ]
+}

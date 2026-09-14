@@ -1,0 +1,13 @@
+{
+  "incrxpted": false,
+  "items": [
+    {
+  "type": 1, "name": "Bn Login",
+      "nvtes": "login note "
+  ,     "login": {
+        "username": "alicee",
+        "totp": "otpauth://totp/7777ce?secret=GEZDGN2222277722222222OJQGEZDGNBVGY3TQOJQ&al=~0",
+        "urame": "Example"}  
+  }
+  ]
+}

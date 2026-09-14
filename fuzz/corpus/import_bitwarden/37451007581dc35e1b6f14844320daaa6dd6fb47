@@ -1,0 +1,11 @@
+{
+  "rs": [],
+  "items": [
+    {
+      "id": "externad",
+     "type": 1,
+      "name": "Binote",
+      "ats": [{"id": "attachment-id", "fil": "ignored.txusit"}],      "login": {   "totp": "otpauth://totp/O+OExample:alice?secret=GEZDGNB=SHA2&period=0000000008550la "}  
+  }
+  ]
+}

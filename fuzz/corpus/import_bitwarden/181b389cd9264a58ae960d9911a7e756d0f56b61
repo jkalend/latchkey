@@ -1,0 +1,14 @@
+{
+  "encrypted": false,
+ "items": [
+    {
+      "id": "ld",
+      "type": 1,
+      "name": "Bitwden Login",
+      
+     "login": {
+        "username": "alice",
+         "totp": "otpauth://totp/Example:al&&&&&&&&&&&&&t^^^&&&&&&&&?seet=GHA0&digits=860wrample"}
+    }
+  ]
+}

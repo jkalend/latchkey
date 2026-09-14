@@ -1,0 +1,11 @@
+{
+   "items": [
+   
+ {      "id": "external-fSlselogin-id",
+      "type": 1,
+      "name": "Bn Login",
+      "nes": "log)n note",   "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2UQ222222222222222222222222222222222222222222222222222le"}  
+  }
+  ]
+}

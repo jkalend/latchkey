@@ -1,0 +1,16 @@
+{
+  "ed": false,
+  "ode": [],
+  "items": [
+    {
+     "id": "",
+      "type":
+     1,  "name": "Bitote",
+      "login": {
+          "totp": "otpauth://totp/Example:alice?secret=EZDGNBVGY3UQOJQGEQ&algmr=toih30",      "uris": [    {"uri": "ttptps-id"}]
+      }
+    },
+    {
+     }
+  ]
+}

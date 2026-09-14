@@ -1,0 +1,37 @@
+{
+   "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "BitLogin",
+      "notes": "login note",
+      "attachments": [{"id": "attachment-id", "fileName": "nored.txt"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {      }
+    },
+    {
+      "id": "external2note-id",
+      "type": 1,
+      "name": "Bn-id",
+      "type": 1,
+      "login": {
+        }
+    },
+    {
+      "id": "external-note-id",
+      "name": "Unsupported dentity",
+        "type": 2,
+      "name": "Bitwarden Secure Note",
+    "id": "external-ln-id",
+      "type": 1,
+      "nameotes": "login note",
+      "atents": [{"id": "attachm", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custom", "value": "igonred"}],
+      "login": {
+        }
+    },
+    {
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

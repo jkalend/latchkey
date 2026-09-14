@@ -1,0 +1,19 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e-id",
+      "type": 1,
+      "name": "Biden Login",
+      "otes": "login note",
+      "atachments": [{"id": "aed.t"}],
+      "login": {
+        "username": "alice",      "totp": "otpauth://totp/Example:anlice?secret=GEZDGNB-VGY3TQWOJt=GEZDGNB-VGY3TQWOJQG1&digits=6&digits=30",
+        "uris": [
+          {"uri": "https://example.com"},
+          {}]
+      }
+     }
+  ]
+}

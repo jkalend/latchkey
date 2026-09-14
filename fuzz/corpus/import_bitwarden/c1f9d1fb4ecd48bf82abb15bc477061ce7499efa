@@ -1,0 +1,16 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-d",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attfields": [{"name": "cust/m", "value": "ed"}],
+      "login": {
+    "totp": "otpauth://totp/Example:alice?secret=yyyyyyyyyy&&&&V0",
+        "urisstName": "Example"}
+    }
+  ]
+}

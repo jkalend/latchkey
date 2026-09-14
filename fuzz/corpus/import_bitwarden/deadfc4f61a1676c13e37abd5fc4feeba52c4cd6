@@ -1,0 +1,11 @@
+{
+ 
+  "items": [
+ {
+    "type": 1,
+      "name": "Bitw",
+          "login": {
+       "totp": "otpauth://totp/m?secrko=5&period=30||||||||||||||"}
+  }
+  ]
+}

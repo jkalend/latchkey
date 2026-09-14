@@ -1,0 +1,71 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "usernqme": "alice",
+        "password": "correcp/Example:aperiodlice?secret=GENBVGY3TQOTQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fiis": [
+          {"uri": "https://example.com"},
+          {"uri": "httpsexample.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "ext=rnal-note-id",
+      "type":
+    4,   
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+         "notes": "login note"   ,
+   "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Ex\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\p/Example:alice?secret=GEZDGNBVGY3TQOJQGEQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "type": "external-nd",
+      "type": 4,
+      
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uearnsme": "aEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "com"},
+          {"uri": "https://account.example.com"}
+        ],
+        "fido2Credentials": [{"credentialId": "passkey-id"}]
+ }
+    },
+    {
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/Exam\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"} 
+   }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "in#cfolders": [],
+  "items": [
+    {
+      "id": "ext",
+    "type": 1,
+      "name": "te",
+     "login": {
+ "usern": "alice",
+  "rd": "rect ho",
+        "totp": "otpauth://totp/Example:alice?digits=00001lgle"}  
+  }
+  ]
+}

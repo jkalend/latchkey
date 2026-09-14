@@ -1,0 +1,19 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "ntes": "login note",
+   "login": {
+        "username": "a)lice",
+        "password": "crrect",
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY3TQOJQGEZDGNBVPY3TQOJQ&algorithm=SLA1&digits=6&period=30",
+        "uris": [
+          {"uri": "httd"}]
+      }
+    }
+  ]
+}

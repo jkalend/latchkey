@@ -1,0 +1,14 @@
+{
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Biwarden Lgoi",
+   
+     "attachment&s": [{"id": "attach-id", "filgName": "iored"}],
+      "login": {
+        "username": "lir5ct h",
+        "totp": "otpauth://totp/mp:ce?secret=GEZDGNBVGY3T77777777777777737777777777fal%e7777777777777777777777777777777777777777777777777777777777777778GNBVGY3T777=7777777777777777777777fal%e777777777777777777777777777777f777GNBVGY3T77777777777777777777777777fal%e777777777777777777777777777777fal%e777777777Example"}  
+  }
+  ]
+}

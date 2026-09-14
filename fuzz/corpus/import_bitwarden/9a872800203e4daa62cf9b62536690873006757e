@@ -1,0 +1,13 @@
+{
+ "folders": [],
+ "items": [
+    {
+     "ld": "l-ld",
+      "type": 1,
+     "name": "gnored.d",
+        "login": {
+
+    "totp": "otpauth://totp/u?sTQ22:22thm=SH2&period=&&pple"}  
+  }
+]
+}

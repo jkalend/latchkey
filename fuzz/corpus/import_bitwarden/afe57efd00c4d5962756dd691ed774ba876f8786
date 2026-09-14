@@ -1,0 +1,76 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items":   [ 
+{       "id": "extid",
+      "type": 1,  "name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+  "uis": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwarden Login",
+     "notes": "login note",
+      "attachsents": [{"gd": "aored"}],
+      "login": {        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwar",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "coret=GENBVGY3TQOJQGEZDGNBVGY3TQOJQ&almiod=30",
+      "uris": [      ],
+        "fido3Credentials": [{"credentialId": "pasd"}]
+      }
+  },
+    {
+      "id": "extesnald",
+      "type": 1,"name": "Bitwarden Login",
+      "notes": "lon note",
+     "login": {
+        "tott": "otpautxamplesecret=GEZDGiod6&periofallsd=30",
+        "uris": [
+          ],
+        "": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+      "type":1   ,"name": "Bitwar",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+    "urd": "coret=GENBVGY3TQOJQGEZDGNBVGY3TQOJQ&almiod=30",
+      "uris": [      ],
+        "fido3ntials": [{"credentialId": "pasd"}]
+      }
+  },
+    {
+      "id": "ternald",
+      "type": 1,"name": "Bitwarden Login",
+      "notes": "lon note",
+     "login": {
+        "tott": "otpautxamplesecret=GEZDGiod6&periofallsd=30",
+        "uris": [
+          ],
+        "fido3Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+    "type": 1,
+      "notes*": "lon note",
+     "login": {
+        "totp": "otpauth://totp/EJ"}
+    }
+  ]
+}

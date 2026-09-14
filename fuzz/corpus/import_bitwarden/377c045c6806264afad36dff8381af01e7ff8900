@@ -1,0 +1,8 @@
+{
+ "items": [
+    {      "type": 1,
+     "name": "Bitwen Login",     "login": {
+         "totp": "otpauth://totp/Examp?secCdigits=6&digits=31mple"}
+    }
+  ]
+}

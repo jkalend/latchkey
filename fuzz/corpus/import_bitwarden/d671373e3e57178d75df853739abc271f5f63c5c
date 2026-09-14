@@ -1,0 +1,10 @@
+{
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwardlogin note",
+      "atment&s": [{"filgName": "iorzed"}],
+    "login": {    "totp": "otpauth://totp/Etern?secret=GEZDGNB8[8wB8[8w37777e%+777%e7%+7777el%e7%+7.7777G777777m7%e7%+77777777tee7%+778%e7%+77777777nypel-e7%+77777777777777.77777%+7777777777"}  
+  }
+  ]
+}

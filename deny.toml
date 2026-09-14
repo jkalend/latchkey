@@ -3,12 +3,6 @@
 [advisories]
 version = 2
 yanked = "deny"
-ignore = [
-    # RUSTSEC-2024-0436 "unmaintained" — paste is a compile-time proc-macro
-    # pulled in by ratatui 0.29; no vulnerability, not reachable at runtime.
-    # Revisit when ratatui drops the dependency.
-    "RUSTSEC-2024-0436",
-]
 
 [licenses]
 version = 2

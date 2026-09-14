@@ -974,4 +974,48 @@ mod tests {
         final_vault.open_item(live_id).unwrap();
         let _ = std::fs::remove_file(path);
     }
+
+    #[test]
+    fn verify_all_leaves_valid_vault_byte_identical() {
+        // NEXT_RELEASE §8: "check on a valid vault leaves the file
+        // byte-identical" — the read-only property was documented but
+        // never asserted. Hash the file before and after a full verify.
+        let path = std::env::temp_dir().join(format!(
+            "latchkey_v_readonly_{}.latchkey",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_file(&path);
+        let password = pswd("readonly");
+        let record = ItemRecord {
+            password: Some(b"secret".to_vec()),
+            url: String::new(),
+            notes: None,
+            totp: None,
+            created_unix: 1,
+            modified_unix: 1,
+        };
+        let mut vault = Vault::create(
+            &path,
+            &password,
+            KdfParams::new(8, 1, 1).unwrap(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        vault.add_item("t".into(), "u".into(), record).unwrap();
+        vault.save().unwrap();
+        drop(vault);
+
+        let before = std::fs::read(&path).unwrap();
+        let opened = Vault::open(&path, &password).unwrap();
+        let (live, _tombstones) = opened.verify_all_items().unwrap();
+        assert_eq!(live, 1);
+        drop(opened);
+        let after = std::fs::read(&path).unwrap();
+        assert_eq!(
+            before, after,
+            "verify_all_items must not rewrite a valid vault"
+        );
+        let _ = std::fs::remove_file(&path);
+    }
 }

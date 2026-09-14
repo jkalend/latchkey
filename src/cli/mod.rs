@@ -10,7 +10,6 @@ pub use error::{CliError, ExitCode, Result};
 pub use vault_path::default_vault_path;
 
 use clap::{CommandFactory, Parser, Subcommand};
-use secrecy::SecretBox;
 use zeroize::Zeroizing;
 
 use crate::crypto::ciphers::Algorithm;
@@ -831,10 +830,6 @@ fn cmd_backup(path: &std::path::Path, out: Option<std::path::PathBuf>) -> Result
     Ok(())
 }
 
-// Keep SecretBox referenced so the import isn't dead in cfg combinations.
-#[allow(unused)]
-fn _secret_box_marker(_: SecretBox<[u8]>) {}
-
 // ─── shared prompt helpers ──────────────────────────────────────────────────
 fn resolve_notes(value: Option<Option<String>>) -> Result<Option<String>> {
     match value {
@@ -1015,10 +1010,23 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
     };
     let new_notes = match &notes {
         Some(n) => Some(n.clone()),
-        None => edit_field(
-            "Notes",
-            &String::from_utf8_lossy(rec.notes.as_deref().unwrap_or(b"")),
-        )?,
+        // Notes are secret-classified (recovery codes, security answers):
+        // never prefill the plaintext into the prompt — terminal scrollback
+        // would silently capture it. Empty input keeps the current notes.
+        None => {
+            let has_notes = rec.notes.as_deref().is_some_and(|n| !n.is_empty());
+            let label = if has_notes {
+                "Notes [Enter = keep current]"
+            } else {
+                "Notes [Enter = leave empty]"
+            };
+            let input = prompt_line(label)?;
+            if input.is_empty() {
+                None
+            } else {
+                Some(input)
+            }
+        }
     };
 
     let new_password = if generate {
@@ -1150,6 +1158,23 @@ fn cmd_export(
             .get(&e.slot)
             .ok_or_else(|| CliError::Other("item not open".into()))?
             .clone();
+        // The export schema is UTF-8 JSON: a non-UTF-8 secret would be
+        // silently corrupted (U+FFFD) and a re-import would overwrite the
+        // real bytes with the damage. Refuse instead — same policy as
+        // `get --reveal`.
+        for (field, bytes) in [
+            ("password", rec.password.as_deref()),
+            ("notes", rec.notes.as_deref()),
+        ] {
+            if let Some(b) = bytes {
+                if std::str::from_utf8(b).is_err() {
+                    return Err(CliError::Other(format!(
+                        "item '{}' has non-UTF-8 {field}; refusing to export (the JSON schema cannot represent it losslessly)",
+                        e.title
+                    )));
+                }
+            }
+        }
         items.push(export_item_json(e, &rec));
     }
 
@@ -1158,7 +1183,8 @@ fn cmd_export(
     body.push_str("{\n  \"format_version\": 1,\n  \"exported_at\": ");
     body.push_str(&now.to_string());
     body.push_str(",\n  \"items\": {\n");
-    body.push_str(&items.join(",\n"));
+    let joined = Zeroizing::new(items.join(",\n"));
+    body.push_str(&joined);
     body.push_str("\n  }\n}\n");
 
     if to_stdout {
@@ -1219,16 +1245,18 @@ pub fn export_item_json(
         }
         out
     }
-    let password = rec
-        .password
-        .as_ref()
-        .map(|p| String::from_utf8_lossy(p).to_string())
-        .unwrap_or_default();
-    let notes = rec
-        .notes
-        .as_ref()
-        .map(|n| String::from_utf8_lossy(n).to_string())
-        .unwrap_or_default();
+    let password = Zeroizing::new(
+        rec.password
+            .as_ref()
+            .map(|p| String::from_utf8_lossy(p).to_string())
+            .unwrap_or_default(),
+    );
+    let notes = Zeroizing::new(
+        rec.notes
+            .as_ref()
+            .map(|n| String::from_utf8_lossy(n).to_string())
+            .unwrap_or_default(),
+    );
     let totp = rec.totp.as_ref().map(|t| {
         let alg = match t.algorithm {
             crate::vault::shape::TotpAlgorithm::Sha1 => "SHA1",

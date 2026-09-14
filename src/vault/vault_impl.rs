@@ -42,7 +42,6 @@ pub fn item_aad(version: u8, item_id: u32) -> [u8; 6] {
     a
 }
 
-pub const INDEX_NONCE_LEN: usize = NONCE_LEN;
 const FRAME_LAYOUT_V2: u8 = 0xA5;
 #[cfg(not(test))]
 const MAX_VAULT_BYTES: u64 = 64 * 1024 * 1024;
@@ -441,6 +440,12 @@ impl Vault {
         let mut final_header = header.clone();
         final_header.reserved[0] = FRAME_LAYOUT_V2;
         final_header.enc_counter = next_counter;
+        // CRYPTO_SPEC §5: a fresh random wrap nonce on every header write.
+        // save() passes the header parsed from disk, so without this the
+        // unchanged KEK would re-encrypt the DEK under the previous write's
+        // nonce — repeated (KEK, nonce) pairs across successive vault
+        // versions are the GCM forbidden-attack setup.
+        final_header.wrap_nonce = random_nonce()?;
         let wrap_cipher = AeadCipher::new(final_header.wrap_algorithm()?);
         let wrap_ct = wrap_cipher.encrypt_raw(
             &self.kek,
@@ -777,6 +782,56 @@ mod tests {
         let v = Vault::open(&tmp, &password).unwrap();
         assert!(v.entries.is_empty());
         assert_eq!(v.next_item_id, 1);
+        let _ = std::fs::remove_file(&tmp);
+    }
+
+    #[test]
+    fn ordinary_save_refreshes_wrap_nonce() {
+        // CRYPTO_SPEC §5: every header write must use a fresh wrap nonce.
+        // save() re-parses the on-disk header, so without the explicit
+        // re-randomization the same (KEK, nonce) pair would encrypt the DEK
+        // twice — the GCM forbidden-attack setup.
+        let tmp =
+            std::env::temp_dir().join(format!("latchkey_v_nonce_{}.latchkey", std::process::id()));
+        let _ = std::fs::remove_file(&tmp);
+        let password = pswd("nonce-test");
+        let kdf = KdfParams::new(8, 1, 1).unwrap();
+        let record = crate::vault::shape::ItemRecord {
+            password: Some(b"pw".to_vec()),
+            url: String::new(),
+            notes: None,
+            totp: None,
+            created_unix: 1,
+            modified_unix: 1,
+        };
+        {
+            let mut v = Vault::create(
+                &tmp,
+                &password,
+                kdf,
+                Algorithm::Aes256Gcm,
+                Algorithm::Aes256Gcm,
+            )
+            .unwrap();
+            v.add_item("t".into(), "u".into(), record).unwrap();
+            v.save().unwrap();
+        }
+        let raw1 = read_vault_bytes(&tmp).unwrap();
+        {
+            let mut v = Vault::open(&tmp, &password).unwrap();
+            v.open_item(1).unwrap();
+            let mut rec = v.open_items.remove(&0).unwrap();
+            rec.password = Some(b"pw2".to_vec());
+            v.open_items.insert(0, rec);
+            v.save().unwrap();
+        }
+        let raw2 = read_vault_bytes(&tmp).unwrap();
+        let h1 = parse::parse_header(&raw1).unwrap();
+        let h2 = parse::parse_header(&raw2).unwrap();
+        assert_ne!(
+            h1.wrap_nonce, h2.wrap_nonce,
+            "second save must not reuse the first save's wrap nonce"
+        );
         let _ = std::fs::remove_file(&tmp);
     }
 

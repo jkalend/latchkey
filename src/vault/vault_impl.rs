@@ -510,10 +510,34 @@ impl Vault {
             })
             .collect::<Result<_>>()?;
 
-        // Serialize the index into a guarded plaintext buffer.
+        // Compute the complete candidate size before encryption or allocation.
         let index_pt = Zeroizing::new(serialize_index(&IndexPayload {
             entries: renumbered.clone(),
         })?);
+        let mut candidate_len =
+            HEADER_LEN + NONCE_LEN + 4 + index_pt.len() + WRAP_TAG_LEN + 4 + TRAILER_LEN;
+        for entry in &self.entries {
+            let frame_len = if let Some(record) = self.open_items.get(&entry.slot) {
+                crate::vault::shape::validate_item(record)?;
+                NONCE_LEN + 4 + item_plaintext_len(record) + WRAP_TAG_LEN
+            } else if matches!(entry.state, TOMBSTONE_STATE | 0xFF) {
+                NONCE_LEN + 4 + 25 + WRAP_TAG_LEN
+            } else {
+                let slot = *old_index.get(&entry.item_id).ok_or_else(|| {
+                    Error::Encrypt(format!("item {} not open and not on disk", entry.item_id))
+                })? as usize;
+                old_frames
+                    .get(slot)
+                    .ok_or_else(|| Error::Encrypt("old item slot out of range".into()))?
+                    .len()
+            };
+            candidate_len = candidate_len
+                .checked_add(frame_len)
+                .ok_or_else(|| Error::Encrypt("vault size overflow".into()))?;
+            ensure_vault_size(candidate_len)?;
+        }
+        ensure_vault_size(candidate_len)?;
+
         let mut final_header = header.clone();
         final_header.reserved[0] = FRAME_LAYOUT_V2;
         final_header.enc_counter = next_counter;
@@ -614,6 +638,7 @@ impl Vault {
         out.extend_from_slice(&crc.to_be_bytes());
         let tag = file_mac(&out, &self.dek)?;
         out.extend_from_slice(&tag);
+        ensure_vault_size(out.len())?;
         if self.last_disk_tag.is_none() {
             atomic_create_locked(&self.path, &out)?;
         } else {
@@ -833,6 +858,23 @@ fn be_u32_at(b: &[u8], off: usize) -> Result<u32> {
         .and_then(|s| s.try_into().ok())
         .map(u32::from_be_bytes)
         .ok_or_else(|| Error::Encrypt("truncated u32".into()))
+}
+
+fn ensure_vault_size(len: usize) -> Result<()> {
+    if len as u64 > MAX_VAULT_BYTES {
+        return Err(Error::Encrypt(format!(
+            "vault exceeds the {} MiB size limit",
+            MAX_VAULT_BYTES / 1024 / 1024
+        )));
+    }
+    Ok(())
+}
+
+fn item_plaintext_len(record: &ItemRecord) -> usize {
+    25 + record.url.len()
+        + record.password.as_ref().map_or(0, |p| 4 + p.len())
+        + record.notes.as_ref().map_or(0, |p| 4 + p.len())
+        + record.totp.as_ref().map_or(0, |t| 13 + t.secret.len())
 }
 
 fn file_mac(bytes: &[u8], dek: &SecretVec) -> Result<[u8; FILE_MAC_LEN]> {
@@ -1179,6 +1221,39 @@ mod tests {
             created_unix: 123,
             modified_unix: 456,
         }
+    }
+
+    #[test]
+    fn oversized_candidate_preserves_disk_and_failed_key_changes_preserve_session() {
+        let (mut vault, password) = security_vault("oversize");
+        let committed = std::fs::read(&vault.path).unwrap();
+        let old_dek = vault.dek.clone();
+        let mut record = security_record();
+        record.password = Some(vec![b'p'; 1024]);
+        record.notes = Some(vec![b'n'; 8192]);
+        for _ in 0..120 {
+            vault
+                .add_item("entry".into(), "user".into(), record.clone())
+                .unwrap();
+        }
+        assert!(vault.save().unwrap_err().to_string().contains("size limit"));
+        assert_eq!(std::fs::read(&vault.path).unwrap(), committed);
+        assert!(Vault::open(&vault.path, &password)
+            .unwrap()
+            .entries
+            .is_empty());
+        assert!(vault.change_password(&pswd("new-password")).is_err());
+        assert!(vault.rotate(&password).is_err());
+        assert_eq!(vault.dek.expose_secret(), old_dek.expose_secret());
+        assert_eq!(std::fs::read(&vault.path).unwrap(), committed);
+        vault.entries.clear();
+        vault.open_items.clear();
+        vault.save().unwrap();
+        assert!(Vault::open(&vault.path, &password)
+            .unwrap()
+            .entries
+            .is_empty());
+        let _ = std::fs::remove_file(&vault.path);
     }
 
     fn legacy_bytes(vault: &Vault, separate_tag: bool) -> Vec<u8> {

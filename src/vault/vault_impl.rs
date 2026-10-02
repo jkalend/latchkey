@@ -490,8 +490,15 @@ impl Vault {
                     || self.open_items.contains_key(&e.slot)
             })
             .count();
-        let next_counter = header.enc_counter.saturating_add(encrypt_count as u32);
-        if next_counter >= ROTATION_LIMIT {
+        let encrypt_count = u32::try_from(encrypt_count)
+            .ok()
+            .and_then(|count| count.checked_add(1))
+            .ok_or_else(|| Error::Encrypt("encryption counter exhausted; run rotate".into()))?;
+        let next_counter = header
+            .enc_counter
+            .checked_add(encrypt_count)
+            .ok_or_else(|| Error::Encrypt("encryption counter exhausted; run rotate".into()))?;
+        if next_counter > ROTATION_LIMIT {
             return Err(Error::Encrypt(
                 "encryption counter near limit; run rotate".into(),
             ));
@@ -1221,6 +1228,59 @@ mod tests {
             created_unix: 123,
             modified_unix: 456,
         }
+    }
+
+    #[test]
+    fn counts_index_items_and_enforces_exact_rotation_boundary() {
+        let (mut vault, password) = security_vault("counter");
+        assert_eq!(vault.header.enc_counter, 1);
+        vault.save().unwrap();
+        assert_eq!(vault.header.enc_counter, 2);
+        vault
+            .add_item("one".into(), "user".into(), security_record())
+            .unwrap();
+        vault.save().unwrap();
+        assert_eq!(vault.header.enc_counter, 4);
+        drop(vault);
+        let path = std::env::temp_dir().join(format!(
+            "latchkey_security_counter_{}.bin",
+            std::process::id()
+        ));
+        let mut vault = Vault::open(&path, &password).unwrap();
+        let mut header = parse::parse_header(&std::fs::read(&path).unwrap()).unwrap();
+        header.enc_counter = ROTATION_LIMIT - 1;
+        let dek = vault.dek.clone();
+        vault.save_with_header(&header, &dek).unwrap();
+        assert_eq!(vault.header.enc_counter, ROTATION_LIMIT);
+        let committed = std::fs::read(&path).unwrap();
+        assert!(
+            vault.save().is_err(),
+            "even index-only encryption must obey cap"
+        );
+        assert_eq!(std::fs::read(&path).unwrap(), committed);
+        assert_eq!(
+            Vault::open(&path, &password).unwrap().header.enc_counter,
+            ROTATION_LIMIT
+        );
+        let _ = std::fs::remove_file(&path);
+
+        let (mut vault, _) = security_vault("counter_item");
+        vault
+            .add_item("one".into(), "user".into(), security_record())
+            .unwrap();
+        let mut header = parse::parse_header(&std::fs::read(&vault.path).unwrap()).unwrap();
+        let dek = vault.dek.clone();
+        header.enc_counter = ROTATION_LIMIT - 1;
+        let committed = std::fs::read(&vault.path).unwrap();
+        assert!(
+            vault.save_with_header(&header, &dek).is_err(),
+            "item plus index need two remaining encryptions"
+        );
+        assert_eq!(std::fs::read(&vault.path).unwrap(), committed);
+        header.enc_counter = ROTATION_LIMIT - 2;
+        vault.save_with_header(&header, &dek).unwrap();
+        assert_eq!(vault.header.enc_counter, ROTATION_LIMIT);
+        let _ = std::fs::remove_file(&vault.path);
     }
 
     #[test]

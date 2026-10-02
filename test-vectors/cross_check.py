@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent LKv1 vault reader — the second implementation for the
+"""Independent LKv2 vault reader — the second implementation for the
 test-vector cross-check (DEVELOPMENT.md).
 
 Parses and decrypts a vault file using Python's `cryptography` and
@@ -12,12 +12,12 @@ Layout (VAULT_FORMAT §3-§7):
   [117  ..           ]  index frame: 12B nonce || u32 ct_len || ct+tag
   [..                ]  u32 slot_count || per-slot frames
   [..                ]  v2 item frame: 12B nonce || u32 ct_len || ct || 16B tag
-  [last 8            ]  u32 slot_count || u32 crc32c
+  [last 40           ]  u32 slot_count || u32 crc32c || 32B HMAC-SHA256
 
 Header fields (offsets):
-  0..3    magic "LKv"          3     version 0x01
+  0..3    magic "LKv"          3     version 0x02
   4       kdf_id (0x01)        5     wrap_alg_id   6     item_alg_id
-  7       frame layout marker (0x00 legacy, 0xA5 v2)
+  7       reserved marker 0xA5 (v2 always uses separate item tags)
   8..10   reserved             10..14 argon2_m_mib (u32 BE)
   14..18  argon2_t (u32 BE)    18    argon2_p (u8)
   19..35  kdf_salt (16B)       35..39 enc_counter (u32 BE)
@@ -30,9 +30,13 @@ item = [version, 0x53, item_id_be].
 
 import struct
 import sys
+import hashlib
+import hmac
 
 import argon2.low_level
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM, ChaCha20Poly1305
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 
 HEADER_LEN = 117
 ALGS = {0x01: ("aes-256-gcm", AESGCM), 0x02: ("chacha20-poly1305", ChaCha20Poly1305)}
@@ -51,7 +55,7 @@ def parse_header(data):
         raise VaultError("file too short for header")
     if data[0:3] != b"LKv":
         raise VaultError("bad magic")
-    if data[3] != 0x01:
+    if data[3] != 0x02:
         raise VaultError(f"unsupported version 0x{data[3]:02x}")
     return {
         "reserved": data[7:10],
@@ -129,19 +133,25 @@ def decrypt_vault(path, password):
     _, item_cls = ALGS[header["item_alg_id"]]
     item_aead = item_cls(dek)
 
-    # Trailer: u32 slot_count || u32 crc32c over the whole file before the
-    # trailer (header + index + items region — the slot_count itself is
-    # outside the CRC's coverage, per the Rust writer's behavior).
-    trailer_count = u32be(data, len(data) - 8)
+    # Authenticate every committed byte before decrypting any metadata.
+    mac_key = HKDF(
+        algorithm=hashes.SHA256(), length=32, salt=None,
+        info=b"latchkey/v2/file-mac",
+    ).derive(dek)
+    if not hmac.compare_digest(
+        hmac.new(mac_key, data[:-32], hashlib.sha256).digest(), data[-32:]
+    ):
+        raise VaultError("whole-file MAC mismatch")
+    trailer_count = u32be(data, len(data) - 40)
     import crc32c
 
-    if crc32c.crc32c(data[:-8]) != u32be(data, len(data) - 4):
+    if crc32c.crc32c(data[:-40]) != u32be(data, len(data) - 36):
         raise VaultError("crc32c mismatch")
 
     # Index frame.
     off = HEADER_LEN
     nonce, ct, off = read_frame(data, off)
-    index_pt = item_aead.decrypt(nonce, ct, bytes([0x01, 0x49]))
+    index_pt = item_aead.decrypt(nonce, ct, bytes([0x02, 0x49]))
 
     entries = []
     n = struct.unpack_from(">I", index_pt, 0)[0]
@@ -175,13 +185,17 @@ def decrypt_vault(path, password):
         raise VaultError("slot count mismatch between items region and trailer")
     items = {}
     for slot in range(items_count):
-        nonce, ct, off = read_frame(data, off, separate_tag=data[7] == 0xA5)
+        nonce, ct, off = read_frame(data, off, separate_tag=True)
         # The index tells us which item_id lives at this slot.
         entry = next(e for e in entries if e["slot"] == slot)
-        aad = bytes([0x01, 0x53]) + struct.pack(">I", entry["item_id"])
+        aad = bytes([0x02, 0x53]) + struct.pack(">I", entry["item_id"])
         pt = item_aead.decrypt(nonce, ct, aad)
         items[entry["item_id"]] = parse_item(pt)
+        if items[entry["item_id"]]["item_id"] != entry["item_id"]:
+            raise VaultError("embedded item ID mismatch")
 
+    if off != len(data) - 40:
+        raise VaultError("unexpected bytes before trailer")
     return entries, items
 
 

@@ -211,3 +211,54 @@ fn external_import_preview_list_and_delete_escape_metadata_without_changing_data
     assert_eq!(std::fs::read(&path).unwrap(), before_invalid);
 }
 
+#[test]
+fn migrate_is_explicit_preserves_source_and_refuses_existing_destinations() {
+    let workspace = Workspace::new("migration");
+    let source = workspace.0.join("legacy.bin");
+    let target = workspace.0.join("current.bin");
+    std::fs::copy("test-vectors/vault-legacy-v1.bin", &source).unwrap();
+    let original = std::fs::read(&source).unwrap();
+    let input = "test-vector-master-password\n";
+
+    let legacy_open = cli(&source, &["list"], input);
+    assert_eq!(legacy_open.status.code(), Some(1));
+    assert!(assert_terminal_safe(&legacy_open.stderr).contains("migrate"));
+
+    let same_path = cli(&source, &["migrate", "--out", source.to_str().unwrap()], "");
+    assert_eq!(same_path.status.code(), Some(2));
+    assert_eq!(std::fs::read(&source).unwrap(), original);
+    std::fs::write(&target, b"do not overwrite").unwrap();
+    let occupied = cli(&source, &["migrate", "--out", target.to_str().unwrap()], "");
+    assert_eq!(occupied.status.code(), Some(1));
+    assert_eq!(std::fs::read(&target).unwrap(), b"do not overwrite");
+    std::fs::remove_file(&target).unwrap();
+
+    let migrated = cli(
+        &source,
+        &["migrate", "--out", target.to_str().unwrap()],
+        input,
+    );
+    assert!(migrated.status.success(), "{:?}", migrated);
+    assert_terminal_safe(&migrated.stderr);
+    assert_eq!(std::fs::read(&source).unwrap(), original);
+    let mut vault = Vault::open(&target, &password(input.trim_end())).unwrap();
+    let entry = vault
+        .entries
+        .iter()
+        .find(|entry| entry.item_id == 1)
+        .unwrap()
+        .clone();
+    assert_eq!(entry.title, "example.com");
+    assert_eq!(entry.username, "alice");
+    vault.open_item(entry.item_id).unwrap();
+    assert_eq!(
+        vault.open_items[&entry.slot].password.as_deref(),
+        Some(b"correct horse battery staple".as_slice())
+    );
+    drop(vault);
+    let current = std::fs::read(&target).unwrap();
+    let repeated = cli(&source, &["migrate", "--out", target.to_str().unwrap()], "");
+    assert_eq!(repeated.status.code(), Some(1));
+    assert_eq!(std::fs::read(&source).unwrap(), original);
+    assert_eq!(std::fs::read(&target).unwrap(), current);
+}

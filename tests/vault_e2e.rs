@@ -188,6 +188,9 @@ fn tamper_detection_bitflip() {
     // + index frame).
     let idx = flipped.len() / 2;
     flipped[idx] ^= 0xFF;
+    let len = flipped.len();
+    let crc = crc32c::crc32c(&flipped[..len - 40]);
+    flipped[len - 36..len - 32].copy_from_slice(&crc.to_be_bytes());
 
     std::fs::write(&path, &flipped).unwrap();
     let err = Vault::open(&path, &password);
@@ -553,4 +556,123 @@ fn export_import_roundtrip() {
 
     let _ = std::fs::remove_dir_all(path.parent().unwrap());
     let _ = std::fs::remove_dir_all(fresh.parent().unwrap());
+}
+
+fn repair_crc(bytes: &mut [u8]) {
+    let len = bytes.len();
+    let crc = crc32c::crc32c(&bytes[..len - 40]);
+    bytes[len - 36..len - 32].copy_from_slice(&crc.to_be_bytes());
+}
+
+fn index_end(bytes: &[u8]) -> usize {
+    133 + u32::from_be_bytes(bytes[129..133].try_into().unwrap()) as usize
+}
+
+#[test]
+fn historical_index_and_item_splices_rejected_on_every_read_and_save_path() {
+    let path = tmp_vault("splice");
+    let password = pw("splice-password");
+    let mut vault = Vault::create(
+        &path,
+        &password,
+        test_kdf(),
+        Algorithm::Aes256Gcm,
+        Algorithm::Aes256Gcm,
+    )
+    .unwrap();
+    let id = vault
+        .add_item("old-title".into(), "user".into(), sample_item(false))
+        .unwrap();
+    vault.save().unwrap();
+    let old = std::fs::read(&path).unwrap();
+    vault.entries[0].title = "new-title".into();
+    vault.open_items.get_mut(&0).unwrap().password = Some(b"replacement-password".to_vec());
+    vault.save().unwrap();
+    let current = std::fs::read(&path).unwrap();
+    drop(vault);
+    let old_index_end = index_end(&old);
+    let new_index_end = index_end(&current);
+
+    for replace_index in [true, false] {
+        std::fs::write(&path, &current).unwrap();
+        let mut lazy = Vault::open(&path, &password).unwrap();
+        let mut cached = Vault::open(&path, &password).unwrap();
+        cached.open_item(id).unwrap();
+        let mut splice = current[..117].to_vec();
+        if replace_index {
+            splice.extend_from_slice(&old[117..old_index_end]);
+            splice.extend_from_slice(&current[new_index_end..]);
+        } else {
+            splice.extend_from_slice(&current[117..new_index_end + 4]);
+            splice.extend_from_slice(&old[old_index_end + 4..old.len() - 40]);
+            splice.extend_from_slice(&current[current.len() - 40..]);
+        }
+        repair_crc(&mut splice);
+        std::fs::write(&path, &splice).unwrap();
+        assert!(matches!(
+            Vault::open(&path, &password),
+            Err(latchkey::crypto::Error::Decrypt)
+        ));
+        assert!(matches!(
+            lazy.open_item(id),
+            Err(latchkey::crypto::Error::Decrypt)
+        ));
+        assert!(
+            lazy.open_items.is_empty(),
+            "failed authentication must not populate cache"
+        );
+        assert!(
+            matches!(cached.open_item(id), Err(latchkey::crypto::Error::Decrypt)),
+            "cache cannot hide corrupt disk"
+        );
+        assert!(matches!(
+            lazy.verify_all_items(),
+            Err(latchkey::crypto::Error::Decrypt)
+        ));
+        assert!(matches!(lazy.save(), Err(latchkey::crypto::Error::Decrypt)));
+        assert_eq!(std::fs::read(&path).unwrap(), splice);
+    }
+    std::fs::write(&path, &current).unwrap();
+    assert_eq!(
+        Vault::open(&path, &password)
+            .unwrap()
+            .verify_all_items()
+            .unwrap(),
+        (1, 0)
+    );
+    let _ = std::fs::remove_dir_all(path.parent().unwrap());
+}
+
+#[test]
+fn explicit_migration_preserves_legacy_fixture_and_refuses_existing_target() {
+    let source = std::path::Path::new("test-vectors/vault-legacy-v1.bin");
+    let original = std::fs::read(source).unwrap();
+    let password = pw("test-vector-master-password");
+    let target = tmp_vault("migration");
+    assert!(Vault::open(source, &password).is_err());
+    let mut migrated = Vault::migrate(source, &target, &password).unwrap();
+    assert_eq!(std::fs::read(source).unwrap(), original);
+    assert_eq!(migrated.next_item_id, 4);
+    assert_eq!(migrated.header.version, 2);
+    assert_eq!(migrated.verify_all_items().unwrap(), (3, 0));
+    let mut golden = Vault::open(
+        std::path::Path::new("test-vectors/vault-golden.bin"),
+        &password,
+    )
+    .unwrap();
+    assert_eq!(migrated.entries, golden.entries);
+    for entry in migrated.entries.clone() {
+        migrated.open_item(entry.item_id).unwrap();
+        golden.open_item(entry.item_id).unwrap();
+        assert_eq!(
+            migrated.open_items[&entry.slot],
+            golden.open_items[&entry.slot]
+        );
+    }
+    let committed = std::fs::read(&target).unwrap();
+    assert!(Vault::migrate(source, &target, &password).is_err());
+    assert_eq!(std::fs::read(&target).unwrap(), committed);
+    assert_eq!(std::fs::read(source).unwrap(), original);
+    assert!(Vault::migrate(&target, &target.with_extension("another"), &password).is_err());
+    let _ = std::fs::remove_dir_all(target.parent().unwrap());
 }

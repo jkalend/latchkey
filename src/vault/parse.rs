@@ -1,11 +1,11 @@
-//! LKv1 header parser/serializer (VAULT_FORMAT.md §3-§4).
+//! LKv header parser/serializer (VAULT_FORMAT.md §3-§4).
 
 use crate::crypto::ciphers::{Algorithm, NONCE_LEN};
 use crate::crypto::error::{Error, Result};
 use crate::crypto::kdf::{KdfParams, SALT_LEN};
 
 pub const MAGIC: &[u8; 3] = b"LKv";
-pub const CURRENT_VERSION: u8 = 0x01;
+pub const CURRENT_VERSION: u8 = 0x02;
 pub const HEADER_LEN: usize = 117;
 pub const FUTURE_PAD_LEN: usize = 18;
 pub const WRAPPED_DEK_CIPHER_LEN: usize = 32; // DEK plaintext len; v1 has no KEK padding
@@ -65,6 +65,15 @@ pub fn header_aad(h: &ParsedHeader) -> [u8; 47] {
 }
 
 pub fn parse_header(data: &[u8]) -> Result<ParsedHeader> {
+    parse_header_version(data, CURRENT_VERSION)
+}
+
+/// Legacy headers are accepted exclusively by explicit migration.
+pub(crate) fn parse_legacy_header(data: &[u8]) -> Result<ParsedHeader> {
+    parse_header_version(data, 1)
+}
+
+fn parse_header_version(data: &[u8], expected: u8) -> Result<ParsedHeader> {
     if data.len() < HEADER_LEN {
         return Err(Error::Encrypt("file too short for header".into()));
     }
@@ -72,7 +81,12 @@ pub fn parse_header(data: &[u8]) -> Result<ParsedHeader> {
         return Err(Error::Encrypt("not a vault file (bad magic)".into()));
     }
     let version = data[3];
-    if version != CURRENT_VERSION {
+    if version != expected {
+        if version == 1 && expected == CURRENT_VERSION {
+            return Err(Error::Encrypt(
+                "legacy v1 vault requires explicit migration: latchkey --vault OLD migrate --out NEW".into(),
+            ));
+        }
         return Err(Error::Unsupported(version));
     }
     let kdf_salt: [u8; SALT_LEN] = data[19..35].try_into().unwrap();
@@ -80,10 +94,9 @@ pub fn parse_header(data: &[u8]) -> Result<ParsedHeader> {
     let wrapped_dek: [u8; WRAPPED_DEK_CIPHER_LEN] = data[51..83].try_into().unwrap();
     let wrap_tag: [u8; WRAP_TAG_LEN] = data[83..99].try_into().unwrap();
     let future_pad: [u8; FUTURE_PAD_LEN] = data[99..117].try_into().unwrap();
-    // future_pad is unauthenticated in v1 (outside both the header AAD and
-    // every AEAD tag). v1 writers must zero it; a non-zero pad means either
-    // corruption or a v1.x file with fields this reader doesn't know — both
-    // are refuse-to-open, not silently-ignored-tampering.
+    // v2's file MAC authenticates this padding; legacy v1 has no such tag.
+    // Both readers reject unknown nonzero padding rather than interpreting
+    // fields from a future layout.
     if future_pad != [0u8; FUTURE_PAD_LEN] {
         return Err(Error::Encrypt(
             "non-zero future pad — vault written by a newer version or corrupted".into(),
@@ -151,7 +164,7 @@ mod tests {
         };
         let buf = build_header(&h);
         assert_eq!(buf.len(), HEADER_LEN);
-        assert_eq!(&buf[0..4], b"LKv\x01");
+        assert_eq!(&buf[0..4], b"LKv\x02");
         let parsed = parse_header(&buf).unwrap();
         assert_eq!(parsed, h);
     }

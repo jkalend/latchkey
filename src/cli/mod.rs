@@ -189,9 +189,15 @@ enum Command {
         #[arg(long)]
         new_password: bool,
     },
+    /// Explicitly migrate a legacy v1 vault to a new v2 file; leaves the source untouched
+    Migrate {
+        /// New, distinct destination; existing paths are never overwritten
+        #[arg(long, value_name = "FILE")]
+        out: std::path::PathBuf,
+    },
     /// Plaintext export of the vault (requires --format json + --yes-i-mean-it)
     Export {
-        /// Export format; only json exists in v1
+        /// Export format; only json is supported
         #[arg(long)]
         format: String,
         /// The explicit opt-in flag this command requires
@@ -354,6 +360,7 @@ fn dispatch(cli: Cli) -> Result<()> {
             },
         ),
         Command::Rotate { new_password } => cmd_rotate(&vault_path, new_password, context),
+        Command::Migrate { out } => cmd_migrate(&vault_path, &out, context),
         Command::Export {
             format,
             yes_i_mean_it,
@@ -441,6 +448,49 @@ fn cmd_init(path: &std::path::Path, force: bool, context: CommandContext) -> Res
         vault.header.kdf_params.argon2_m_mib,
         vault.header.kdf_params.argon2_t,
         vault.header.kdf_params.argon2_p,
+    );
+    Ok(())
+}
+
+fn cmd_migrate(
+    source: &std::path::Path,
+    target: &std::path::Path,
+    context: CommandContext,
+) -> Result<()> {
+    if source == target {
+        return Err(CliError::Usage(
+            "migration requires a distinct new --out path; the source is never overwritten".into(),
+        ));
+    }
+    match std::fs::symlink_metadata(target) {
+        Ok(_) => {
+            return Err(CliError::Other(format!(
+                "migration target {} already exists — not overwriting",
+                target.display()
+            )));
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        Err(error) => {
+            return Err(CliError::Other(format!(
+                "inspect migration target: {error}"
+            )))
+        }
+    }
+    if !source.exists() {
+        return Err(CliError::VaultNotFound(source.to_path_buf()));
+    }
+    if !context.quiet {
+        eprintln!(
+            "warning: legacy v1 authentication cannot retroactively detect historical record splicing or prove freshness; migration cannot repair past tampering"
+        );
+    }
+    let password = passwords::prompt_master(context.from_stdin)?;
+    let _vault = Vault::migrate(source, target, &secret_vec(password.to_vec()))
+        .map_err(|error| CliError::Other(error.to_string()))?;
+    println!(
+        "migrated legacy vault to {} (source {} unchanged)",
+        Terminal(target.display()),
+        Terminal(source.display())
     );
     Ok(())
 }
@@ -1132,7 +1182,7 @@ fn cmd_export(
 ) -> Result<()> {
     if format != "json" {
         return Err(CliError::Usage(format!(
-            "unknown export format '{format}' — only json exists in v1"
+            "unknown export format '{format}' — only json is supported"
         )));
     }
     if !yes_i_mean_it {

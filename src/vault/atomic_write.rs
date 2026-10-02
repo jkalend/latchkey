@@ -78,6 +78,33 @@ pub fn atomic_write_locked(target: &Path, data: &[u8]) -> Result<()> {
     Ok(())
 }
 
+/// Publish a complete new vault without ever replacing an existing target.
+/// A hard link on the same filesystem makes the existence check atomic.
+pub(crate) fn atomic_create_locked(target: &Path, data: &[u8]) -> Result<()> {
+    let mut nonce = [0u8; 12];
+    getrandom::getrandom(&mut nonce).map_err(|e| Error::Rng(e.to_string()))?;
+    let mut name = target.as_os_str().to_owned();
+    name.push(format!(".{:02x?}.latchkey-new", nonce));
+    let tmp = PathBuf::from(name);
+    let mut opts = OpenOptions::new();
+    opts.write(true).create_new(true);
+    #[cfg(unix)]
+    opts.mode(0o600);
+    let result = (|| {
+        let mut file = opts.open(&tmp).map_err(io_err("create new temp"))?;
+        file.write_all(data).map_err(io_err("write new temp"))?;
+        file.sync_all().map_err(io_err("fsync new temp"))?;
+        drop(file);
+        fs::hard_link(&tmp, target).map_err(io_err("publish new vault without replacement"))?;
+        if let Some(parent) = target.parent().filter(|p| !p.as_os_str().is_empty()) {
+            fsync_dir(parent)?;
+        }
+        Ok(())
+    })();
+    let _ = fs::remove_file(&tmp);
+    result
+}
+
 fn lock_path(target: &Path) -> PathBuf {
     let mut p = target.as_os_str().to_owned();
     p.push(".lock");

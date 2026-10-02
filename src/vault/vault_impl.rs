@@ -4,12 +4,15 @@
 //!   [0    .. 117]      header
 //!   [117  .. 117+16 ]  index outer frame (12B nonce || 4B ct_len; ct+tag inline)
 //!   [..   ..       ]   items region: u32 slot_count || per-slot frames
-//!   [last 8       ]    trailer: u32 slot_count || u32 crc32c
+//!   [last 40      ]    trailer: u32 slot_count || u32 crc32c || 32B file MAC
 //!
 //! All AEADs use the cipher declared in the header. The index AAD is
 //! `vault_version || 0x49`; each item's AAD is `vault_version || 0x53 || item_id_be`,
 //! matching CRYPTO_SPEC §5's domain separation.
 
+use hkdf::Hkdf;
+use hmac::{Hmac, Mac};
+use sha2::Sha256;
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -21,7 +24,7 @@ use crate::crypto::ciphers::{AeadCipher, Algorithm, NONCE_LEN};
 use crate::crypto::error::{Error, Result};
 use crate::crypto::kdf::{KdfParams, SecretVec};
 use crate::crypto::keys::{random_dek, random_salt};
-use crate::vault::atomic_write::{acquire_write_lock, atomic_write_locked};
+use crate::vault::atomic_write::{acquire_write_lock, atomic_create_locked, atomic_write_locked};
 use crate::vault::parse::{self, ParsedHeader, HEADER_LEN, WRAPPED_DEK_CIPHER_LEN, WRAP_TAG_LEN};
 use crate::vault::shape::{
     parse_index, parse_item, serialize_index, serialize_item, IndexEntry, IndexPayload, ItemRecord,
@@ -43,6 +46,9 @@ pub fn item_aad(version: u8, item_id: u32) -> [u8; 6] {
 }
 
 const FRAME_LAYOUT_V2: u8 = 0xA5;
+const TRAILER_LEN: usize = 40;
+const FILE_MAC_LEN: usize = 32;
+const ROTATION_LIMIT: u32 = 1 << 24;
 #[cfg(not(test))]
 const MAX_VAULT_BYTES: u64 = 64 * 1024 * 1024;
 #[cfg(test)]
@@ -69,11 +75,8 @@ pub struct Vault {
     pub open_items: std::collections::BTreeMap<u32, ItemRecord>,
     /// One-past-highest used item_id (monotonic, never reused).
     pub next_item_id: u32,
-    /// Trailer CRC of the vault as last read or written by this session.
-    /// `save` refuses to write when the on-disk file has moved past this —
-    /// the write lock serializes writers, but cannot stop a stale in-memory
-    /// index from clobbering another session's work.
-    last_disk_crc: Option<u32>,
+    /// Authenticated full-file commit identity; CRC is not a security boundary.
+    last_disk_tag: Option<[u8; FILE_MAC_LEN]>,
 }
 
 #[derive(Clone, Debug)]
@@ -154,7 +157,7 @@ impl Vault {
             entries: Vec::new(),
             open_items: Default::default(),
             next_item_id: 1,
-            last_disk_crc: None,
+            last_disk_tag: None,
         };
 
         // Serialize and atomically write.
@@ -166,13 +169,20 @@ impl Vault {
     /// Open an existing vault: parse + KDF + unwrap DEK + decrypt index.
     /// Item payloads are NOT decrypted yet.
     pub fn open(path: &Path, password: &SecretVec) -> Result<Self> {
+        Self::open_with_version(path, password, false)
+    }
+
+    fn open_with_version(path: &Path, password: &SecretVec, legacy: bool) -> Result<Self> {
         let bytes = read_vault_bytes(path)?;
-        // Trailer first (VAULT_FORMAT §7): a bad CRC means torn write or
-        // sync-in-progress — surface that before any crypto error.
-        let trailer_crc = trailer_crc_of(&bytes).ok_or_else(|| {
-            Error::Encrypt("vault file appears incomplete or still syncing (crc mismatch)".into())
-        })?;
-        let header = parse::parse_header(&bytes)?;
+        Self::open_bytes(path, password, &bytes, legacy)
+    }
+
+    fn open_bytes(path: &Path, password: &SecretVec, bytes: &[u8], legacy: bool) -> Result<Self> {
+        let header = if legacy {
+            parse::parse_legacy_header(bytes)?
+        } else {
+            parse::parse_header(bytes)?
+        };
 
         let kdf_params = header.kdf_params();
         kdf_params.validate_policy()?;
@@ -185,22 +195,43 @@ impl Vault {
         ct_with_tag.extend_from_slice(&header.wrapped_dek);
         ct_with_tag.extend_from_slice(&header.wrap_tag);
         let aad = parse::header_aad(&header);
-        let dek_vec = wrap_cipher.decrypt_raw(&kek, &header.wrap_nonce, &ct_with_tag, &aad)?;
+        let mut dek_vec = Zeroizing::new(wrap_cipher.decrypt_raw(
+            &kek,
+            &header.wrap_nonce,
+            &ct_with_tag,
+            &aad,
+        )?);
         if dek_vec.len() != crate::crypto::ciphers::DEK_LEN {
             return Err(Error::KeyLength {
                 expected: 32,
                 actual: dek_vec.len(),
             });
         }
-        let dek: SecretVec = SecretVec::new(dek_vec.into_boxed_slice());
+        let dek: SecretVec = SecretVec::new(std::mem::take(&mut *dek_vec).into_boxed_slice());
+        let commit_tag = if legacy {
+            let trailer = bytes
+                .len()
+                .checked_sub(8)
+                .ok_or_else(|| Error::Encrypt("truncated legacy trailer".into()))?;
+            if crc32c::crc32c(&bytes[..trailer]) != be_u32_at(bytes, trailer + 4)? {
+                return Err(Error::Encrypt("legacy vault CRC mismatch".into()));
+            }
+            None
+        } else {
+            Some(authenticate_snapshot(bytes, &dek)?)
+        };
 
         // Index
         let item_alg = header.item_algorithm()?;
-        let (entries, _) = Self::read_index_entries_with(&bytes, &header, &dek, item_alg)?;
+        let (entries, _) = Self::read_index_entries_with(bytes, &header, &dek, item_alg)?;
         let index = IndexPayload { entries };
 
         // The trailer count must match the number of serialized item slots.
-        let frames = Self::split_item_frames(&bytes)?;
+        let frames = if legacy {
+            Self::split_item_frames_with_layout(bytes, header.reserved[0] == FRAME_LAYOUT_V2, 8)?
+        } else {
+            Self::split_item_frames_with_layout(bytes, true, TRAILER_LEN)?
+        };
         if frames.len() != index.entries.len() {
             return Err(Error::Encrypt(
                 "slot count mismatch between index and items region".into(),
@@ -229,12 +260,74 @@ impl Vault {
             entries: index.entries,
             open_items: Default::default(),
             next_item_id,
-            last_disk_crc: Some(trailer_crc),
+            last_disk_tag: commit_tag,
         })
+    }
+
+    /// Explicitly migrate v1, verifying every record and publishing a fresh v2
+    /// vault without replacing any existing target. The source is never written.
+    pub fn migrate(source: &Path, target: &Path, password: &SecretVec) -> Result<Self> {
+        let _lock = acquire_write_lock(target)?;
+        match std::fs::symlink_metadata(target) {
+            Ok(_) => return Err(Error::Encrypt("migration target already exists".into())),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => return Err(Error::Encrypt(format!("inspect migration target: {error}"))),
+        }
+        let bytes = read_vault_bytes(source)?;
+        let mut vault = Self::open_bytes(source, password, &bytes, true)?;
+        let legacy_header = parse::parse_legacy_header(&bytes)?;
+        let frames = Self::split_item_frames_with_layout(
+            &bytes,
+            legacy_header.reserved[0] == FRAME_LAYOUT_V2,
+            8,
+        )?;
+        let mut seen = vec![false; frames.len()];
+        for entry in &vault.entries {
+            let slot = entry.slot as usize;
+            let frame = frames
+                .get(slot)
+                .ok_or_else(|| Error::Encrypt("legacy item slot out of range".into()))?;
+            if std::mem::replace(&mut seen[slot], true) {
+                return Err(Error::Encrypt("duplicate legacy item slot".into()));
+            }
+            let record = vault.decrypt_item_frame(frame, entry.item_id)?;
+            vault.open_items.insert(entry.slot, record);
+        }
+        let params = KdfParams::default();
+        let salt = random_salt();
+        vault.kek = crate::crypto::kdf::Kdf::new(params).derive(password, &salt)?;
+        vault.dek = SecretVec::new(random_dek().to_vec().into_boxed_slice());
+        vault.path = target.to_path_buf();
+        vault.header.version = parse::CURRENT_VERSION;
+        vault.header.kdf_params = params;
+        vault.header.kdf_salt = salt;
+        vault.header.enc_counter = 0;
+        let header = ParsedHeader {
+            version: parse::CURRENT_VERSION,
+            kdf_id: 1,
+            wrap_alg_id: vault.header.wrap_alg.id(),
+            item_alg_id: vault.header.item_alg.id(),
+            reserved: [0; 3],
+            argon2_m_mib: params.argon2_m_mib,
+            argon2_t: params.argon2_t,
+            argon2_p: params.argon2_p,
+            kdf_salt: salt,
+            enc_counter: 0,
+            wrap_nonce: random_nonce()?,
+            wrapped_dek: [0; WRAPPED_DEK_CIPHER_LEN],
+            wrap_tag: [0; WRAP_TAG_LEN],
+            future_pad: [0; parse::FUTURE_PAD_LEN],
+        };
+        let disk_dek = vault.dek.clone();
+        vault.save_with_header_locked(&header, &disk_dek)?;
+        Ok(vault)
     }
 
     /// Decrypt one item into `open_items`.
     pub fn open_item(&mut self, item_id: u32) -> Result<()> {
+        // Even a cached record must not conceal a corrupted or stale disk commit.
+        let bytes = read_vault_bytes(&self.path)?;
+        self.authenticate_current(&bytes, &self.dek)?;
         if let Some(entry) = self
             .entries
             .iter()
@@ -245,12 +338,9 @@ impl Vault {
                 return Ok(());
             }
 
-            // Re-read the vault bytes — we don't keep them in memory.
-            let bytes = read_vault_bytes(&self.path)?;
-
             // Walk the items region; frame position == slot (save renumbers
             // densely, so the index's slot is a direct frame index).
-            let frames = Self::split_item_frames(&bytes)?;
+            let frames = Self::split_item_frames_with_layout(&bytes, true, TRAILER_LEN)?;
             let frame = frames
                 .get(slot as usize)
                 .ok_or_else(|| Error::Encrypt(format!("slot {slot} out of range")))?;
@@ -266,10 +356,8 @@ impl Vault {
     /// Authenticate and parse every item frame without retaining plaintext.
     pub fn verify_all_items(&self) -> Result<(usize, usize)> {
         let bytes = read_vault_bytes(&self.path)?;
-        trailer_crc_of(&bytes).ok_or_else(|| {
-            Error::Encrypt("vault file appears incomplete or still syncing (crc mismatch)".into())
-        })?;
-        let frames = Self::split_item_frames(&bytes)?;
+        self.authenticate_current(&bytes, &self.dek)?;
+        let frames = Self::split_item_frames_with_layout(&bytes, true, TRAILER_LEN)?;
         if frames.len() != self.entries.len() {
             return Err(Error::Encrypt(
                 "index entry count does not match item frame count".into(),
@@ -342,6 +430,13 @@ impl Vault {
         Ok(record)
     }
 
+    fn authenticate_current(&self, bytes: &[u8], disk_dek: &SecretVec) -> Result<()> {
+        let tag = authenticate_snapshot(bytes, disk_dek)?;
+        if self.last_disk_tag != Some(tag) {
+            return Err(Error::Stale);
+        }
+        Ok(())
+    }
     pub fn save(&mut self) -> Result<()> {
         let _lock = acquire_write_lock(&self.path)?;
         let raw = read_vault_bytes(&self.path)?;
@@ -367,28 +462,10 @@ impl Vault {
         } else {
             Vec::new()
         };
-        // Multi-session guard: the write lock serializes writers, but a
-        // session holding a stale in-memory index must not clobber changes
-        // committed by another process (or an older latchkey instance left
-        // running) since it opened the vault.
         if !old.is_empty() {
-            if let Some(expected) = self.last_disk_crc {
-                if trailer_crc_of(&old) != Some(expected) {
-                    return Err(Error::Stale);
-                }
-            }
-        }
-        let legacy_frames = !old.is_empty() && old.get(7).copied() != Some(FRAME_LAYOUT_V2);
-        if legacy_frames {
-            let ids: Vec<u32> = self
-                .entries
-                .iter()
-                .filter(|e| e.state == LIVE_STATE)
-                .map(|e| e.item_id)
-                .collect();
-            for id in ids {
-                self.open_item(id)?;
-            }
+            self.authenticate_current(&old, disk_dek)?;
+        } else if self.last_disk_tag.is_some() {
+            return Err(Error::Stale);
         }
         let old_index: std::collections::HashMap<u32, u32> = if old.is_empty() {
             Default::default()
@@ -401,7 +478,7 @@ impl Vault {
         let old_frames = if old.is_empty() {
             Vec::new()
         } else {
-            Self::split_item_frames(&old)?
+            Self::split_item_frames_with_layout(&old, true, TRAILER_LEN)?
         };
 
         let encrypt_count = self
@@ -412,13 +489,9 @@ impl Vault {
                     || e.state == 0xFF
                     || self.open_items.contains_key(&e.slot)
             })
-            .count() as u32;
-        const ROTATION_LIMIT: u32 = 1 << 24;
-        let next_counter = header
-            .enc_counter
-            .checked_add(encrypt_count)
-            .ok_or_else(|| Error::Encrypt("encryption counter exhausted; run rotate".into()))?;
-        if next_counter > ROTATION_LIMIT {
+            .count();
+        let next_counter = header.enc_counter.saturating_add(encrypt_count as u32);
+        if next_counter >= ROTATION_LIMIT {
             return Err(Error::Encrypt(
                 "encryption counter near limit; run rotate".into(),
             ));
@@ -437,6 +510,10 @@ impl Vault {
             })
             .collect::<Result<_>>()?;
 
+        // Serialize the index into a guarded plaintext buffer.
+        let index_pt = Zeroizing::new(serialize_index(&IndexPayload {
+            entries: renumbered.clone(),
+        })?);
         let mut final_header = header.clone();
         final_header.reserved[0] = FRAME_LAYOUT_V2;
         final_header.enc_counter = next_counter;
@@ -463,12 +540,9 @@ impl Vault {
             .wrap_tag
             .copy_from_slice(&wrap_ct[WRAPPED_DEK_CIPHER_LEN..]);
 
-        let mut out = Vec::with_capacity(old.len());
+        let mut out = Vec::with_capacity(candidate_len);
         out.extend_from_slice(&parse::build_header(&final_header));
 
-        let index_pt = serialize_index(&IndexPayload {
-            entries: renumbered.clone(),
-        })?;
         let index_nonce = random_nonce()?;
         let index_ct = AeadCipher::new(final_header.item_algorithm()?).encrypt_raw(
             &self.dek,
@@ -538,9 +612,22 @@ impl Vault {
         let crc = crc32c::crc32c(&out);
         out.extend_from_slice(&(renumbered.len() as u32).to_be_bytes());
         out.extend_from_slice(&crc.to_be_bytes());
-        atomic_write_locked(&self.path, &out)?;
+        let tag = file_mac(&out, &self.dek)?;
+        out.extend_from_slice(&tag);
+        if self.last_disk_tag.is_none() {
+            atomic_create_locked(&self.path, &out)?;
+        } else {
+            atomic_write_locked(&self.path, &out)?;
+        }
+        let mut items = std::mem::take(&mut self.open_items);
+        for (entry, original) in renumbered.iter().zip(&self.entries) {
+            if let Some(record) = items.remove(&original.slot) {
+                self.open_items.insert(entry.slot, record);
+            }
+        }
+        self.entries = renumbered;
         self.header.enc_counter = final_header.enc_counter;
-        self.last_disk_crc = Some(crc);
+        self.last_disk_tag = Some(tag);
         Ok(())
     }
 
@@ -564,24 +651,30 @@ impl Vault {
         let index_ct = raw
             .get(cursor..cursor + index_ct_len)
             .ok_or_else(|| Error::Encrypt("truncated index ciphertext".into()))?;
-        let index_pt = AeadCipher::new(item_alg).decrypt_raw(
+        let index_pt = Zeroizing::new(AeadCipher::new(item_alg).decrypt_raw(
             dek,
             &index_nonce,
             index_ct,
             &index_aad(header.version),
-        )?;
+        )?);
         let index = parse_index(&index_pt)?;
         Ok((index.entries, cursor + index_ct_len))
     }
 
-    /// Split item frames. Files written before the separate-tag layout marker
-    /// are accepted for migration; all new writes use the v2 layout.
+    /// Split normal v2 frames. Legacy framing is private to migration.
     pub fn split_item_frames(raw: &[u8]) -> Result<Vec<Vec<u8>>> {
-        let separate_tag = raw.get(7).copied() == Some(FRAME_LAYOUT_V2);
-        Self::split_item_frames_with_layout(raw, separate_tag)
+        parse::parse_header(raw)?;
+        Ok(Self::split_item_frames_with_layout(raw, true, TRAILER_LEN)?
+            .into_iter()
+            .map(<[u8]>::to_vec)
+            .collect())
     }
 
-    fn split_item_frames_with_layout(raw: &[u8], separate_tag: bool) -> Result<Vec<Vec<u8>>> {
+    fn split_item_frames_with_layout(
+        raw: &[u8],
+        separate_tag: bool,
+        trailer_len: usize,
+    ) -> Result<Vec<&[u8]>> {
         let mut cursor = HEADER_LEN + NONCE_LEN;
         let index_ct_len = be_u32_at(raw, cursor)? as usize;
         cursor = cursor
@@ -591,7 +684,7 @@ impl Vault {
         cursor += 4;
         let trailer_start = raw
             .len()
-            .checked_sub(8)
+            .checked_sub(trailer_len)
             .ok_or_else(|| Error::Encrypt("truncated vault trailer".into()))?;
         if be_u32_at(raw, trailer_start)? as usize != slot_count {
             return Err(Error::Encrypt(
@@ -612,7 +705,7 @@ impl Vault {
             if cursor > trailer_start {
                 return Err(Error::Encrypt("truncated item frame".into()));
             }
-            frames.push(raw[start..cursor].to_vec());
+            frames.push(&raw[start..cursor]);
         }
         if cursor != trailer_start {
             return Err(Error::Encrypt(
@@ -676,12 +769,19 @@ impl Vault {
             future_pad: [0u8; parse::FUTURE_PAD_LEN],
         };
 
+        let old_kek = std::mem::replace(&mut self.kek, new_kek);
         self.dek = new_dek;
-        self.kek = new_kek;
+        let old_config = self.header.clone();
         self.header.kdf_params = new_params;
         self.header.kdf_salt = kdf_salt;
         self.header.enc_counter = 0;
-        self.save_with_header(&header, &old_dek)
+        if let Err(error) = self.save_with_header(&header, &old_dek) {
+            self.dek = old_dek;
+            self.kek = old_kek;
+            self.header = old_config;
+            return Err(error);
+        }
+        Ok(())
     }
 
     /// Change the master password without changing the DEK or item frames.
@@ -698,11 +798,17 @@ impl Vault {
         header.argon2_p = new_params.argon2_p;
         header.wrap_nonce = random_nonce()?;
 
-        self.kek = new_kek;
+        let old_kek = std::mem::replace(&mut self.kek, new_kek);
+        let old_config = self.header.clone();
         self.header.kdf_params = new_params;
         self.header.kdf_salt = kdf_salt;
         let disk_dek = self.dek.clone();
-        self.save_with_header_locked(&header, &disk_dek)
+        if let Err(error) = self.save_with_header_locked(&header, &disk_dek) {
+            self.kek = old_kek;
+            self.header = old_config;
+            return Err(error);
+        }
+        Ok(())
     }
 }
 
@@ -729,15 +835,37 @@ fn be_u32_at(b: &[u8], off: usize) -> Result<u32> {
         .ok_or_else(|| Error::Encrypt("truncated u32".into()))
 }
 
-/// Valid trailer CRC of an on-disk vault buffer, or None when the file is
-/// too short or the CRC doesn't verify (torn write, wrong file).
-fn trailer_crc_of(bytes: &[u8]) -> Option<u32> {
-    if bytes.len() < 8 {
-        return None;
+fn file_mac(bytes: &[u8], dek: &SecretVec) -> Result<[u8; FILE_MAC_LEN]> {
+    let mut key = Zeroizing::new([0u8; FILE_MAC_LEN]);
+    Hkdf::<Sha256>::new(None, dek.expose_secret())
+        .expand(b"latchkey/v2/file-mac", &mut *key)
+        .map_err(|_| Error::Encrypt("file MAC key derivation failed".into()))?;
+    let mut mac = Hmac::<Sha256>::new_from_slice(&*key)
+        .map_err(|_| Error::Encrypt("file MAC key length invalid".into()))?;
+    mac.update(bytes);
+    Ok(mac.finalize().into_bytes().into())
+}
+
+fn authenticate_snapshot(bytes: &[u8], dek: &SecretVec) -> Result<[u8; FILE_MAC_LEN]> {
+    parse::parse_header(bytes)?;
+    let trailer_start = bytes
+        .len()
+        .checked_sub(TRAILER_LEN)
+        .ok_or_else(|| Error::Encrypt("truncated vault trailer".into()))?;
+    let mac_start = bytes.len() - FILE_MAC_LEN;
+    let mut key = Zeroizing::new([0u8; FILE_MAC_LEN]);
+    Hkdf::<Sha256>::new(None, dek.expose_secret())
+        .expand(b"latchkey/v2/file-mac", &mut *key)
+        .map_err(|_| Error::Encrypt("file MAC key derivation failed".into()))?;
+    let mut mac = Hmac::<Sha256>::new_from_slice(&*key)
+        .map_err(|_| Error::Encrypt("file MAC key length invalid".into()))?;
+    mac.update(&bytes[..mac_start]);
+    mac.verify_slice(&bytes[mac_start..])
+        .map_err(|_| Error::Decrypt)?;
+    if crc32c::crc32c(&bytes[..trailer_start]) != be_u32_at(bytes, trailer_start + 4)? {
+        return Err(Error::Encrypt("vault file CRC mismatch".into()));
     }
-    let body = &bytes[..bytes.len() - 8];
-    let stored = u32::from_be_bytes(bytes[bytes.len() - 4..].try_into().ok()?);
-    (crc32c::crc32c(body) == stored).then_some(stored)
+    Ok(bytes[mac_start..].try_into().unwrap())
 }
 
 #[cfg(test)]
@@ -934,8 +1062,8 @@ mod tests {
 
         let repair_crc = |bytes: &mut Vec<u8>| {
             let len = bytes.len();
-            let crc = crc32c::crc32c(&bytes[..len - 8]);
-            bytes[len - 4..].copy_from_slice(&crc.to_be_bytes());
+            let crc = crc32c::crc32c(&bytes[..len - TRAILER_LEN]);
+            bytes[len - FILE_MAC_LEN - 4..len - FILE_MAC_LEN].copy_from_slice(&crc.to_be_bytes());
         };
         let index_ct_len = be_u32_at(&original, HEADER_LEN + NONCE_LEN).unwrap() as usize;
         let index_ciphertext = HEADER_LEN + NONCE_LEN + 4;
@@ -1017,5 +1145,158 @@ mod tests {
             "verify_all_items must not rewrite a valid vault"
         );
         let _ = std::fs::remove_file(&path);
+    }
+
+    fn security_vault(tag: &str) -> (Vault, SecretVec) {
+        let path = std::env::temp_dir().join(format!(
+            "latchkey_security_{tag}_{}.bin",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_file(&path);
+        let password = pswd("security-test");
+        let vault = Vault::create(
+            &path,
+            &password,
+            KdfParams::new(8, 1, 1).unwrap(),
+            Algorithm::Aes256Gcm,
+            Algorithm::Aes256Gcm,
+        )
+        .unwrap();
+        (vault, password)
+    }
+
+    fn security_record() -> ItemRecord {
+        ItemRecord {
+            password: Some(b"preserved-secret".to_vec()),
+            url: "https://example.test".into(),
+            notes: Some(b"preserved-note".to_vec()),
+            totp: Some(crate::vault::shape::TotpSubRecord {
+                secret: b"12345678901234567890".to_vec(),
+                period: 30,
+                digits: 6,
+                algorithm: crate::vault::shape::TotpAlgorithm::Sha1,
+            }),
+            created_unix: 123,
+            modified_unix: 456,
+        }
+    }
+
+    fn legacy_bytes(vault: &Vault, separate_tag: bool) -> Vec<u8> {
+        let raw = std::fs::read(&vault.path).unwrap();
+        let mut header = parse::parse_header(&raw).unwrap();
+        header.version = 1;
+        header.reserved[0] = if separate_tag { FRAME_LAYOUT_V2 } else { 0 };
+        header.wrap_nonce = random_nonce().unwrap();
+        let wrap = AeadCipher::new(vault.header.wrap_alg)
+            .encrypt_raw(
+                &vault.kek,
+                &header.wrap_nonce,
+                vault.dek.expose_secret(),
+                &parse::header_aad(&header),
+            )
+            .unwrap();
+        header.wrapped_dek.copy_from_slice(&wrap[..32]);
+        header.wrap_tag.copy_from_slice(&wrap[32..]);
+        let mut bytes = parse::build_header(&header).to_vec();
+        let index = Zeroizing::new(
+            serialize_index(&IndexPayload {
+                entries: vault.entries.clone(),
+            })
+            .unwrap(),
+        );
+        let nonce = random_nonce().unwrap();
+        let ct = AeadCipher::new(vault.header.item_alg)
+            .encrypt_raw(&vault.dek, &nonce, &index, &index_aad(1))
+            .unwrap();
+        bytes.extend_from_slice(&nonce);
+        bytes.extend_from_slice(&(ct.len() as u32).to_be_bytes());
+        bytes.extend_from_slice(&ct);
+        bytes.extend_from_slice(&(vault.entries.len() as u32).to_be_bytes());
+        for entry in &vault.entries {
+            let pt = Zeroizing::new(
+                serialize_item(&vault.open_items[&entry.slot], entry.item_id).unwrap(),
+            );
+            let nonce = random_nonce().unwrap();
+            let ct = AeadCipher::new(vault.header.item_alg)
+                .encrypt_raw(&vault.dek, &nonce, &pt, &item_aad(1, entry.item_id))
+                .unwrap();
+            bytes.extend_from_slice(&nonce);
+            let ct_len = ct.len() - if separate_tag { WRAP_TAG_LEN } else { 0 };
+            bytes.extend_from_slice(&(ct_len as u32).to_be_bytes());
+            bytes.extend_from_slice(&ct);
+        }
+        let crc = crc32c::crc32c(&bytes);
+        bytes.extend_from_slice(&(vault.entries.len() as u32).to_be_bytes());
+        bytes.extend_from_slice(&crc.to_be_bytes());
+        bytes
+    }
+
+    #[test]
+    fn migration_preserves_tombstone_records_ids_and_authenticates_both_legacy_layouts() {
+        for separate_tag in [false, true] {
+            let (mut source, password) = security_vault(if separate_tag {
+                "legacy_separate"
+            } else {
+                "legacy_combined"
+            });
+            let record = security_record();
+            source
+                .add_item("live".into(), "user".into(), record.clone())
+                .unwrap();
+            let deleted = source
+                .add_item("deleted".into(), "user2".into(), record.clone())
+                .unwrap();
+            source.entries[1].state = TOMBSTONE_STATE;
+            source.save().unwrap();
+            let original = legacy_bytes(&source, separate_tag);
+            std::fs::write(&source.path, &original).unwrap();
+            assert!(Vault::open(&source.path, &password).is_err());
+            let target = source.path.with_extension("migrated");
+            let _ = std::fs::remove_file(&target);
+            let migrated = Vault::migrate(&source.path, &target, &password).unwrap();
+            assert_eq!(migrated.entries, source.entries);
+            assert_eq!(migrated.next_item_id, deleted + 1);
+            assert_eq!(migrated.verify_all_items().unwrap(), (1, 1));
+            assert_eq!(std::fs::read(&source.path).unwrap(), original);
+            let migrated_raw = std::fs::read(&target).unwrap();
+            let frames = Vault::split_item_frames(&migrated_raw).unwrap();
+            for entry in &migrated.entries {
+                assert_eq!(
+                    migrated
+                        .decrypt_item_frame(&frames[entry.slot as usize], entry.item_id)
+                        .unwrap(),
+                    record
+                );
+            }
+            let mut reopened = Vault::open(&target, &password).unwrap();
+            assert_eq!(
+                reopened
+                    .add_item("new".into(), "user".into(), security_record())
+                    .unwrap(),
+                deleted + 1
+            );
+
+            // A repaired CRC does not bypass a legacy item's AEAD tag, including
+            // tombstones that normal lazy lookup never opens.
+            for index in 0..2 {
+                let mut corrupt = original.clone();
+                let frames =
+                    Vault::split_item_frames_with_layout(&original, separate_tag, 8).unwrap();
+                let offset =
+                    frames[index].as_ptr() as usize - original.as_ptr() as usize + NONCE_LEN + 4;
+                corrupt[offset] ^= 1;
+                let len = corrupt.len();
+                let crc = crc32c::crc32c(&corrupt[..len - 8]);
+                corrupt[len - 4..].copy_from_slice(&crc.to_be_bytes());
+                std::fs::write(&source.path, &corrupt).unwrap();
+                let failed_target = source.path.with_extension(format!("rejected{index}"));
+                let _ = std::fs::remove_file(&failed_target);
+                assert!(Vault::migrate(&source.path, &failed_target, &password).is_err());
+                assert!(!failed_target.exists());
+                assert_eq!(std::fs::read(&source.path).unwrap(), corrupt);
+            }
+            let _ = std::fs::remove_file(&source.path);
+            let _ = std::fs::remove_file(&target);
+        }
     }
 }

@@ -92,18 +92,21 @@ fn golden_vault_bit_flip_rejected_everywhere() {
 
     // Flip one bit at a spread of offsets: header, index, items, trailer.
     for &off in &[
-        4usize,             // kdf_id
-        19,                 // salt
-        51,                 // wrapped_dek
-        100,                // future_pad
-        120,                // index frame
-        130,                // index ciphertext
-        130 + 70,           // mid items region
-        original.len() - 8, // trailer slot_count
-        original.len() - 4, // trailer crc
+        4usize,              // kdf_id
+        19,                  // salt
+        51,                  // wrapped_dek
+        100,                 // future_pad
+        120,                 // index frame
+        130,                 // index ciphertext
+        130 + 70,            // mid items region
+        original.len() - 40, // trailer slot_count
+        original.len() - 1,  // file MAC
     ] {
         let mut corrupted = original.clone();
         corrupted[off] ^= 0x01;
+        let len = corrupted.len();
+        let crc = crc32c::crc32c(&corrupted[..len - 40]);
+        corrupted[len - 36..len - 32].copy_from_slice(&crc.to_be_bytes());
         let tmp = std::env::temp_dir().join(format!(
             "latchkey_golden_flip_{}_{}",
             off,
@@ -111,9 +114,8 @@ fn golden_vault_bit_flip_rejected_everywhere() {
         ));
         std::fs::write(&tmp, &corrupted).unwrap();
         let opened = Vault::open(&tmp, &pw(PASSWORD));
-        // Every flip must be rejected: either the AEAD tag, the CRC, or a
-        // structural check fires. If any flip opens cleanly, that byte is
-        // unauthenticated.
+        // Repaired CRC cannot mask tampering; full-file authentication or a
+        // strict parser check must reject each changed byte.
         assert!(
             opened.is_err(),
             "bit flip at offset {off} was ACCEPTED — unauthenticated field"

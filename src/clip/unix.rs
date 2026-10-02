@@ -13,7 +13,6 @@
 
 use std::io::Write;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
 
 use crate::clip::error::{ClipError, Result};
 use crate::clip::platform;
@@ -112,7 +111,7 @@ fn write_clipboard(tool: &Tool, data: &[u8]) -> Result<()> {
             detail: e.to_string(),
         })?;
     {
-        let stdin = child.stdin.as_mut().ok_or_else(|| ClipError::Tool {
+        let mut stdin = child.stdin.take().ok_or_else(|| ClipError::Tool {
             tool: tool.name(),
             detail: "no stdin".into(),
         })?;
@@ -138,33 +137,25 @@ fn write_clipboard(tool: &Tool, data: &[u8]) -> Result<()> {
 }
 
 pub fn copy_and_hold(secret: &[u8], timeout_secs: u64) -> Result<()> {
+    copy_and_hold_cancellable(secret, timeout_secs, &crate::clip::Cancellation::default())
+}
+
+pub fn copy_and_hold_cancellable(
+    secret: &[u8],
+    timeout_secs: u64,
+    cancel: &crate::clip::Cancellation,
+) -> Result<()> {
+    crate::clip::validate_timeout(timeout_secs)?;
     let tool = probe()?;
     let prev = read_clipboard(&tool);
     write_clipboard(&tool, secret)?;
 
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
-    while Instant::now() < deadline {
-        std::thread::sleep(
-            Duration::from_millis(200).min(deadline.saturating_duration_since(Instant::now())),
-        );
-    }
+    cancel.hold(timeout_secs);
 
-    // Restore only if we still own the clipboard; never clobber whatever
-    // the user copied in the meantime. If we can't TELL whether it's ours
-    // (snapshot/read failed), clear to empty — the secure default for a
-    // secret we put there.
-    match read_clipboard(&tool) {
-        Some(current) if current != normalize(secret) => {
-            // Someone else owns the clipboard now — leave it alone.
-        }
-        _ => match &prev {
-            Some(p) => {
-                let _ = write_clipboard(&tool, p);
-            }
-            None => {
-                let _ = write_clipboard(&tool, b"");
-            }
-        },
+    // Tool protocols cannot make compare-and-restore atomic; never write
+    // after an unreadable snapshot, which may belong to another process.
+    if read_clipboard(&tool).as_deref() == Some(normalize(secret).as_slice()) {
+        write_clipboard(&tool, prev.as_deref().unwrap_or(b""))?;
     }
     Ok(())
 }

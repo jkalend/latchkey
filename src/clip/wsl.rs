@@ -13,7 +13,6 @@
 
 use std::io::Write;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
 
 use zeroize::Zeroizing;
 
@@ -126,7 +125,7 @@ fn run_ps_stdin(script: &str, stdin_bytes: &[u8]) -> Result<()> {
             detail: e.to_string(),
         })?;
     {
-        let stdin = child.stdin.as_mut().ok_or_else(|| ClipError::Tool {
+        let mut stdin = child.stdin.take().ok_or_else(|| ClipError::Tool {
             tool: PS_NAME,
             detail: "no stdin".into(),
         })?;
@@ -198,37 +197,35 @@ fn set_clipboard_from_utf16(bytes: &[u8]) -> Result<()> {
     set_clipboard_utf16_b64(&b64_encode(bytes))
 }
 
-fn clear_clipboard() {
-    // Set-Clipboard has no "empty" value in PS 5.1; an empty string is the
-    // closest user-visible empty state (and definitely not the old "\r\n").
-    // b64 of "" decodes to an empty .NET string.
-    let _ = set_clipboard_utf16_b64("");
+fn clear_clipboard() -> Result<()> {
+    // PowerShell 5.1 represents empty text as an empty .NET string.
+    set_clipboard_utf16_b64("")
 }
 
 pub fn copy_and_hold(secret: &[u8], timeout_secs: u64) -> Result<()> {
+    copy_and_hold_cancellable(secret, timeout_secs, &crate::clip::Cancellation::default())
+}
+
+pub fn copy_and_hold_cancellable(
+    secret: &[u8],
+    timeout_secs: u64,
+    cancel: &crate::clip::Cancellation,
+) -> Result<()> {
+    crate::clip::validate_timeout(timeout_secs)?;
     let ours = encode_utf16_b64(secret);
-    let ours_bytes = b64_decode(&ours).unwrap_or_default();
+    let ours_bytes = Zeroizing::new(b64_decode(&ours).unwrap_or_default());
     let prev = snapshot_utf16();
     set_clipboard_utf16_b64(&ours)?;
 
-    let deadline = Instant::now() + Duration::from_secs(timeout_secs);
-    while Instant::now() < deadline {
-        std::thread::sleep(
-            Duration::from_millis(200).min(deadline.saturating_duration_since(Instant::now())),
-        );
-    }
+    cancel.hold(timeout_secs);
 
-    // Restore only if we still own the clipboard.
-    match snapshot_utf16() {
-        Some(cur) if cur != ours_bytes => {
-            // Someone else owns the clipboard now — leave it alone.
+    // PowerShell's clipboard commands cannot atomically compare-and-restore.
+    // An unreadable value is not evidence of ownership: do not clobber it.
+    if snapshot_utf16().as_deref() == Some(ours_bytes.as_slice()) {
+        match &prev {
+            Some(previous) => set_clipboard_from_utf16(previous)?,
+            None => clear_clipboard()?,
         }
-        _ => match &prev {
-            Some(p) => {
-                let _ = set_clipboard_from_utf16(p);
-            }
-            None => clear_clipboard(),
-        },
     }
     Ok(())
 }

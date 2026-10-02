@@ -6,7 +6,6 @@
 //! auto-re-mask after 10 seconds of no input.
 
 use std::io::Stdout;
-use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers, MouseEventKind};
@@ -149,10 +148,11 @@ struct App {
     last_input: Instant,
     lock_after: Duration,
     clip_until: Option<Instant>,
-    clip_task: Option<JoinHandle<crate::clip::Result<()>>>,
     status: String,
     form: Option<EntryForm>,
     save_failed: bool,
+    // Declared after the vault: even unwinding drops unlocked state first.
+    clip_task: Option<clip::ClipboardTask>,
 }
 
 impl App {
@@ -272,17 +272,35 @@ pub fn run(vault_path: std::path::PathBuf, quiet: bool) -> i32 {
     let mut session = match setup_terminal() {
         Ok(t) => t,
         Err(e) => {
-            eprintln!("latchkey tui: {e}");
+            eprintln!("latchkey tui: {}", Terminal(e));
             return 1;
         }
     };
 
-    match event_loop(&mut session.terminal, &mut app) {
-        Ok(code) => code,
-        Err(e) => {
-            eprintln!("latchkey tui: {e}");
+    let outcome = event_loop(&mut session.terminal, &mut app);
+    // Restore the terminal and drop all unlocked state BEFORE waiting for
+    // backend cleanup. Returning to main may immediately process::exit.
+    drop(session);
+    let cleanup = finish_app(app);
+    match (outcome, cleanup) {
+        (Ok(code), Ok(())) => code,
+        (Err(error), _) => {
+            eprintln!("latchkey tui: {}", Terminal(error));
             1
         }
+        (Ok(_), Err(error)) => {
+            eprintln!("latchkey tui clipboard: {}", Terminal(error));
+            1
+        }
+    }
+}
+
+fn finish_app(mut app: App) -> clip::Result<()> {
+    let task = app.clip_task.take();
+    drop(app);
+    match task {
+        Some(task) => task.cancel_and_finish(),
+        None => Ok(()),
     }
 }
 
@@ -305,21 +323,24 @@ fn setup_terminal() -> Result<TerminalSession, String> {
 
 fn event_loop(terminal: &mut TuiTerminal, app: &mut App) -> Result<i32, String> {
     loop {
+        #[cfg(windows)]
+        if clip::ctrlc_requested() {
+            return Ok(0);
+        }
         if app
             .clip_task
             .as_ref()
-            .is_some_and(std::thread::JoinHandle::is_finished)
+            .is_some_and(clip::ClipboardTask::is_finished)
         {
             let result = app
                 .clip_task
                 .take()
                 .expect("finished clipboard task")
-                .join();
+                .finish();
             app.clip_until = None;
             app.status = match result {
-                Ok(Ok(())) => "clipboard cleared".into(),
-                Ok(Err(e)) => format!("clipboard: {e}"),
-                Err(_) => "clipboard worker failed".into(),
+                Ok(()) => "clipboard cleared".into(),
+                Err(e) => format!("clipboard: {e}"),
             };
         }
         let now = Instant::now();
@@ -782,20 +803,17 @@ fn parse_form_totp(input: &str) -> crate::crypto::error::Result<Option<TotpSubRe
 }
 
 fn start_clipboard(app: &mut App, secret: zeroize::Zeroizing<Vec<u8>>) {
-    if let Some(handle) = app.clip_task.take() {
-        if !handle.is_finished() {
-            app.clip_task = Some(handle);
+    if let Some(task) = app.clip_task.take() {
+        if !task.is_finished() {
+            app.clip_task = Some(task);
             app.status = "clipboard operation already in progress".into();
             return;
         }
-        let _ = handle.join();
+        let _ = task.finish();
     }
-    match std::thread::Builder::new()
-        .name("latchkey-clipboard".into())
-        .spawn(move || clip::copy_and_hold_quiet(&secret, clip::DEFAULT_TIMEOUT_SECS, true))
-    {
-        Ok(handle) => {
-            app.clip_task = Some(handle);
+    match clip::ClipboardTask::start(secret, clip::DEFAULT_TIMEOUT_SECS) {
+        Ok(task) => {
+            app.clip_task = Some(task);
             app.clip_until = Some(Instant::now() + Duration::from_secs(clip::DEFAULT_TIMEOUT_SECS));
             app.status = format!("copied — clears in {}s", clip::DEFAULT_TIMEOUT_SECS);
         }
@@ -1137,6 +1155,55 @@ mod tests {
     use super::*;
     use crate::crypto::ciphers::Algorithm;
     use crate::crypto::kdf::KdfParams;
+
+    #[cfg(windows)]
+    #[test]
+    fn ordinary_quit_keys_join_real_clipboard_cleanup() {
+        use crate::clip::win32::{copy_now, snapshot_clipboard, PreserveClipboard};
+        use windows::Win32::System::DataExchange::GetClipboardOwner;
+
+        let _serial = clip::win32_delayed::lock_clipboard();
+        let _restore = PreserveClipboard::new();
+        for (key, render) in [
+            (KeyEvent::new(KeyCode::Char('q'), KeyModifiers::NONE), false),
+            (KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE), true),
+            (
+                KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL),
+                true,
+            ),
+        ] {
+            copy_now(b"before-tui-copy").unwrap();
+            let owner = unsafe { GetClipboardOwner() }.ok();
+            let mut app = App::new(std::path::PathBuf::new());
+            app.mode = Mode::List;
+            start_clipboard(&mut app, zeroize::Zeroizing::new(b"tui-secret".to_vec()));
+            assert!(app.clip_task.is_some(), "{}", app.status);
+            let started = Instant::now();
+            while unsafe { GetClipboardOwner() }.ok() == owner {
+                assert!(
+                    started.elapsed() < Duration::from_secs(5),
+                    "copy did not announce"
+                );
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            if render {
+                assert_eq!(
+                    snapshot_clipboard()
+                        .unwrap()
+                        .map(|text| String::from_utf16_lossy(&text)),
+                    Some("tui-secret".into()),
+                );
+            }
+            assert_eq!(handle_key(&mut app, key), Some(0));
+            finish_app(app).unwrap();
+            assert_eq!(
+                snapshot_clipboard()
+                    .unwrap()
+                    .map(|text| String::from_utf16_lossy(&text)),
+                Some("before-tui-copy".into()),
+            );
+        }
+    }
 
     #[test]
     fn add_form_persists_all_fields() {

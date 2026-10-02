@@ -33,6 +33,7 @@
 | `r` | Reveal password for 10 seconds |
 | `L` | Lock immediately |
 | `q` / `Esc` | Back / quit |
+| `Ctrl-C` | Quit from any view, completing clipboard cleanup |
 
 ## Security behaviors
 
@@ -47,12 +48,26 @@
   in the tool; THREAT_MODEL §5.3's mitigations are designed around
   short unlock lifetimes).
 
-- **Pending clipboard operation:** copy runs in a worker and calls the
-  platform auto-clear path. Locking drops the vault immediately; the worker
-  retains only the copied secret until the bounded 30-second clear completes.
-  The status bar reports completion or a clipboard error.
+- **Pending clipboard operation:** copy runs in an owned, cancellable worker
+  and calls the platform auto-clear path. Locking drops the vault immediately;
+  the worker retains only the copied secret until the bounded 30-second clear
+  completes. The status bar reports completion or a clipboard error.
+- **Normal quit and errors:** `q` / `Esc` when quitting, `Ctrl-C`, and event-loop
+  errors cancel the pending hold and wait for clipboard cleanup before the
+  process exits. The unlocked vault and form are dropped and the normal terminal
+  is restored **before** this wait. Cleanup restores prior text (or clears an
+  empty clipboard) only while the clipboard is still ours; later user copies
+  are left alone. Clipboard failures are reported instead of silently detached.
+  Native cleanup waits if another application temporarily holds the clipboard
+  open; the terminal and unlocked vault are already released during that wait.
 - Explicit `L` keybinding locks immediately; the pending clipboard clear still
   runs to completion.
+- **Abrupt death is different:** native Windows drops an unrendered delayed
+  entry, but a secret already pasted can survive process death. On WSL/Linux,
+  clipboard helper processes or the Windows clipboard can retain the secret
+  after forced termination or an unhandled signal. Normal TUI `Ctrl-C` is an
+  input event and does run cleanup. WSL/Linux external-tool comparisons and
+  restores cannot be atomic against another application copying concurrently.
 - No focus-loss lock — cross-platform terminal focus events are
   unreliable on WSL/Windows-Terminal combos; idle-timeout is the
   uniform floor.

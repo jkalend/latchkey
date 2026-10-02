@@ -84,13 +84,16 @@ copy-history warnings every time; errors must still reach a human.
   renames the old vault to `vault.bin.bak.<n>` first).
 - Prints the vault path and the measured Argon2 wall-clock time, so the
   user sees what "≥ 1 s" means on their machine.
-### `latchkey add <title> [--username <u>] [--url <u>] [--notes <n>] [--generate] [--totp] [--totp-alg <alg>] [--totp-uri]`
+
+### `latchkey add <title> [--username <u>] [--url <u>] [--notes <n>] [--generate] [--reveal-generated] [--totp] [--totp-alg <alg>] [--totp-uri]`
 
 - No duplicate-title rejection — it's valid to have several items with
   the same title ("github.com" / personal + work). Collisions are
   handled at read by interactive fuzzy select (`get`/`copy`).
-- Password is prompted hidden (`--generate` fills it per ADR-0006 and
-  re-displays it for the user to save elsewhere if they want).
+- `--generate` fills the password per ADR-0006 and stores it silently —
+  nothing is printed by default. Pass `--reveal-generated` (requires
+  `--generate`) to print the value once, after the item is committed;
+  a failed save never reveals it.
 - Never accepts a password as a CLI argument (THREAT_MODEL §5.7).
 - `--notes` reads interactively in `$EDITOR` when the flag is given
   without a value; a value on the command line is allowed since notes
@@ -123,7 +126,7 @@ copy-history warnings every time; errors must still reach a human.
 - Defaults: 20 chars, 62-char alphabet, ~119 bits (ADR-0006).
 - Prints the entropy estimate alongside the password.
 
-### `latchkey edit <title>`
+### `latchkey edit <title> [... --generate] [--reveal-generated]`
 
 - Changes to any of username (index) or password/notes/TOTP
   (ItemRecord) are written as **a single atomic vault write** under
@@ -135,6 +138,10 @@ copy-history warnings every time; errors must still reach a human.
   to prevent it.
 - Title collision (Q7): enters interactive fuzzy select before any
   edit is staged.
+
+- `--generate` replaces the password silently. `--reveal-generated`
+  (requires `--generate`) prints the new value after the atomic write
+  succeeds.
 
 ### `latchkey totp <title>`
 

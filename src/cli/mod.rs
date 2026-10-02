@@ -86,6 +86,9 @@ enum Command {
         /// Generate the password per ADR-0006 instead of prompting
         #[arg(long)]
         generate: bool,
+        /// Print the generated password after the item is committed
+        #[arg(long, requires = "generate")]
+        reveal_generated: bool,
         /// Prompt for a TOTP secret (base32, hidden)
         #[arg(long)]
         totp: bool,
@@ -173,6 +176,9 @@ enum Command {
         /// Generate a new password per ADR-0006 instead of prompting
         #[arg(long)]
         generate: bool,
+        /// Print the generated password after the change is committed
+        #[arg(long, requires = "generate")]
+        reveal_generated: bool,
         /// Replace the TOTP secret (base32, prompted hidden)
         #[arg(long)]
         totp: bool,
@@ -286,6 +292,7 @@ fn dispatch(cli: Cli) -> Result<()> {
             url,
             notes,
             generate,
+            reveal_generated,
             totp: want_totp,
             totp_alg,
             totp_uri,
@@ -297,6 +304,7 @@ fn dispatch(cli: Cli) -> Result<()> {
                 url,
                 notes,
                 generate,
+                reveal_generated,
                 want_totp,
                 totp_alg,
                 want_totp_uri: totp_uri,
@@ -341,6 +349,7 @@ fn dispatch(cli: Cli) -> Result<()> {
             url,
             notes,
             generate,
+            reveal_generated,
             totp,
             totp_alg,
             totp_uri,
@@ -353,6 +362,7 @@ fn dispatch(cli: Cli) -> Result<()> {
                 url,
                 notes,
                 generate,
+                reveal_generated,
                 want_totp: totp,
                 totp_alg,
                 want_totp_uri: totp_uri,
@@ -502,6 +512,7 @@ struct AddArgs {
     url: Option<String>,
     notes: Option<Option<String>>,
     generate: bool,
+    reveal_generated: bool,
     want_totp: bool,
     totp_alg: Option<TotpAlgArg>,
     want_totp_uri: bool,
@@ -515,20 +526,21 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
         url,
         notes,
         generate,
+        reveal_generated,
         want_totp,
         totp_alg,
         want_totp_uri,
         context,
     } = a;
     let notes = resolve_notes(notes)?;
-    let (mut vault, _pw) = open_vault(path, context)?;
 
     let username = match username {
         Some(u) => u,
         None => prompt_line("Username")?,
     };
 
-    let password = if generate {
+    let (mut vault, _pw) = open_vault(path, context)?;
+    let (password, generated) = if generate {
         let spec = GenerateSpec {
             preset: Preset::Alphanumeric,
             length: None,
@@ -538,13 +550,13 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
         let g = spec
             .generate()
             .map_err(|e| CliError::Other(e.to_string()))?;
-        eprintln!(
-            "generated password ({} bits): {}",
-            g.entropy_bits as u64, g.value
-        );
-        Some(std::mem::take(&mut *g.into_value()).into_bytes())
+        // Stored silently; printed only after a successful commit if the
+        // user passed --reveal-generated (CLI_REFERENCE add).
+        let entropy = g.entropy_bits;
+        let value = g.into_value();
+        (Some(value.as_bytes().to_vec()), Some((value, entropy)))
     } else {
-        Some(passwords::prompt_item_password()?.to_vec())
+        (Some(passwords::prompt_item_password()?.to_vec()), None)
     };
 
     let totp_rec = if want_totp_uri {
@@ -569,6 +581,12 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
     )
     .map_err(|e| CliError::Other(e.to_string()))?;
     println!("added item {id}");
+    if let Some((value, entropy)) = generated {
+        if reveal_generated {
+            // Deliberate secret output — Terminal() must not escape it.
+            println!("generated password ({} bits): {}", entropy as u64, *value);
+        }
+    }
     Ok(())
 }
 
@@ -1028,6 +1046,7 @@ struct EditArgs {
     url: Option<String>,
     notes: Option<Option<String>>,
     generate: bool,
+    reveal_generated: bool,
     want_totp: bool,
     totp_alg: Option<TotpAlgArg>,
     want_totp_uri: bool,
@@ -1042,6 +1061,7 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         url,
         notes,
         generate,
+        reveal_generated,
         want_totp,
         totp_alg,
         want_totp_uri,
@@ -1089,7 +1109,7 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         }
     };
 
-    let new_password = if generate {
+    let (new_password, generated) = if generate {
         let spec = GenerateSpec {
             preset: Preset::Alphanumeric,
             length: None,
@@ -1099,20 +1119,20 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         let g = spec
             .generate()
             .map_err(|e| CliError::Other(e.to_string()))?;
-        eprintln!(
-            "generated password ({} bits): {}",
-            g.entropy_bits as u64, g.value
-        );
-        Some(std::mem::take(&mut *g.into_value()).into_bytes())
+        // Stored silently; printed only after a successful commit if the
+        // user passed --reveal-generated (CLI_REFERENCE edit).
+        let entropy = g.entropy_bits;
+        let value = g.into_value();
+        (Some(value.as_bytes().to_vec()), Some((value, entropy)))
     } else {
         let entered = Zeroizing::new(
             rpassword::prompt_password("New password [Enter = keep current]: ")
                 .map_err(|e| CliError::Other(format!("read password: {e}")))?,
         );
         if entered.is_empty() {
-            None
+            (None, None)
         } else {
-            Some(entered.as_bytes().to_vec())
+            (Some(entered.as_bytes().to_vec()), None)
         }
     };
 
@@ -1140,6 +1160,12 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
     .map_err(|e| CliError::Other(e.to_string()))?;
     if changed {
         println!("updated item {}", entry.item_id);
+        if let Some((value, entropy)) = generated {
+            if reveal_generated {
+                // Deliberate secret output — Terminal() must not escape it.
+                println!("generated password ({} bits): {}", entropy as u64, *value);
+            }
+        }
     } else {
         eprintln!("nothing changed");
     }

@@ -9,6 +9,7 @@ use std::fs::File;
 use std::io::Read;
 
 use crate::cli::error::{CliError, Result};
+use crate::cli::terminal::Terminal;
 use crate::json::{self, Json};
 use crate::ops::{self, ImportedEntry, ImportedUpdate};
 use crate::vault::shape::{ItemRecord, TotpAlgorithm, TotpSubRecord, LIVE_STATE};
@@ -99,7 +100,7 @@ fn import_format_into_with_quiet(
     if !quiet {
         eprintln!(
             "warning: '{}' is a plaintext export; secure or remove it after import",
-            format
+            Terminal(format)
         );
     }
     eprintln!(
@@ -114,17 +115,20 @@ fn import_format_into_with_quiet(
         if plan.skipped == 1 { "" } else { "s" },
     );
     for add in &plan.adds {
-        eprintln!("  + {} ({})", add.title, add.username);
+        eprintln!("  + {} ({})", Terminal(&add.title), Terminal(&add.username));
     }
     for upd in &plan.updates {
         eprintln!(
             "  ~ {} (id {}, {}) — secrets replaced from import",
-            upd.title, upd.item_id, upd.username
+            Terminal(&upd.title),
+            upd.item_id,
+            Terminal(&upd.username)
         );
     }
     for (title, count) in &plan.collisions {
         eprintln!(
-            "  ! '{title}' collides with {count} existing/imported title{}",
+            "  ! '{}' collides with {count} existing/imported title{}",
+            Terminal(title),
             if *count == 1 { "" } else { "s" }
         );
     }

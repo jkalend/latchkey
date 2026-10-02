@@ -22,6 +22,7 @@ use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 use ratatui::Frame;
 
 use crate::cli::passwords;
+use crate::cli::terminal::Terminal;
 use crate::crypto::kdf::SecretVec;
 use crate::gen::GenerateSpec;
 use crate::ops::{self, Change, EntryPatch, NewEntry};
@@ -901,8 +902,11 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect) {
         .iter()
         .map(|entry| {
             ListItem::new(Line::from(vec![
-                Span::styled(format!("{:<40}", entry.title), Style::default()),
-                Span::styled(entry.username.clone(), Style::default().fg(Color::DarkGray)),
+                Span::styled(format!("{:<40}", Terminal(&entry.title)), Style::default()),
+                Span::styled(
+                    Terminal(&entry.username).to_string(),
+                    Style::default().fg(Color::DarkGray),
+                ),
             ]))
         })
         .collect();
@@ -910,7 +914,7 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect) {
     let search = if app.search.is_empty() {
         Span::styled("/", Style::default().fg(Color::DarkGray))
     } else {
-        Span::raw(app.search.clone())
+        Span::raw(Terminal(&app.search).to_string())
     };
     let list = List::new(list_items)
         .block(Block::default().borders(Borders::ALL).title(vec![
@@ -982,17 +986,17 @@ fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
     };
     let text = vec![
         Line::from(Span::styled(
-            entry.title.clone(),
+            Terminal(&entry.title).to_string(),
             Style::default().add_modifier(Modifier::BOLD),
         )),
-        Line::from(format!("username:  {}", entry.username)),
+        Line::from(format!("username:  {}", Terminal(&entry.username))),
         Line::from(format!(
             "url:       {}",
-            if record.url.is_empty() {
+            Terminal(if record.url.is_empty() {
                 "—"
             } else {
                 &record.url
-            }
+            })
         )),
         Line::from(password),
         Line::from(totp),
@@ -1040,7 +1044,7 @@ fn draw_form(f: &mut Frame, app: &App, area: Rect) {
                     "(empty)".to_string()
                 }
             } else {
-                raw.to_string()
+                Terminal(raw).to_string()
             };
             Line::from(vec![
                 Span::styled(
@@ -1082,8 +1086,8 @@ fn draw_delete(f: &mut Frame, app: &App, item_id: u32, area: Rect) {
             Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
         )),
         Line::from(""),
-        Line::from(format!("title:    {}", entry.title)),
-        Line::from(format!("username: {}", entry.username)),
+        Line::from(format!("title:    {}", Terminal(&entry.title))),
+        Line::from(format!("username: {}", Terminal(&entry.username))),
         Line::from(format!("item_id:  {}", entry.item_id)),
         Line::from(""),
         Line::from("Press y to delete; n or Esc to cancel."),
@@ -1118,7 +1122,7 @@ fn draw_status(f: &mut Frame, app: &App, area: Rect) {
     }
     if !app.status.is_empty() {
         spans.push(Span::styled(
-            format!("  {}", app.status),
+            format!("  {}", Terminal(&app.status)),
             Style::default().fg(Color::Cyan),
         ));
     }

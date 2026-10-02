@@ -3,6 +3,7 @@
 //! ALL live entries; several matches require interactive selection.
 
 use crate::cli::error::{CliError, Result};
+use crate::cli::terminal::Terminal;
 use crate::vault::shape::{IndexEntry, LIVE_STATE};
 use crate::vault::vault_impl::Vault;
 
@@ -75,7 +76,7 @@ fn no_match(vault: &Vault, title: &str) -> CliError {
 fn interactive_select(matches: Vec<&IndexEntry>) -> Result<IndexEntry> {
     eprintln!("{} entries share this title — pick one:", matches.len());
     for (i, e) in matches.iter().enumerate() {
-        eprintln!("  {}. {} (id {})", i + 1, e.username, e.item_id);
+        eprintln!("  {}. {} (id {})", i + 1, Terminal(&e.username), e.item_id);
     }
     loop {
         let mut line = String::new();

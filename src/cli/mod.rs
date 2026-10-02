@@ -4,6 +4,7 @@ pub mod error;
 pub mod import;
 pub mod passwords;
 pub mod resolve;
+pub(crate) mod terminal;
 pub mod vault_path;
 
 pub use error::{CliError, ExitCode, Result};
@@ -11,6 +12,8 @@ pub use vault_path::default_vault_path;
 
 use clap::{CommandFactory, Parser, Subcommand};
 use zeroize::Zeroizing;
+
+use terminal::Terminal;
 
 use crate::crypto::ciphers::Algorithm;
 use crate::crypto::kdf::{KdfParams, SecretVec};
@@ -240,7 +243,7 @@ pub fn run(args: std::env::Args) -> i32 {
                     return ExitCode::Success as i32;
                 }
                 _ => {
-                    eprint!("{e}");
+                    eprintln!("{}", Terminal(e));
                     return ExitCode::Usage as i32;
                 }
             }
@@ -249,7 +252,7 @@ pub fn run(args: std::env::Args) -> i32 {
     match dispatch(cli) {
         Ok(()) => ExitCode::Success as i32,
         Err(e) => {
-            eprintln!("latchkey: {e}");
+            eprintln!("latchkey: {}", Terminal(&e));
             e.exit_code()
         }
     }
@@ -412,7 +415,7 @@ fn cmd_init(path: &std::path::Path, force: bool, context: CommandContext) -> Res
         }
         std::fs::rename(path, &bak)
             .map_err(|e| CliError::Other(format!("backup old vault: {e}")))?;
-        eprintln!("existing vault renamed to {}", bak.display());
+        eprintln!("existing vault renamed to {}", Terminal(bak.display()));
     }
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent)
@@ -431,7 +434,7 @@ fn cmd_init(path: &std::path::Path, force: bool, context: CommandContext) -> Res
     .map_err(|e| CliError::Other(e.to_string()))?;
     let elapsed = start.elapsed();
 
-    println!("vault created at {}", path.display());
+    println!("vault created at {}", Terminal(path.display()));
     println!(
         "Argon2id key derivation took {:.2}s ({} MiB, t={}, p={})",
         elapsed.as_secs_f64(),
@@ -529,7 +532,12 @@ fn cmd_list(path: &std::path::Path, context: CommandContext) -> Result<()> {
         if e.state != crate::vault::shape::LIVE_STATE {
             continue;
         }
-        println!("{:<6} {:<40} {}", e.item_id, e.title, e.username);
+        println!(
+            "{:<6} {:<40} {}",
+            e.item_id,
+            Terminal(&e.title),
+            Terminal(&e.username)
+        );
     }
     Ok(())
 }
@@ -732,7 +740,9 @@ fn cmd_rm(
     if !purge {
         print!(
             "delete '{}' ({}), item {}? [y/N] ",
-            entry.title, entry.username, entry.item_id
+            Terminal(&entry.title),
+            Terminal(&entry.username),
+            entry.item_id
         );
         use std::io::Write;
         let _ = std::io::stdout().flush();
@@ -826,7 +836,7 @@ fn cmd_backup(path: &std::path::Path, out: Option<std::path::PathBuf>) -> Result
     let data = std::fs::read(path).map_err(|e| CliError::Other(format!("read vault: {e}")))?;
     crate::vault::atomic_write::atomic_write(&out, &data)
         .map_err(|e| CliError::Other(e.to_string()))?;
-    println!("backup written to {}", out.display());
+    println!("backup written to {}", Terminal(out.display()));
     Ok(())
 }
 
@@ -893,7 +903,7 @@ fn resolve_notes(value: Option<Option<String>>) -> Result<Option<String>> {
 
 /// Prompt for one line of (non-secret) text; empty input → empty string.
 fn prompt_line(label: &str) -> Result<String> {
-    print!("{label}: ");
+    print!("{}: ", Terminal(label));
     use std::io::Write;
     let _ = std::io::stdout().flush();
     let mut s = String::new();
@@ -1216,7 +1226,7 @@ fn cmd_export(
             .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
         eprintln!(
             "plaintext export written to {} — handle it carefully",
-            out.display()
+            Terminal(out.display())
         );
     }
     Ok(())

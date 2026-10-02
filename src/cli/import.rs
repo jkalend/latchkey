@@ -384,7 +384,7 @@ fn parse_bitwarden_item(item: &Json, skipped: &mut usize) -> Result<Option<Canon
     }
 
     let title = required_str(item, "name")?;
-    let notes = optional_secret(item, "notes")?;
+    let mut record = new_record(None, String::new(), optional_secret(item, "notes")?, None);
     *skipped += json_array_len(item, "attachments")?;
     *skipped += json_array_len(item, "fields")?;
 
@@ -392,7 +392,7 @@ fn parse_bitwarden_item(item: &Json, skipped: &mut usize) -> Result<Option<Canon
         return Ok(Some(CanonicalRecord {
             title,
             username: String::new(),
-            record: new_record(None, String::new(), notes, None),
+            record,
         }));
     }
 
@@ -403,8 +403,8 @@ fn parse_bitwarden_item(item: &Json, skipped: &mut usize) -> Result<Option<Canon
         .as_obj()
         .ok_or_else(|| CliError::Other("'login' must be an object".into()))?;
     let username = optional_str(login, "username")?;
-    let password = optional_secret(login, "password")?;
-    let totp = match optional_json_str(login, "totp")? {
+    record.password = optional_secret(login, "password")?;
+    record.totp = match optional_json_str(login, "totp")?.map(Zeroizing::new) {
         Some(value) if !value.is_empty() => Some(parse_external_totp(&value)?),
         _ => None,
     };
@@ -428,7 +428,10 @@ fn parse_bitwarden_item(item: &Json, skipped: &mut usize) -> Result<Option<Canon
     Ok(Some(CanonicalRecord {
         title,
         username,
-        record: new_record(password, url, notes, totp),
+        record: {
+            record.url = url;
+            record
+        },
     }))
 }
 
@@ -617,41 +620,15 @@ fn optional_str(obj: &Json, key: &str) -> Result<String> {
 }
 
 fn parse_record(obj: &Json) -> Result<ItemRecord> {
-    let password = match obj.get("password") {
-        None | Some(Json::Null) => None,
-        Some(v) => Some(
-            v.as_str()
-                .ok_or_else(|| CliError::Other("import: 'password' must be a string".into()))?
-                .as_bytes()
-                .to_vec(),
-        ),
-    };
-    let url = optional_str(obj, "url")?;
-    let notes = match obj.get("notes") {
-        None | Some(Json::Null) => None,
-        Some(v) => Some(
-            v.as_str()
-                .ok_or_else(|| CliError::Other("import: 'notes' must be a string".into()))?
-                .as_bytes()
-                .to_vec(),
-        ),
-    };
-    let totp = match obj.get("totp") {
+    let mut record = new_record(None, String::new(), None, None);
+    record.password = optional_secret(obj, "password")?;
+    record.url = optional_str(obj, "url")?;
+    record.notes = optional_secret(obj, "notes")?;
+    record.totp = match obj.get("totp") {
         None | Some(Json::Null) => None,
         Some(t) => Some(parse_totp(t)?),
     };
-    let now = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    Ok(ItemRecord {
-        password,
-        url,
-        notes,
-        totp,
-        created_unix: now,
-        modified_unix: now,
-    })
+    Ok(record)
 }
 
 fn validate_format_version(doc: &Json) -> Result<()> {

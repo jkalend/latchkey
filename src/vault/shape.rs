@@ -4,7 +4,7 @@
 
 use crate::crypto::error::{Error, Result};
 use std::fmt;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 pub const LIVE_STATE: u8 = 0x01;
 pub const TOMBSTONE_STATE: u8 = 0x02;
@@ -100,7 +100,7 @@ pub fn serialize_index(p: &IndexPayload) -> Result<Vec<u8>> {
     if p.entries.len() > u32::MAX as usize {
         return Err(Error::Encrypt("too many index entries".into()));
     }
-    let mut out = Vec::with_capacity(estimate_index_size(p));
+    let mut out = Zeroizing::new(Vec::with_capacity(estimate_index_size(p)));
     out.extend_from_slice(&(p.entries.len() as u32).to_be_bytes());
     for e in &p.entries {
         if !matches!(e.state, LIVE_STATE | TOMBSTONE_STATE | 0xFF) {
@@ -116,7 +116,7 @@ pub fn serialize_index(p: &IndexPayload) -> Result<Vec<u8>> {
         push_str(&mut out, &e.title, 256)?;
         push_str(&mut out, &e.username, 512)?;
     }
-    Ok(out)
+    Ok(std::mem::take(&mut *out))
 }
 
 fn estimate_index_size(p: &IndexPayload) -> usize {
@@ -159,7 +159,8 @@ pub fn parse_index(buf: &[u8]) -> Result<IndexPayload> {
     Ok(IndexPayload { entries })
 }
 
-pub fn serialize_item(r: &ItemRecord, item_id: u32) -> Result<Vec<u8>> {
+/// Validate without allocating a serialized copy of any secret fields.
+pub fn validate_item(r: &ItemRecord) -> Result<()> {
     if r.password.as_ref().is_some_and(|v| v.len() > 1024)
         || r.url.len() > 2048
         || r.notes.as_ref().is_some_and(|v| v.len() > 8192)
@@ -172,8 +173,25 @@ pub fn serialize_item(r: &ItemRecord, item_id: u32) -> Result<Vec<u8>> {
             return Err(Error::Encrypt("invalid TOTP parameters".into()));
         }
     }
+    Ok(())
+}
 
-    let mut out = Vec::new();
+pub fn serialize_item(r: &ItemRecord, item_id: u32) -> Result<Vec<u8>> {
+    validate_item(r)?;
+    let size = 1
+        + r.password.as_ref().map_or(0, |v| 4 + v.len())
+        + 2
+        + r.url.len()
+        + 1
+        + r.notes.as_ref().map_or(0, |v| 4 + v.len())
+        + 1
+        + r.totp
+            .as_ref()
+            .map_or(0, |t| 4 + t.secret.len() + 4 + 4 + 1)
+        + 8
+        + 8
+        + 4;
+    let mut out = Zeroizing::new(Vec::with_capacity(size));
     push_opt_bytes(&mut out, &r.password, 1024)?;
     push_str(&mut out, &r.url, 2048)?;
     push_opt_bytes(&mut out, &r.notes, 8192)?;
@@ -190,32 +208,42 @@ pub fn serialize_item(r: &ItemRecord, item_id: u32) -> Result<Vec<u8>> {
     out.extend_from_slice(&r.created_unix.to_be_bytes());
     out.extend_from_slice(&r.modified_unix.to_be_bytes());
     out.extend_from_slice(&item_id.to_be_bytes());
-    Ok(out)
+    Ok(std::mem::take(&mut *out))
 }
 
 /// Returns the record plus the embedded `item_id`, which the caller
 /// must cross-check against the index entry.
 pub fn parse_item(buf: &[u8]) -> Result<(ItemRecord, u32)> {
     let mut cur = Cursor::new(buf);
-    let password = cur.read_opt_bytes_max(1024)?;
-    let url = cur.read_str_max(2048)?;
-    let notes = cur.read_opt_bytes_max(8192)?;
-    let totp = match cur.read_u8()? {
+    // Assemble inside the drop-wiping record so every partially read field
+    // is erased if a later field is malformed.
+    let mut record = ItemRecord {
+        password: None,
+        url: String::new(),
+        notes: None,
+        totp: None,
+        created_unix: 0,
+        modified_unix: 0,
+    };
+    record.password = cur.read_opt_bytes_max(1024)?;
+    record.url = cur.read_str_max(2048)?;
+    record.notes = cur.read_opt_bytes_max(8192)?;
+    record.totp = match cur.read_u8()? {
         0x00 => None,
         0x01 => {
-            let secret = cur.read_bytes_max(128)?;
-            let period = cur.read_u32()?;
-            let digits = cur.read_u32()?;
-            if period == 0 || !matches!(digits, 6 | 8) {
+            let mut totp = TotpSubRecord {
+                secret: cur.read_bytes_max(128)?,
+                period: 0,
+                digits: 0,
+                algorithm: TotpAlgorithm::Sha1,
+            };
+            totp.period = cur.read_u32()?;
+            totp.digits = cur.read_u32()?;
+            if totp.period == 0 || !matches!(totp.digits, 6 | 8) {
                 return Err(Error::Encrypt("invalid TOTP parameters".into()));
             }
-            let algorithm = TotpAlgorithm::from_id(cur.read_u8()?)?;
-            Some(TotpSubRecord {
-                secret,
-                period,
-                digits,
-                algorithm,
-            })
+            totp.algorithm = TotpAlgorithm::from_id(cur.read_u8()?)?;
+            Some(totp)
         }
         value => {
             return Err(Error::Encrypt(format!(
@@ -223,23 +251,13 @@ pub fn parse_item(buf: &[u8]) -> Result<(ItemRecord, u32)> {
             )))
         }
     };
-    let created_unix = cur.read_u64()?;
-    let modified_unix = cur.read_u64()?;
+    record.created_unix = cur.read_u64()?;
+    record.modified_unix = cur.read_u64()?;
     let item_id = cur.read_u32()?;
     if cur.remaining() != 0 {
         return Err(Error::Encrypt("trailing bytes in item".into()));
     }
-    Ok((
-        ItemRecord {
-            password,
-            url,
-            notes,
-            totp,
-            created_unix,
-            modified_unix,
-        },
-        item_id,
-    ))
+    Ok((record, item_id))
 }
 
 fn push_str(out: &mut Vec<u8>, s: &str, max: usize) -> Result<()> {
@@ -327,7 +345,8 @@ impl<'a> Cursor<'a> {
         if len > max {
             return Err(Error::Encrypt("utf8 string too large".into()));
         }
-        String::from_utf8(self.take(len)?.to_vec())
+        std::str::from_utf8(self.take(len)?)
+            .map(str::to_owned)
             .map_err(|_| Error::Encrypt("invalid utf8".into()))
     }
 
@@ -336,6 +355,59 @@ impl<'a> Cursor<'a> {
             0x00 => Ok(None),
             0x01 => Ok(Some(self.read_bytes_max(max)?)),
             value => Err(Error::Encrypt(format!("bad presence byte 0x{value:02x}"))),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn record() -> ItemRecord {
+        ItemRecord {
+            password: Some(vec![b'p'; 1024]),
+            url: "u".repeat(2048),
+            notes: Some(vec![b'n'; 8192]),
+            totp: Some(TotpSubRecord {
+                secret: vec![b's'; 128],
+                period: 30,
+                digits: 8,
+                algorithm: TotpAlgorithm::Sha512,
+            }),
+            created_unix: 1,
+            modified_unix: 2,
+        }
+    }
+
+    #[test]
+    fn maximum_item_fields_roundtrip_and_oversized_fields_are_rejected() {
+        let expected = record();
+        let encoded = Zeroizing::new(serialize_item(&expected, 42).unwrap());
+        let (actual, id) = parse_item(&encoded).unwrap();
+        assert_eq!(actual, expected);
+        assert_eq!(id, 42);
+        for field in 0..4 {
+            let mut oversized = record();
+            match field {
+                0 => oversized.password.as_mut().unwrap().push(b'p'),
+                1 => oversized.url.push('u'),
+                2 => oversized.notes.as_mut().unwrap().push(b'n'),
+                _ => oversized.totp.as_mut().unwrap().secret.push(b's'),
+            }
+            assert!(validate_item(&oversized).is_err());
+            assert!(serialize_item(&oversized, 42).is_err());
+        }
+    }
+
+    #[test]
+    fn invalid_totp_fields_are_rejected_before_serialization() {
+        for (period, digits) in [(0, 6), (30, 7)] {
+            let mut invalid = record();
+            let totp = invalid.totp.as_mut().unwrap();
+            totp.period = period;
+            totp.digits = digits;
+            assert!(validate_item(&invalid).is_err());
+            assert!(serialize_item(&invalid, 42).is_err());
         }
     }
 }

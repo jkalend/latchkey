@@ -8,7 +8,9 @@
 //! Entropy floor: every preset targets ≥ 78 bits (ADR-0006 §3).
 
 use crate::crypto::error::{Error, Result};
+use std::fmt;
 use std::sync::OnceLock;
+use zeroize::{Zeroize, Zeroizing};
 
 pub const ALPHANUMERIC: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 /// 16 common safe symbols (ADR-0006 preset table: 62 + 16 = 78-char alphabet).
@@ -52,10 +54,10 @@ fn random_index(alphabet_len: usize) -> Result<usize> {
         Some(l) => l,
         None => return Err(Error::Rng("alphabet too large".into())),
     };
-    let mut buf = [0u8; 4];
+    let mut buf = Zeroizing::new([0u8; 4]);
     loop {
-        getrandom::getrandom(&mut buf).map_err(|e| Error::Rng(e.to_string()))?;
-        let v = u32::from_be_bytes(buf);
+        getrandom::getrandom(&mut *buf).map_err(|e| Error::Rng(e.to_string()))?;
+        let v = u32::from_be_bytes(*buf);
         if v < limit {
             return Ok((v % alphabet_len) as usize);
         }
@@ -64,12 +66,12 @@ fn random_index(alphabet_len: usize) -> Result<usize> {
 
 fn pick(alphabet: &str, n: usize) -> Result<String> {
     let chars: Vec<char> = alphabet.chars().collect();
-    let mut out = String::with_capacity(n);
+    let mut out = Zeroizing::new(String::with_capacity(n));
     for _ in 0..n {
         let i = random_index(chars.len())?;
         out.push(chars[i]);
     }
-    Ok(out)
+    Ok(std::mem::take(&mut *out))
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -103,11 +105,28 @@ impl Default for GenerateSpec {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq, Zeroize)]
+#[zeroize(drop)]
 pub struct Generated {
     pub value: String,
     /// Estimated entropy in bits.
     pub entropy_bits: f64,
+}
+
+impl fmt::Debug for Generated {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Generated")
+            .field("value", &"<redacted>")
+            .field("entropy_bits", &self.entropy_bits)
+            .finish()
+    }
+}
+
+impl Generated {
+    /// Transfer the password into a wiping owner without copying it.
+    pub fn into_value(mut self) -> Zeroizing<String> {
+        Zeroizing::new(std::mem::take(&mut self.value))
+    }
 }
 
 impl GenerateSpec {
@@ -124,13 +143,16 @@ impl GenerateSpec {
                     )));
                 }
                 let list = wordlist();
-                let mut parts = Vec::with_capacity(words);
-                for _ in 0..words {
+                let mut value = Zeroizing::new(String::with_capacity(words * 11));
+                for word in 0..words {
                     let i = random_index(list.len())?;
-                    parts.push(list[i]);
+                    if word != 0 {
+                        value.push('-');
+                    }
+                    value.push_str(list[i]);
                 }
                 Ok(Generated {
-                    value: parts.join("-"),
+                    value: std::mem::take(&mut *value),
                     entropy_bits: (list.len() as f64).log2() * words as f64,
                 })
             }
@@ -304,5 +326,15 @@ mod tests {
         let a = spec(Preset::Alphanumeric).generate().unwrap();
         let b = spec(Preset::Alphanumeric).generate().unwrap();
         assert_ne!(a.value, b.value);
+    }
+
+    #[test]
+    fn generated_password_debug_is_redacted_and_value_remains_available() {
+        let generated = Generated {
+            value: "do-not-log-this".into(),
+            entropy_bits: 80.0,
+        };
+        assert!(!format!("{generated:?}").contains("do-not-log-this"));
+        assert_eq!(generated.into_value().as_str(), "do-not-log-this");
     }
 }

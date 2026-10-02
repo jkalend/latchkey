@@ -1,5 +1,6 @@
-use argon2::{Algorithm as Argon2Algorithm, Argon2, Params, Version as Argon2Version};
+use argon2::{Algorithm as Argon2Algorithm, Argon2, Block, Params, Version as Argon2Version};
 use secrecy::{ExposeSecret, SecretBox};
+use zeroize::Zeroizing;
 
 use crate::crypto::error::{Error, Result};
 
@@ -106,12 +107,13 @@ impl Kdf {
         )
         .map_err(|e| Error::Kdf(format!("invalid params: {e}")))?;
 
+        let mut memory = Zeroizing::new(vec![Block::default(); params.block_count()]);
         let argon2 = Argon2::new(Argon2Algorithm::Argon2id, Argon2Version::V0x13, params);
-        let mut out = vec![0u8; KEK_LEN];
+        let mut out = Zeroizing::new(vec![0u8; KEK_LEN]);
         argon2
-            .hash_password_into(password.expose_secret(), salt, &mut out)
+            .hash_password_into_with_memory(password.expose_secret(), salt, &mut out, &mut *memory)
             .map_err(|e| Error::Kdf(format!("hash failed: {e}")))?;
-        Ok(SecretVec::new(out.into_boxed_slice()))
+        Ok(SecretVec::new(std::mem::take(&mut *out).into_boxed_slice()))
     }
 }
 

@@ -489,7 +489,7 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
             "generated password ({} bits): {}",
             g.entropy_bits as u64, g.value
         );
-        Some(g.value.into_bytes())
+        Some(std::mem::take(&mut *g.into_value()).into_bytes())
     } else {
         Some(passwords::prompt_item_password()?.to_vec())
     };
@@ -669,7 +669,7 @@ fn cmd_generate(a: GenerateArgs) -> Result<()> {
         .generate()
         .map_err(|e| CliError::Other(e.to_string()))?;
     let entropy_bits = g.entropy_bits;
-    let value = Zeroizing::new(g.value);
+    let value = g.into_value();
     if copy {
         // Say it BEFORE the ~30s hold; printing after the clear reads like a lie.
         eprintln!(
@@ -910,11 +910,11 @@ fn prompt_totp_uri() -> Result<crate::vault::shape::TotpSubRecord> {
         rpassword::prompt_password("otpauth:// URI: ")
             .map_err(|e| CliError::Other(format!("read otpauth URI: {e}")))?,
     );
-    let p = totp::parse_otpauth_uri(&uri).map_err(|e| CliError::Other(e.to_string()))?;
+    let mut p = totp::parse_otpauth_uri(&uri).map_err(|e| CliError::Other(e.to_string()))?;
     Ok(crate::vault::shape::TotpSubRecord {
         period: p.period,
         digits: p.digits,
-        secret: p.secret.clone(),
+        secret: std::mem::take(&mut p.secret),
         algorithm: p.algorithm,
     })
 }
@@ -1043,7 +1043,7 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
             "generated password ({} bits): {}",
             g.entropy_bits as u64, g.value
         );
-        Some(g.value.into_bytes())
+        Some(std::mem::take(&mut *g.into_value()).into_bytes())
     } else {
         let entered = Zeroizing::new(
             rpassword::prompt_password("New password [Enter = keep current]: ")

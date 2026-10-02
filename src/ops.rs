@@ -4,8 +4,9 @@
 //! prompts, prints, renders, or touches the clipboard.
 
 use crate::crypto::error::{Error, Result};
-use crate::vault::shape::{serialize_item, ItemRecord, TotpSubRecord, LIVE_STATE, TOMBSTONE_STATE};
+use crate::vault::shape::{validate_item, ItemRecord, TotpSubRecord, LIVE_STATE, TOMBSTONE_STATE};
 use crate::vault::vault_impl::Vault;
+use zeroize::Zeroize;
 
 // No Debug: these hold raw password/notes bytes (CRYPTO_SPEC §6 — secret
 // types do not derive Debug; the compiler enforces the redaction policy).
@@ -60,7 +61,6 @@ pub struct EntryPatch {
 }
 
 pub fn add_entry(vault: &mut Vault, input: NewEntry) -> Result<u32> {
-    validate_metadata(&input.title, &input.username)?;
     let now = unix_now();
     let record = ItemRecord {
         password: input.password,
@@ -70,7 +70,8 @@ pub fn add_entry(vault: &mut Vault, input: NewEntry) -> Result<u32> {
         created_unix: now,
         modified_unix: now,
     };
-    serialize_item(&record, vault.next_item_id)?;
+    validate_metadata(&input.title, &input.username)?;
+    validate_item(&record)?;
 
     let id = vault.add_item(input.title, input.username, record)?;
     vault.save()?;
@@ -98,25 +99,30 @@ pub fn update_entry(vault: &mut Vault, item_id: u32, patch: EntryPatch) -> Resul
         Change::Keep => {}
         Change::Set(value) => {
             changed |= record.password.as_deref() != Some(value.as_slice());
+            record.password.zeroize();
             record.password = Some(value);
         }
         Change::Clear => {
             changed |= record.password.is_some();
+            record.password.zeroize();
             record.password = None;
         }
     }
     if let Some(value) = patch.url {
         changed |= record.url != value;
+        record.url.zeroize();
         record.url = value;
     }
     match patch.notes {
         Change::Keep => {}
         Change::Set(value) => {
             changed |= record.notes.as_deref() != Some(value.as_slice());
+            record.notes.zeroize();
             record.notes = Some(value);
         }
         Change::Clear => {
             changed |= record.notes.is_some();
+            record.notes.zeroize();
             record.notes = None;
         }
     }
@@ -139,7 +145,7 @@ pub fn update_entry(vault: &mut Vault, item_id: u32, patch: EntryPatch) -> Resul
 
     record.modified_unix = unix_now();
     validate_metadata(&title, &username)?;
-    serialize_item(&record, item_id)?;
+    validate_item(&record)?;
 
     let stored = vault
         .entries
@@ -173,7 +179,7 @@ pub fn apply_import(
     let mut next_id = vault.next_item_id;
     for add in &adds {
         validate_metadata(&add.title, &add.username)?;
-        serialize_item(&add.record, next_id)?;
+        validate_item(&add.record)?;
         next_id = next_id
             .checked_add(1)
             .ok_or_else(|| Error::Encrypt("item_id space exhausted".into()))?;
@@ -194,7 +200,7 @@ pub fn apply_import(
             .ok_or_else(|| Error::Encrypt("item not open".into()))?;
         update.record.created_unix = existing.created_unix;
         validate_metadata(&entry.title, &entry.username)?;
-        serialize_item(&update.record, update.item_id)?;
+        validate_item(&update.record)?;
         prepared_updates.push((entry.slot, update.record));
     }
 

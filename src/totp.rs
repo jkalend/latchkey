@@ -8,7 +8,7 @@
 use hmac::{Hmac, Mac};
 use sha1::Sha1;
 use std::fmt;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 use crate::crypto::error::{Error, Result};
 use crate::vault::shape::{TotpAlgorithm, TotpSubRecord};
@@ -59,29 +59,35 @@ pub fn totp_at(p: &TotpParams, unix_now: u64) -> Result<String> {
 
 /// HOTP (RFC 4226) — TOTP is HOTP over the time counter.
 fn hotp(p: &TotpParams, counter: u64) -> Result<String> {
-    // Tag length differs per algorithm; collect into a Vec<u8> so the match
-    // arms agree on a type.
-    let mac: Vec<u8> = match p.algorithm {
+    match p.algorithm {
         TotpAlgorithm::Sha1 => {
             let mut m = <Hmac<Sha1> as Mac>::new_from_slice(&p.secret)
                 .map_err(|e| Error::Encrypt(format!("hmac init: {e}")))?;
             m.update(&counter.to_be_bytes());
-            m.finalize().into_bytes().to_vec()
+            let mut mac = m.finalize().into_bytes();
+            let code = dynamic_truncate(&mac, p.digits);
+            mac.as_mut_slice().zeroize();
+            code
         }
         TotpAlgorithm::Sha256 => {
             let mut m = <Hmac<sha2::Sha256> as Mac>::new_from_slice(&p.secret)
                 .map_err(|e| Error::Encrypt(format!("hmac init: {e}")))?;
             m.update(&counter.to_be_bytes());
-            m.finalize().into_bytes().to_vec()
+            let mut mac = m.finalize().into_bytes();
+            let code = dynamic_truncate(&mac, p.digits);
+            mac.as_mut_slice().zeroize();
+            code
         }
         TotpAlgorithm::Sha512 => {
             let mut m = <Hmac<sha2::Sha512> as Mac>::new_from_slice(&p.secret)
                 .map_err(|e| Error::Encrypt(format!("hmac init: {e}")))?;
             m.update(&counter.to_be_bytes());
-            m.finalize().into_bytes().to_vec()
+            let mut mac = m.finalize().into_bytes();
+            let code = dynamic_truncate(&mac, p.digits);
+            mac.as_mut_slice().zeroize();
+            code
         }
-    };
-    dynamic_truncate(&mac, p.digits)
+    }
 }
 
 fn validate_digits(digits: u32) -> Result<()> {
@@ -135,8 +141,19 @@ pub fn totp_now(p: &TotpParams) -> Result<TotpNow> {
 /// Write-time validation (CLI_REFERENCE `latchkey totp`): base32 must decode
 /// cleanly and the decoded length must meet the algorithm floor.
 pub fn validate_secret(secret_b32: &str, algorithm: TotpAlgorithm) -> Result<Vec<u8>> {
-    let decoded = base32::decode(base32::Alphabet::Rfc4648 { padding: false }, secret_b32)
-        .ok_or_else(|| Error::Encrypt("TOTP secret is not valid base32".into()))?;
+    // base32::decode otherwise drops a partially decoded, unwiped Vec when
+    // an invalid character appears late in the input. Validate its alphabet
+    // before it allocates any decoded secret.
+    if !secret_b32
+        .bytes()
+        .all(|b| b.is_ascii_uppercase() || matches!(b, b'2'..=b'7'))
+    {
+        return Err(Error::Encrypt("TOTP secret is not valid base32".into()));
+    }
+    let mut decoded = Zeroizing::new(
+        base32::decode(base32::Alphabet::Rfc4648 { padding: false }, secret_b32)
+            .ok_or_else(|| Error::Encrypt("TOTP secret is not valid base32".into()))?,
+    );
     let floor = match algorithm {
         TotpAlgorithm::Sha1 => 10,
         TotpAlgorithm::Sha256 => 16,
@@ -149,12 +166,12 @@ pub fn validate_secret(secret_b32: &str, algorithm: TotpAlgorithm) -> Result<Vec
             algorithm
         )));
     }
-    Ok(decoded)
+    Ok(std::mem::take(&mut *decoded))
 }
 
 /// Parse an `otpauth://totp/...` URI (CLI_REFERENCE `latchkey add --totp-uri`).
-/// Extracts secret/period/digits/algorithm; the caller zeroizes the raw URI
-/// (we take it by value and drop it, but the input String lives in the caller).
+/// Extracts secret/period/digits/algorithm; the caller owns and zeroizes the
+/// borrowed raw URI. Decoded temporary secret strings are wiped here.
 pub fn parse_otpauth_uri(uri: &str) -> Result<TotpParams> {
     let rest = uri
         .strip_prefix("otpauth://totp/")
@@ -174,30 +191,29 @@ pub fn parse_otpauth_uri(uri: &str) -> Result<TotpParams> {
     for pair in query.split('&').filter(|s| !s.is_empty()) {
         let (k, v) = pair
             .split_once('=')
-            .ok_or_else(|| Error::Encrypt(format!("bad otpauth query pair '{pair}'")))?;
+            .ok_or_else(|| Error::Encrypt("bad otpauth query pair".into()))?;
         match k {
             "secret" => secret_b32 = Some(v),
             "period" => {
                 period = v
                     .parse()
-                    .map_err(|_| Error::Encrypt(format!("bad otpauth period '{v}'")))?
+                    .map_err(|_| Error::Encrypt("bad otpauth period".into()))?
             }
             "digits" => {
                 digits = v
                     .parse()
-                    .map_err(|_| Error::Encrypt(format!("bad otpauth digits '{v}'")))?
+                    .map_err(|_| Error::Encrypt("bad otpauth digits".into()))?
             }
             "algorithm" => {
-                algorithm = match v.to_uppercase().as_str() {
-                    "SHA1" | "SHA" => TotpAlgorithm::Sha1,
-                    "SHA256" => TotpAlgorithm::Sha256,
-                    "SHA512" => TotpAlgorithm::Sha512,
-                    other => {
-                        return Err(Error::Encrypt(format!(
-                            "unsupported otpauth algorithm '{other}'"
-                        )))
-                    }
-                }
+                algorithm = if v.eq_ignore_ascii_case("SHA1") || v.eq_ignore_ascii_case("SHA") {
+                    TotpAlgorithm::Sha1
+                } else if v.eq_ignore_ascii_case("SHA256") {
+                    TotpAlgorithm::Sha256
+                } else if v.eq_ignore_ascii_case("SHA512") {
+                    TotpAlgorithm::Sha512
+                } else {
+                    return Err(Error::Encrypt("unsupported otpauth algorithm".into()));
+                };
             }
             // issuer, counter (HOTP), image, anything unknown: ignored.
             _ => {}
@@ -218,9 +234,9 @@ pub fn parse_otpauth_uri(uri: &str) -> Result<TotpParams> {
 
 /// Minimal percent-decoding for the query string (secrets are base32, but
 /// issuers love pasting URIs with an escaped '=' or label).
-fn percent_decode(s: &str) -> Result<String> {
+fn percent_decode(s: &str) -> Result<Zeroizing<String>> {
     let bytes = s.as_bytes();
-    let mut out = Vec::with_capacity(bytes.len());
+    let mut out = Zeroizing::new(Vec::with_capacity(bytes.len()));
     let mut i = 0;
     while i < bytes.len() {
         match bytes[i] {
@@ -241,7 +257,13 @@ fn percent_decode(s: &str) -> Result<String> {
             }
         }
     }
-    String::from_utf8(out).map_err(|_| Error::Encrypt("percent-decoded value is not UTF-8".into()))
+    match String::from_utf8(std::mem::take(&mut *out)) {
+        Ok(value) => Ok(Zeroizing::new(value)),
+        Err(error) => {
+            error.into_bytes().zeroize();
+            Err(Error::Encrypt("percent-decoded value is not UTF-8".into()))
+        }
+    }
 }
 
 #[cfg(test)]
@@ -376,5 +398,24 @@ mod tests {
         let ok =
             parse_otpauth_uri("otpauth://totp/issuer%3Aalice?secret=GEZDGNBVGY3TQOJQ").unwrap();
         assert_eq!(ok.secret.len(), 10);
+    }
+
+    #[test]
+    fn malformed_uri_errors_do_not_echo_supplied_values() {
+        let marker = "SENSITIVE_QUERY_VALUE";
+        for query in [
+            marker.to_owned(),
+            format!("period={marker}"),
+            format!("digits={marker}"),
+            format!("algorithm={marker}"),
+            format!("secret={marker}"),
+            format!("secret=GEZDGNBVGY3TQOJQ{marker}%"),
+            "secret=GEZDGNBVGY3TQOJQ%FF".to_owned(),
+        ] {
+            let uri = format!("otpauth://totp/account?{query}");
+            let error = parse_otpauth_uri(&uri).unwrap_err().to_string();
+            assert!(!error.contains(marker), "{error}");
+            assert!(!error.contains(&uri), "{error}");
+        }
     }
 }

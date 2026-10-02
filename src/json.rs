@@ -11,11 +11,13 @@
 //! ("unrecognized top-level keys = ignored, forward-compat").
 
 use crate::crypto::error::{Error, Result};
-use zeroize::Zeroize;
+use std::fmt;
+use zeroize::{Zeroize, Zeroizing};
 
 /// Parsed JSON value. Numbers are kept as f64 — the schema's numbers are
 /// item ids, unix timestamps, and TOTP parameters, all far below 2^53.
-#[derive(Debug, Clone, PartialEq, Zeroize)]
+#[derive(Clone, PartialEq, Zeroize)]
+#[zeroize(drop)]
 pub enum Json {
     Null,
     Bool(bool),
@@ -23,6 +25,12 @@ pub enum Json {
     Str(String),
     Arr(Vec<Json>),
     Obj(Vec<(String, Json)>),
+}
+
+impl fmt::Debug for Json {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("Json(<redacted>)")
+    }
 }
 
 impl Json {
@@ -135,11 +143,11 @@ impl<'a> Parser<'a> {
 
     fn object(&mut self) -> Result<Json> {
         self.pos += 1; // '{'
-        let mut fields = Vec::new();
+        let mut fields = Zeroizing::new(Vec::<(String, Json)>::new());
         self.skip_ws();
         if self.peek() == Some(b'}') {
             self.pos += 1;
-            return Ok(Json::Obj(fields));
+            return Ok(Json::Obj(std::mem::take(&mut *fields)));
         }
         loop {
             if fields.len() >= MAX_COLLECTION_LEN {
@@ -149,7 +157,7 @@ impl<'a> Parser<'a> {
             if self.peek() != Some(b'"') {
                 return Err(self.err("expected object key"));
             }
-            let key = self.string()?;
+            let mut key = Zeroizing::new(self.string()?);
             self.skip_ws();
             if self.peek() != Some(b':') {
                 return Err(self.err("expected ':'"));
@@ -158,9 +166,9 @@ impl<'a> Parser<'a> {
             self.skip_ws();
             let value = self.value()?;
             // Last-wins on duplicate keys (matches serde_json's default).
-            match fields.iter_mut().find(|(k, _)| *k == key) {
+            match fields.iter_mut().find(|(k, _)| k == &*key) {
                 Some(slot) => slot.1 = value,
-                None => fields.push((key, value)),
+                None => fields.push((std::mem::take(&mut *key), value)),
             }
             self.skip_ws();
             match self.peek() {
@@ -169,7 +177,7 @@ impl<'a> Parser<'a> {
                 }
                 Some(b'}') => {
                     self.pos += 1;
-                    return Ok(Json::Obj(fields));
+                    return Ok(Json::Obj(std::mem::take(&mut *fields)));
                 }
                 _ => return Err(self.err("expected ',' or '}'")),
             }
@@ -178,11 +186,11 @@ impl<'a> Parser<'a> {
 
     fn array(&mut self) -> Result<Json> {
         self.pos += 1; // '['
-        let mut items = Vec::new();
+        let mut items = Zeroizing::new(Vec::new());
         self.skip_ws();
         if self.peek() == Some(b']') {
             self.pos += 1;
-            return Ok(Json::Arr(items));
+            return Ok(Json::Arr(std::mem::take(&mut *items)));
         }
         loop {
             if items.len() >= MAX_COLLECTION_LEN {
@@ -197,7 +205,7 @@ impl<'a> Parser<'a> {
                 }
                 Some(b']') => {
                     self.pos += 1;
-                    return Ok(Json::Arr(items));
+                    return Ok(Json::Arr(std::mem::take(&mut *items)));
                 }
                 _ => return Err(self.err("expected ',' or ']'")),
             }
@@ -206,12 +214,12 @@ impl<'a> Parser<'a> {
 
     fn string(&mut self) -> Result<String> {
         self.pos += 1; // opening quote
-        let mut out = String::new();
+        let mut out = Zeroizing::new(String::new());
         loop {
             let c = self.peek().ok_or_else(|| self.err("unterminated string"))?;
             self.pos += 1;
             match c {
-                b'"' => return Ok(out),
+                b'"' => return Ok(std::mem::take(&mut *out)),
                 b'\\' => {
                     let esc = self.peek().ok_or_else(|| self.err("bad escape"))?;
                     self.pos += 1;
@@ -357,7 +365,7 @@ mod tests {
         let v = j(r#"{"a": [1, 2, {"b": null}], "c": "x"}"#);
         assert_eq!(v.get("c").unwrap().as_str().unwrap(), "x");
         let a = match v.get("a").unwrap() {
-            Json::Arr(items) => items.clone(),
+            Json::Arr(items) => items,
             _ => panic!("expected array"),
         };
         assert_eq!(a.len(), 3);
@@ -440,5 +448,22 @@ mod tests {
             doc.get("items").unwrap().get("2").unwrap().get("totp"),
             Some(Json::Null)
         ));
+    }
+
+    #[test]
+    fn secret_diagnostics_are_redacted() {
+        let doc = j(r#"{"password":"do-not-log-this","nested":[{"secret":"private"}]}"#);
+        let debug = format!("{doc:?}");
+        assert!(!debug.contains("do-not-log-this"));
+        assert!(!debug.contains("private"));
+        assert_eq!(
+            doc.get("password").unwrap().as_str(),
+            Some("do-not-log-this")
+        );
+        let error = parse(r#"{"password":"do-not-log-this","broken":"private\q"}"#)
+            .unwrap_err()
+            .to_string();
+        assert!(!error.contains("do-not-log-this"));
+        assert!(!error.contains("private"));
     }
 }

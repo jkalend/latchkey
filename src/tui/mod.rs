@@ -565,11 +565,11 @@ fn handle_form_key(app: &mut App, k: KeyEvent) {
             match GenerateSpec::default().generate() {
                 Ok(generated) => {
                     if let Some(form) = app.form.as_mut() {
-                        form.password = generated.value;
-                        app.status = format!(
-                            "generated password (~{} bits)",
-                            generated.entropy_bits as u64
-                        );
+                        let entropy = generated.entropy_bits;
+                        let mut value = generated.into_value();
+                        form.password.zeroize();
+                        form.password = std::mem::take(&mut *value);
+                        app.status = format!("generated password (~{} bits)", entropy as u64);
                     }
                 }
                 Err(error) => app.status = format!("generate: {error}"),

@@ -1,7 +1,7 @@
 # Vault File Format
 
-**Status:** Public-preview implementation (`latchkey` 0.2.0)
-**Covers:** Format version 1 (`LKv1`)
+**Status:** Public-preview implementation (`latchkey` 0.3.0)
+**Covers:** Format version 2 (`LKv` magic + binary version byte `0x02`)
 **Companion specs:** [CRYPTO_SPEC.md](CRYPTO_SPEC.md), [THREAT_MODEL.md](THREAT_MODEL.md)
 
 > This is a byte-level specification. The success criterion: an
@@ -28,7 +28,7 @@
 
 ```
 ┌───────────────────────────┐  offset 0
-│  Magic + version ("LKv1") │  4-byte parser selector
+│  Magic + version ("LKv")  │  3-byte magic + binary version 0x02
 ├───────────────────────────┤
 │  Fixed header             │  crypto parameters + wrapped DEK, 117 total
 ├───────────────────────────┤
@@ -36,30 +36,30 @@
 ├───────────────────────────┤
 │  Items (encrypted)        │  N independent AEAD ciphertexts
 ├───────────────────────────┤
-│  Trailer                  │  u32 slot count + u32 CRC32C
+│  Trailer                  │  u32 slot count + u32 CRC32C + 32-byte file MAC
 └───────────────────────────┘
 ```
 
-Readers refuse vault files larger than 64 MiB before parsing. v1 targets
-hundreds of credentials; this bound prevents a corrupt or hostile file
-from causing unbounded allocation.
+Readers and writers enforce the same **64 MiB total-file limit**, including the
+header, index, all frames, and 40-byte trailer. Writers preflight the candidate
+size before encryption and refuse oversize replacements; the previous vault
+remains usable. This bound prevents corrupt or hostile files causing unbounded
+allocation.
 
 ## 3. Magic and version
 
 ```
 Offset  Length  Value
 0       3       "LKv"                    (0x4C 0x4B 0x76)
-3       1       version byte, 0x01
+3       1       version byte, 0x02
 ```
 
 - A wrong magic is a clean "not a vault" error.
-- The version byte selects the parser. Readers must reject versions they
-  don't know with a specific, actionable error ("vault is version N, this
-  build supports 1").
-- Magic, version, and `future_pad` are outside the wrapped-DEK AAD.
-  Magic/version select the parser; unknown values are rejected.
-  `future_pad` must be all zero, so unauthenticated extensions are never
-  silently accepted.
+- Normal readers accept only version 2. Version 1 is never opened or upgraded
+  implicitly; use `latchkey --vault OLD migrate --out NEW` (§9).
+- Magic and version select the parser; unknown values are rejected.
+- Magic, version, and `future_pad` are outside the wrapped-DEK AAD but are
+  covered by the whole-file MAC (§7). `future_pad` must still be all zero.
 
 ## 4. Header
 
@@ -76,7 +76,7 @@ Offset  Length  Field
 4       1       kdf_id       (0x01 = Argon2id)
 5       1       wrap_alg_id  (0x01 = AES-256-GCM, 0x02 = ChaCha20-Poly1305)
 6       1       item_alg_id  (same encoding as wrap_alg_id)
-7       3       reserved     (byte 0 = 0xA5 for v2 item framing; zero means legacy framing)
+7       3       reserved     (writers set [0xA5, 0, 0]; v2 always uses separate tags)
 10      4       argon2_m     (MiB, u32; must be ≥ 8)
 14      4       argon2_t     (iterations, u32; must be ≥ 1)
 18      1       argon2_p     (lanes, u8; must be ≥ 1)
@@ -85,7 +85,7 @@ Offset  Length  Field
 39      12      wrap_nonce   (96-bit random nonce for KEK-wrapped DEK)
 51      32      wrapped_dk   (DEK ciphertext — 32-byte DEK)
 83      16      wrap_tag     (AEAD tag over the wrapped-DEK record)
-99      18      future_pad   (zero; reserved for v1.x fields without a bump)
+99      18      future_pad   (zero; extensions require a version bump)
 ```
 
 `wrapped_dk` holds the 32-byte DEK ciphertext; `wrap_tag` is the separate
@@ -101,11 +101,14 @@ authenticated subset.
   Argon2 runs (CRYPTO_SPEC §3).
 - `kdf_salt` — 128-bit, CSPRNG, generated at `init`, never reused across
   vaults.
-- `enc_counter` — incremented on every item encryption under the current
-  DEK. When it reaches 2^24, writers must refuse and instruct the user to
-  run `rotate` (CRYPTO_SPEC §5 backstop).
-- `wrap_nonce` — 96-bit nonce for the KEK-wrapped DEK. Legacy v1 writers
-  zeroed this field; v2 writers generate it randomly.
+- `enc_counter` — counts **every index and item AEAD encryption under the DEK**.
+  Creation starts at 1 (the initial empty index). Every save consumes 1 for the
+  index, plus 1 for each rewritten live or tombstone frame; copied frames and
+  KEK wraps do not consume DEK encryptions. A candidate reaching exactly 2^24
+  is permitted; any candidate exceeding it is refused before encryption.
+  Rotation resets the counter to the encryptions performed under the fresh DEK,
+  not to zero after writing.
+- `wrap_nonce` — fresh random 96-bit nonce on every wrapped-DEK encryption.
 - `wrap_alg_id` / `item_alg_id` — wrap algorithm for the DEK record, and
   the algorithm all items are encrypted with. Independent choices,
   recorded separately (CRYPTO_SPEC §4).
@@ -119,9 +122,8 @@ normative:
 
 - Flipping any KDF parameter, algorithm ID, salt, counter, or wrap nonce
   causes wrapped-DEK authentication to fail.
-- The wrapped DEK is authenticated as AEAD ciphertext. The zero-only
-  `future_pad` policy covers the remaining reserved bytes without
-  claiming they are AEAD-authenticated.
+- The wrapped DEK is authenticated as AEAD ciphertext. The whole-file HMAC
+  additionally authenticates all 117 header bytes, including `future_pad`.
 
 ## 5. Index
 
@@ -169,6 +171,7 @@ uniqueness.
 
 The items region is a slot count followed by fixed-structure slots.
 Slot addressing comes from the index (§5); the region itself is:
+```
 
 u32                        slot_count
 repeated slot_count:
@@ -178,9 +181,9 @@ repeated slot_count:
   16       tag             (separate AEAD tag)
 ```
 
-The v2 framing keeps the tag separate from the ciphertext length. Readers accept
-legacy v1 frames whose `ct_len` included the tag, then migrate them on the next
-write.
+All v2 item frames use separate tags, irrespective of reserved marker bytes.
+Legacy combined-tag and separate-tag v1 frames are read only during explicit
+migration (§9), never during normal open or save.
 
 ### 6.2 ItemRecord (plaintext schema)
 
@@ -223,24 +226,45 @@ appears in the item plaintext.
 ### 6.3 Slot stability
 
 Deletes retain tombstone slots and encrypted placeholder frames. There is no
-automatic compaction in v1; rotation rewrites every slot atomically while
-preserving the tombstone records and monotonic item IDs.
+automatic compaction; rotation rewrites every slot atomically while preserving
+states, metadata, and monotonic IDs. Explicit migration preserves the complete
+legacy records, including any record retained in a tombstone frame.
 
-## 7. Trailer
+## 7. Trailer and full-state authentication
+
+The trailer is exactly **40 bytes**, in this order:
 
 ```
-u32    slot_count      (redundant with §6 but a cheap consistency check)
-u32    crc32c          (over the whole preceding file)
+u32    slot_count      (redundant with §6)
+u32    crc32c          (CRC32C of every byte BEFORE this 40-byte trailer)
+32     file_mac       (HMAC-SHA256 of every preceding byte, including count and CRC)
 ```
 
-- The CRC is **not** a security mechanism — authentication comes from AEAD
-  tags. It exists to distinguish "torn write / sync-in-progress" (CRC bad)
-  from "deliberate tampering" (AEAD tag fails on a CRC-valid file) in
-  error reporting *without* revealing which AEAD check failed
-  (CRYPTO_SPEC §7: the user-facing error stays generic either way).
-- A mismatched trailer is reported as "vault file appears incomplete or
-  still syncing" — the realistic cause under the bring-your-own-sync
-  policy (THREAT_MODEL §5.5).
+For total file length `L`: trailer count is `[L-40, L-36)`, CRC is `[L-36, L-32)`,
+and MAC is `[L-32, L)`. Derive the MAC key as:
+
+```
+HKDF-SHA256(
+    IKM  = 32-byte DEK,
+    salt = absent (RFC 5869: 32 zero bytes),
+    info = ASCII "latchkey/v2/file-mac" (19 bytes, no terminator),
+    L    = 32 bytes
+)
+```
+
+HMAC input is exactly `file[0..L-32]`; no additional prefix or encoding.
+Verification uses a constant-time tag comparison **before index decryption**.
+The MAC authenticates the entire committed header, encrypted index, item
+frames (including nonces/lengths/tags), counts, and CRC. AEAD remains an
+independent per-record check; CRC is only a consistency check, not security.
+After open, lazy reads (even cached-item requests), `check`, and saves
+reauthenticate the disk snapshot and require the same full MAC commit identity
+last read/written by that session. CRC alone is never a staleness identity.
+Selective replay of an old valid frame or index into a newer commit therefore
+fails, even if the attacker repairs the CRC.
+
+Replacing the **entire** file with an old authenticated version cannot be
+detected by a freshly opened session without externally trusted state.
 
 ## 8. Write protocol (normative)
 
@@ -258,21 +282,32 @@ u32    crc32c          (over the whole preceding file)
   can bypass the lock; this is accepted (THREAT_MODEL §5.5, last-write-wins).
 - **Sync-safety:** because rename is atomic, a sync tool observes either
   the complete old file or the complete new file — never a hybrid.
+- Creation and migration publish a complete synced temporary file via a
+  same-filesystem hard link that atomically refuses an existing target,
+  including a dangling symlink; no check-then-overwrite race is accepted.
+- Before replacement, authenticate the current disk snapshot and require the
+  session's complete MAC commit identity, not merely a valid CRC. Validate the
+  total candidate size and DEK encryption cap before writing.
 
-## 9. Open items
+## 9. Explicit legacy migration
 
-1. ~~Header length-prefix encoding~~ — **resolved:** fixed-size 117-byte
-   header (§4.1).
-2. ~~Per-slot stored nonce framing~~ — **resolved:** v2 separates the
-   ciphertext length from the 16-byte AEAD tag; readers migrate legacy
-   inline-tag frames (§6.1).
-3. Should the index be split per-page for large vaults? v1 says no —
-   hundreds of items in one AEAD ciphertext is fine; revisit above ~10k.
-4. Keyfile support (a second factor file)? Deferred post-v1; the header's
-   `kdf_id` byte space has room for a KDF-with-keyfile variant.
-5. ~~TOTP support~~ — **resolved:** in v1 (§6.2 ItemRecord `totp` field).
-   The optional-presence-tag framing means pre-TOTP readers see the field
-   as absent only if the byte is 0x00 — since v1 defines the field, all
-   v1 writers understand it; older *pre-release* dev vaults from before
-   the field existed are not a compatibility concern (no releases
-   shipped).
+`Vault::migrate(source, target, password)` and
+`latchkey --vault OLD migrate --out NEW` read only format 1, write format 2,
+and leave all source bytes untouched. The master password is prompted without
+echo, or read with `--from-stdin`; it is never a command-line argument.
+The target must not exist. Its write lock is held throughout migration, and
+the final publication atomically refuses replacement even if an external
+process creates the target after the initial existence check.
+
+Migration verifies the legacy wrapped DEK, index AEAD, CRC, framing, and
+**every live and tombstone item AEAD/embedded ID**. It preserves item IDs,
+states, metadata, and complete records; future allocation remains one above
+the highest ID including tombstones. It generates a fresh salt, KEK, DEK,
+wrap/index/item nonces, and uses the current default KDF policy. Both historical
+v1 frame layouts (combined tag, or reserved marker 0xA5 with separate tag) are
+supported only here.
+
+Legacy v1 did not bind the whole committed state. Migration cannot
+retroactively detect historical same-DEK index or item splicing whose individual
+AEAD tags remain valid. Verify the trusted source before migration. Format 2
+prevents subsequent selective substitution, but not full-file rollback (§7).

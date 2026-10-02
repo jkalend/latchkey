@@ -1,18 +1,17 @@
 # Fuzz targets
 
-cargo-fuzz targets for the parsing surface — the code that touches
-untrusted file bytes before any authentication happens (a corrupted
-vault, a USB-stick swap, or a sync conflict is the realistic threat)
-and the import adapters that parse attacker-chosen export files
-(native JSON, Bitwarden, KeePassXC) end-to-end before the vault is
-mutated.
+cargo-fuzz targets for structural vault parsing and untrusted import files
+(native JSON, Bitwarden, KeePassXC). Header/frame inputs are raw file bytes;
+the plaintext index/item parsers are exercised directly with synthetic buffers.
+Normal format-2 vault opens authenticate the complete file before decrypting
+and parsing its index.
 
 | Target | What it covers |
 |---|---|
-| `parse_header` | 117-byte header: magic, version, KDF/algorithm id decoders |
+| `parse_header` | 117-byte format-2 header: magic, version, KDF/algorithm id decoders |
 | `parse_index` | decrypted index payload: entry count + string length caps |
 | `parse_item` | ItemRecord parser + serialize↔parse round-trip invariant |
-| `split_item_frames` | on-disk frame walker (nonce ‖ ct_len ‖ ct+tag) |
+| `split_item_frames` | format-2 on-disk frame walker (nonce ‖ ct_len ‖ ct ‖ tag), counts, and 40-byte trailer bounds |
 | `otpauth_uri` | `otpauth://` parsing: query split, percent-decoding, then TOTP computation |
 | `import_native_json` | hand-rolled JSON grammar + native schema-1 interpretation |
 | `import_bitwarden` | Bitwarden JSON adapter: type dispatch, field extraction, TOTP URIs |
@@ -32,6 +31,26 @@ cargo +nightly fuzz run <target> -- -max_total_time=60
 
 Crash artifacts land in `fuzz/artifacts/<target>/`. `fuzz/corpus/` holds
 seed inputs; it is committed so runs start warm.
+
+## After the format-2 cutover
+
+Previous format-1 campaigns do not establish coverage of the current code.
+Run a fresh sanitizer-enabled campaign before publishing 0.3.0:
+
+- Seed `parse_header` with the first 117 bytes of the current
+  `test-vectors/vault-golden.bin`, and `split_item_frames` with the complete
+  golden file. Legacy vault-only seeds now fail normal version selection early.
+- Keep existing valid plaintext index/item, JSON/CSV, and otpauth seeds; refresh
+  boundary cases for lengths/counts, truncation, malformed text, and nesting.
+- Retain `test-vectors/vault-legacy-v1.bin` for migration verification rather
+  than treating it as a normally openable vault.
+- The eight targets do not exercise full-file MAC verification or legacy
+  migration end-to-end. Historical index/frame substitution and migration
+  preservation currently have deterministic regression coverage; a dedicated
+  authenticated-vault/migration harness is additional work, not implied by
+  parser fuzzing.
+- Compilation of the targets is not a fuzz campaign or a coverage result.
+
 
 ## Found so far
 

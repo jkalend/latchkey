@@ -1,40 +1,40 @@
-# Next Release Proposal: latchkey 0.2.0
+# Next Release: latchkey 0.3.0
 
-**Status:** Implemented; tag pending release-gate verification
+**Status:** Local security verification complete; publication gates remain separate
 **Date:** 2026-09-12
-**Target:** First public preview
-**Package version:** `0.2.0`
-**Vault format:** version 1 (`LKv1`), unchanged
+**Target:** Security-focused public preview following 0.2.0
+**Package version:** `0.3.0`
+**Vault format:** version 2 (`LKv` magic + binary version `0x02`), explicit legacy migration required
 **Export schema:** version 1, unchanged
 
 ## 1. Decision
 
-The next release should be **latchkey 0.2.0**, not 1.5 or 2.0.
+The next release is **latchkey 0.3.0**. It replaces format 1 with authenticated
+format 2 and requires explicit migration instead of silent compatibility.
+The incompatible file-format change warrants a new pre-1.0 minor version,
+not a patch to the existing `v0.2.0` tag.
 
-The crate now carries `0.2.0`, the first public-preview version. A 1.5 or 2.0
-tag would imply a release history and compatibility record that does not
-exist. Version 0.2.0 honestly communicates a usable preview while leaving room
-to adjust the command interface before 1.0.
-
-Create the `v0.2.0` tag only after every release criterion in §8 passes.
+Create the local `v0.3.0` tag after local security verification. Publication
+additionally requires the platform/artifact release criteria in §8; a local
+tag does not establish that those CI jobs have run.
 
 Three version numbers are independent:
 
 - **Package version** follows SemVer and describes the application release.
-- **Vault format version** selects the on-disk parser. latchkey 0.2.0 continues to
-  read and write format 1.
+- **Vault format version** selects the on-disk parser. Normal commands read
+  and write format 2; format 1 is accepted only by explicit migration.
 - **Export schema version** selects the portable plaintext import/export
-  schema. latchkey 0.2.0 continues to use schema 1.
+  schema. latchkey 0.3.0 continues to use schema 1.
 
-Once 0.2.0 ships, every later release must continue reading vaults and native
-exports created by 0.2.0. A future writer-format change requires an explicit
-migration, a pre-migration encrypted backup, and a separately specified format
-version. Package-version changes alone must never rewrite a vault.
+Legacy format-1 vaults are migrated with `--vault OLD migrate --out NEW`.
+The source remains untouched as an encrypted backup, and an existing destination
+is never overwritten. Native export schema 1 remains supported.
+Package-version changes alone never rewrite a vault.
 
 ## 2. Release outcome
 
-0.2.0 turns the current security-focused implementation into a complete
-offline daily-driver preview:
+0.3.0 retains the offline CLI/TUI capabilities shipped in 0.2.0 and applies
+the security remediations below:
 
 1. CLI and TUI use one application-operations module for mutations.
 2. The TUI can add, edit, and delete credentials instead of acting as a
@@ -49,7 +49,7 @@ daemon, browser integration, or built-in sync.
 
 ## 3. Non-negotiable constraints
 
-All 0.2.0 work must preserve these existing decisions:
+All 0.3.0 work must preserve these existing decisions:
 
 - No network capability in the shipped binary (ADR-0005).
 - No secrets in command arguments, logs, panic messages, or debug formatting.
@@ -64,6 +64,29 @@ All 0.2.0 work must preserve these existing decisions:
 - Clipboard restore and timeout behavior remain governed by ADR-0003.
 - Existing 64 MiB file limits, 10,000-item import limit, parser-depth limit,
   KDF resource ceilings, and field-size limits remain enforced.
+
+### Security remediation before release
+
+- Format 2 derives a domain-separated file key with HKDF-SHA256 and authenticates
+  the complete committed file with HMAC-SHA256 before exposing its index.
+  Historical index/frame substitutions fail even after CRC repair; full-file
+  rollback still requires externally trusted state to detect.
+- Lazy reads, checks, and writes require the session's full authenticated commit
+  identity. Oversized candidates are rejected before replacement, preserving the
+  existing usable vault. Index writes are included in the DEK encryption counter.
+- TUI quit/error paths cancel and join clipboard cleanup after restoring the
+  terminal and dropping secrets. Native Windows restoration checks window
+  ownership under the clipboard lock before destroying the render window.
+- Terminal metadata, paths, and diagnostics escape control/bidi characters
+  without changing stored data or deliberate secret output.
+- Controlled plaintext buffers and the Argon2 workspace have wiping owners;
+  validation no longer serializes secret copies. Supported AES/AEAD wiping
+  features are enabled. Upstream platform state and OS memory artifacts remain
+  explicit residual risks, not an erasure guarantee.
+- Regression coverage includes historical ciphertext substitution, write/counter
+  limits, legacy migration/source preservation, terminal injection, clipboard
+  cancellation/restoration, and user replacement preservation.
+
 
 ## 4. Scope
 
@@ -221,14 +244,14 @@ live count, tombstone count, and success without rendering credential data.
   release binary.
 - Windows and Linux packaged binaries complete the artifact smoke scenario,
   not merely `cargo build`.
-- The binary reports `latchkey 0.2.0`; the tag is `v0.2.0`; `Cargo.toml` and
+- The binary reports `latchkey 0.3.0`; the tag is `v0.3.0`; `Cargo.toml` and
   archive names agree.
 - CI still proves the ADR-0005 dependency and socket bans.
 
-## 5. Explicit non-goals for 0.2.0
+## 5. Explicit non-goals for 0.3.0
 
-- Vault format 2, new encrypted fields, custom fields, tags, folders, file
-  attachments, passkeys, or SSH keys.
+- New encrypted fields, custom fields, tags, folders, file attachments,
+  passkeys, or SSH keys.
 - Keyfiles or hardware-backed second factors for vault unlock.
 - A resident unlock agent, daemon, background clipboard process, or OS-keychain
   integration.
@@ -277,7 +300,7 @@ vault writer or an alternate validation path.
 
 ## 8. Release criteria
 
-Tag `v0.2.0` only when all of these are true:
+Publish `v0.3.0` only when all of these are true:
 
 - CLI and TUI exercise the shared operations interface for every mutation.
 - Real TUI smoke runs demonstrate add, edit, delete, lock, unlock, copy, and
@@ -289,6 +312,9 @@ Tag `v0.2.0` only when all of these are true:
 - `cargo fmt --check`, clippy with warnings denied, all tests, locked release
   builds, `cargo audit`, `cargo deny`, network-ban checks, and the independent
   vault-format cross-check pass.
+- A fresh sanitizer-enabled fuzz campaign covers the changed format-2 parsing,
+  import, and TOTP surfaces with current seeds; historical format-1 campaign
+  totals are not carried forward as evidence for the new code.
 - Packaged Windows and Linux artifacts pass their post-package smoke scenario.
 - README, CLI reference, TUI guide, threat model, development guide, and
   release notes match shipped behavior.
@@ -296,7 +322,7 @@ Tag `v0.2.0` only when all of these are true:
 
 ## 9. Path to 1.0
 
-0.2.0 is evidence gathering, not a disguised stable release. The 1.0 gate is:
+0.3.0 is evidence gathering, not a disguised stable release. The 1.0 gate is:
 
 1. At least one public preview has exercised vault compatibility and upgrade
    behavior outside the development machine.

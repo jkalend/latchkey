@@ -1,6 +1,6 @@
 # CLI Reference
 
-**Status:** Public preview (`latchkey` 0.2.0)
+**Status:** Public preview (`latchkey` 0.3.0)
 **Binary name:** `latchkey`
 
 ---
@@ -17,6 +17,21 @@
 variable. For `init`, provide the new master password twice. Other vault
 commands consume one line. The TUI rejects this flag because it is interactive.
 Treat the producing pipe or input file as secret material.
+
+Normal vault commands accept only the authenticated v2 file format. To retain
+an existing v1 vault, explicitly migrate it to a separate file:
+`latchkey --vault OLD migrate --out NEW`. There is no automatic migration or
+fallback to the legacy reader.
+
+### Terminal-safe metadata
+
+Titles, usernames, URLs shown in prompts, paths, and error text are escaped
+when displayed in a terminal. C0 controls (including ESC), DEL/C1 controls,
+and Unicode bidirectional formatting/override/isolate controls appear as
+visible `\xNN` or `\u{NNNN}` escapes; newline, carriage return, and tab appear
+as `\n`, `\r`, and `\t`. Ordinary Unicode remains readable. Imported and stored
+values are unchanged. Deliberate secret reveals and JSON exports remain
+byte-exact and are not terminal-sanitized.
 
 ### Warning policy
 
@@ -49,7 +64,8 @@ copy-history warnings every time; errors must still reach a human.
 | `latchkey generate` | Generate a password (ADR-0006 presets) |
 | `latchkey edit <title>` | Change username/password/notes (fuzzy-selects on collision) |
 | `latchkey rm <title>` | Delete an item; `--purge` skips confirmation (fuzzy-selects on collision) |
-| `latchkey rotate` | Raise KDF params to current policy; rotate DEK if `enc_counter` near cap |
+| `latchkey rotate` | Raise KDF params to current policy and rotate DEK; the counter includes index and item encryptions |
+| `latchkey --vault OLD migrate --out NEW` | Explicitly migrate a legacy v1 vault to a separate v2 file |
 | `latchkey backup` | Atomic copy of the vault file for safekeeping |
 | `latchkey check` | Authenticate every record without modifying the vault |
 | `latchkey export` | Plaintext export; requires `--format json` + explicit `--yes-i-mean-it` |
@@ -219,6 +235,26 @@ copy-history warnings every time; errors must still reach a human.
   `enc_counter` handling per VAULT_FORMAT §5.
 - Can also change the master password (`--new-password` prompts).
 
+### `latchkey --vault OLD migrate --out NEW`
+
+- Reads only a legacy v1 source, directly through the migration API. Ordinary
+  commands reject v1 rather than silently accepting weaker authentication.
+- Prompts for the existing master password without echo; `--from-stdin`
+  consumes one line for controlled automation. The password is retained.
+- `--out` is required and must name a distinct new file. Existing files,
+  directories, and symlinks are refused, and the source bytes are never changed.
+- Verifies the legacy index and every live/tombstone record's AEAD before
+  writing. Preserves item IDs, states, metadata, and secrets; creates v2 with a
+  fresh salt, KEK, DEK, and nonces under the current KDF policy.
+- Warns that legacy v1 authentication **cannot retroactively detect historical
+  record/index splicing or prove freshness**. Migration protects future commits;
+  it cannot establish that a previously tampered source is historically correct.
+- The v2 whole-file authentication tag binds the header, index, frames, and
+  trailer together. Full-file rollback remains undetectable without external
+  trusted state.
+- After inspecting the new vault with `latchkey --vault NEW check`, use NEW as
+  your vault path. Keep OLD only as an encrypted legacy backup if needed.
+
 ### `latchkey backup [--out <file>]`
 
 - Copies the vault file to a backup path (or, when `--out` is omitted,
@@ -240,8 +276,9 @@ copy-history warnings every time; errors must still reach a human.
 
 ### `latchkey check`
 
-- Prompts for the master password and authenticates the wrapped DEK, encrypted
-  index, every live item, every tombstone frame, and the trailer CRC.
+- Prompts for the master password and authenticates the whole-file v2 commit,
+  wrapped DEK, encrypted index, every live item, every tombstone frame, and the
+  trailer CRC. Legacy v1 files require explicit `migrate` first.
 - Reports format version, algorithms, KDF parameters, and live/tombstone
   counts. It never prints titles, usernames, field lengths, or plaintext
   record data.
@@ -282,7 +319,7 @@ an authentication-specific condition.
 
 ## Configuration file
 
-A configuration file is explicitly out of scope for 0.2.0: the three
-environment variables above do not justify another precedence layer or
-persisted plaintext settings. Revisit only when real settings outgrow them
-([next-release proposal](NEXT_RELEASE.md#5-explicit-non-goals-for-020)).
+A configuration file remains out of scope for 0.3.0: the three environment
+variables above do not justify another precedence layer or persisted plaintext
+settings. Revisit only when real settings outgrow them
+([release non-goals](NEXT_RELEASE.md#5-explicit-non-goals-for-030)).

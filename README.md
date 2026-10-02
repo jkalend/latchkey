@@ -13,15 +13,16 @@ vault is a single encrypted file on your own disk.
 
 ## Project status
 
-The package is `0.2.0`, the first public-preview release candidate. The vault
-format and native export schema remain version 1; package, vault, and export
-versions are tracked independently.
+The package is `0.3.0`, a security-focused public preview. Vaults use format 2
+with full-file commit authentication; the native export schema remains version 1.
+Package, vault, and export versions are tracked independently.
 
 ## Features
 
 - 🔒 **Encrypted vault** — a single file, protected with Argon2id key
-  derivation and authenticated encryption (AES-256-GCM default,
-  ChaCha20-Poly1305 fallback).
+  derivation, authenticated encryption (AES-256-GCM default,
+  ChaCha20-Poly1305 fallback), and an HKDF-derived HMAC-SHA256 commit tag
+  that rejects selective historical record/index substitution.
 - 🖥️ **CLI and TUI** — scriptable commands and an interactive fuzzy-search
   interface over the same vault. Bare `latchkey` opens the TUI.
 - 📋 **Clipboard with auto-clear** — secrets copy to the clipboard and
@@ -68,6 +69,19 @@ $ # back up the encrypted vault (just a file copy — restore is copying it back
 $ latchkey backup --out /mnt/c/Backups/vault-backup.bin
 ```
 
+Existing format-1 vaults require explicit migration; normal opens refuse them.
+Write to a new path, verify it, and retain the original as an encrypted backup:
+
+```console
+$ latchkey --vault old-vault.bin migrate --out new-vault.bin
+$ latchkey --vault new-vault.bin check
+```
+
+Migration preserves IDs and credential data, authenticates every legacy frame,
+and generates fresh keys/nonces. It never changes the source or overwrites an
+existing destination. Legacy files cannot retrospectively prove that records
+were never spliced; complete rollback remains outside the file-only threat model.
+
 ## Command status
 
 | Command | Status |
@@ -85,6 +99,7 @@ $ latchkey backup --out /mnt/c/Backups/vault-backup.bin
 | `latchkey export` | ✅ implemented — `--format json --yes-i-mean-it --out <file>` |
 | `latchkey backup` | ✅ implemented — `--out` |
 | `latchkey check` | ✅ implemented — authenticates every vault record without writing |
+| `latchkey migrate` | ✅ implemented — explicit format-1 → format-2 conversion to a new `--out` path |
 | `latchkey tui` (or bare `latchkey`) | ✅ implemented — search, add/edit/delete, detail view, idle lock |
 | `latchkey import` | ✅ implemented — native JSON, Bitwarden JSON, KeePassXC CSV; preview + confirm |
 | `latchkey completions <shell>` | ✅ implemented — Bash, Zsh, Fish, PowerShell |
@@ -96,14 +111,14 @@ Full contract per command: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md).
 From crates.io (once the crate is published):
 
 ```console
-$ cargo install --locked latchkey --version 0.2.0
+$ cargo install --locked latchkey --version 0.3.0
 ```
 
 Or download the archive for your platform from the repository's GitHub
 Releases page:
 
-- Windows: `latchkey-v0.2.0-x86_64-pc-windows-msvc.zip`
-- Linux/WSL2: `latchkey-v0.2.0-x86_64-unknown-linux-gnu.tar.gz`
+- Windows: `latchkey-v0.3.0-x86_64-pc-windows-msvc.zip`
+- Linux/WSL2: `latchkey-v0.3.0-x86_64-unknown-linux-gnu.tar.gz`
 
 Download `SHA256SUMS` from the same release and verify the archive before
 unpacking (`sha256sum -c SHA256SUMS` on Linux/WSL2, or compare
@@ -126,8 +141,8 @@ $ cargo build --release
 
 | Platform | Notes |
 |---|---|
-| Windows | Works natively; clipboard uses Win32 delayed rendering (the secret is served on WM_RENDERFORMAT, so process death *before the first paste* clears it automatically). After the timeout the pre-copy clipboard is restored — only if the clipboard still holds our value (interim copies are left alone). Ctrl-C clears and exits. Warns if Windows Clipboard History is enabled, since it defeats auto-clear. |
-| Linux (WSL2) | Clipboard goes through PowerShell `Set-Clipboard` with the secret piped as UTF-16-in-base64 over stdin — Unicode-exact and never visible in process listings. Auto-clear restores prior text only if the clipboard still holds our value. Interrupting latchkey mid-hold leaves the clipboard set until the next copy; prefer a shorter `--timeout` if that concerns you. |
+| Windows | Works natively; clipboard uses Win32 delayed rendering (process death before the first paste cannot render the secret). Timeout and normal TUI quit restore previous text while our window still owns the clipboard, under the same lock; intervening copies, including identical text, are left alone. Ctrl-C completes cleanup before exit. Clipboard History defeats auto-clear and triggers a warning when detected. |
+| Linux (WSL2) | Clipboard goes through PowerShell `Set-Clipboard` with the secret piped as UTF-16-in-base64 over stdin — Unicode-exact and never visible in process listings. Auto-clear restores prior text only if the clipboard still holds our value. Normal TUI quit cancels and completes cleanup; abrupt process death during a hold can leave the secret until the next copy. |
 | Plain Linux | **Best-effort** — clipboard via `wl-copy` (Wayland) or `xclip`/`xsel` (X11), probed at runtime. Auto-clear overwrites the selection after the timeout, again only if it still holds our value. If latchkey dies before the timeout, the helper tool keeps serving the secret until the next copy — clearing requires latchkey to stay alive. Not a supported platform in the strict sense; X11/Wayland behavior is engineered but not release-tested. |
 | macOS | Out of scope for v1. |
 

@@ -1,6 +1,6 @@
 # Threat Model
 
-**Status:** Public-preview implementation (`latchkey` 0.2.0)
+**Status:** Public-preview implementation (`latchkey` 0.3.0)
 **Covers:** Current `main` branch
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
@@ -85,6 +85,9 @@ These are **not defended against**, stated plainly so nobody relies on them:
   the cost of that (strong KDF), we do not prevent it.
 - Malicious/compromised dependencies — mitigated only in the usual
   ecosystem sense (pinned, audited deps), not cryptographically.
+- Replacing the entire vault with an older authenticated copy. Format 2
+  detects selective record/index splicing, but a fresh process has no
+  externally trusted latest-commit state to detect complete rollback.
 
 ## 5. Threat inventory
 
@@ -115,10 +118,15 @@ These are **not defended against**, stated plainly so nobody relies on them:
   process argument (`clip.exe` was rejected: it decodes stdin through
   the OEM code page — ADR-0003 amendment 2).
 - **Mitigations:**
-  - Auto-clear timeout (default **30 s**, CLI-configurable). On expiry
-    the pre-copy clipboard content is restored — but **only if the
-    clipboard still holds our value** (content compare in every
-    backend); anything the user copied in the meantime is left alone.
+  - Auto-clear timeout (default **30 s**, CLI-configurable). Native Windows
+    checks the owner window and restores the pre-copy text under one
+    clipboard lock before destroying that window. WSL/Linux compare content.
+    An intervening user copy is left alone; native ownership also distinguishes
+    a replacement containing identical text.
+  - Ordinary TUI quit, Ctrl-C, and error returns cancel and join the owned
+    clipboard worker after dropping vault/form secrets and restoring the
+    terminal. Native cleanup waits while another application holds the
+    clipboard open; unexpected process death retains the residuals below.
   - **Native Windows: delayed rendering** (`SetClipboardData` with NULL)
     — the clipboard holds only a promise to render. Two consequences: the
     secret isn't a static clipboard value while the timer runs (a paste
@@ -160,6 +168,10 @@ These are **not defended against**, stated plainly so nobody relies on them:
 - **Mitigations:**
   - Zeroize key and plaintext buffers on drop where their owning types
     permit it; typed secret wrappers prevent accidental key formatting.
+  - Argon2's caller-owned workspace, AES key schedules, controlled plaintext
+    buffers, generated values, JSON values, and decoded TOTP text are wiped.
+    Supported dependency wiping features are enabled, but upstream
+    POLYVAL/GHASH platform state is not universally erased.
   - Normal lookup decrypts one item at a time. Export and DEK rotation
     intentionally materialize all live items for the duration of the
     operation.
@@ -193,18 +205,20 @@ These are **not defended against**, stated plainly so nobody relies on them:
 
 - **Threat:** crash mid-write, or two invocations writing concurrently
   (including a Windows-side process touching the file via `\\wsl$`).
-- **Mitigation:** write-to-temp + fsync + atomic rename. A sibling
-  `${vault}.lock` is acquired exclusively for the complete read/modify/write
-  cycle, preventing same-tool concurrent writes. Cross-boundary writers
-  (Windows-side processes editing via `\\wsl$`) can bypass it. AEAD tags make
-  silent corruption detectable — a torn write fails authentication rather than
-  yielding garbage plaintext. Additionally, `save` refuses to write when the
-  on-disk trailer CRC no longer matches what this session last read or
-  wrote — a long-lived session (e.g. the TUI) cannot silently clobber
-  another session's committed changes (multi-session lost-update guard).
-- **Residual:** the staleness guard covers same-tool sessions; writers that
-  bypass the lock entirely can still force last-write-wins (no merge) —
-  documented, single-user tool.
+- **Mitigation:** write-to-temp + fsync + atomic rename under a sibling
+  `${vault}.lock`. Format 2 verifies a whole-file HMAC-SHA256 before exposing
+  the decrypted index, binding all AEAD frames and metadata to one commit.
+  Lazy reads, full checks, and saves reauthenticate the snapshot and require
+  the session's full commit tag, not CRC alone. Selective historical index
+  or frame substitution is rejected even with a repaired CRC. Candidates
+  larger than 64 MiB or exceeding the DEK encryption cap are rejected
+  before replacement, retaining the existing usable vault.
+- **Migration:** legacy format 1 opens only through explicit migration to a
+  new path, with all legacy frames authenticated and source bytes retained.
+  Migration cannot retrospectively establish freshness of legacy records.
+- **Residual:** writers bypassing the lock can still replace the file.
+  A freshly opened session cannot distinguish an entire older authenticated
+  vault without external trusted state; see §4.
 
 ### 5.6 Accidental plaintext on disk
 
@@ -256,14 +270,14 @@ These are **not defended against**, stated plainly so nobody relies on them:
 | 5.2 | Clipboard persistence | 30 s auto-clear, history detection warning, stdin-based WSL copy | Clipboard History users |
 | 5.3 | Memory/swap/dumps | zeroization, redacted formatting, short unlock lifetime | Swap, hibernation, crash artifacts |
 | 5.4 | Metadata | Titles, usernames, timestamps, and secrets encrypted | Item count and ciphertext lengths |
-| 5.5 | Torn/stale writes | Atomic replace + fsync + write lock + stale-session guard | Lock-bypassing external writers |
+| 5.5 | Torn/stale/spliced writes | Atomic replace + fsync + lock + whole-file MAC + full commit identity + write limits | Complete rollback; lock-bypassing external writers |
 | 5.6 | Plaintext to disk | No secret logging; ciphertext-only temp files; restrictive permissions | Explicit plaintext exports |
 | 5.7 | CLI arg leakage | No secret arguments, ever | — |
 | 5.8 | Generator bias | OS CSPRNG + rejection sampling | — |
 
 ## 7. Deferred decisions
 
-- The unlock model remains per-process for 0.2.0. A resident agent or daemon
+- The unlock model remains per-process for 0.3.0. A resident agent or daemon
   would enlarge the memory-exposure and IPC attack surfaces.
 - Sync remains explicitly bring-your-own; the format is safe as an opaque file
   under naive sync (atomic writes, no partial states).

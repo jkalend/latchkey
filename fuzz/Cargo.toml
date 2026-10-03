@@ -9,7 +9,21 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-latchkey = { path = ".." }
+latchkey = { path = "..", features = ["fuzz-fast-kdf"] }
+
+[[bin]]
+name = "authenticated_vault"
+path = "fuzz_targets/authenticated_vault.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "migrate_legacy"
+path = "fuzz_targets/migrate_legacy.rs"
+test = false
+doc = false
+bench = false
 
 [[bin]]
 name = "parse_header"
@@ -45,6 +59,7 @@ path = "fuzz_targets/otpauth_uri.rs"
 test = false
 doc = false
 bench = false
+
 [[bin]]
 name = "import_native_json"
 path = "fuzz_targets/import_native_json.rs"

@@ -11,9 +11,11 @@ and parsing its index.
 | `parse_header` | 117-byte format-2 header: magic, version, KDF/algorithm id decoders |
 | `parse_index` | decrypted index payload: entry count + string length caps |
 | `parse_item` | ItemRecord parser + serialize↔parse round-trip invariant |
+| `authenticated_vault` | full `Vault::open` end-to-end: size/KDF-policy gates, MAC verify, index decrypt, frame walk, item decrypt |
+| `migrate_legacy` | full `Vault::migrate` end-to-end: both legacy layouts, source preservation, target coherence; runs under `fuzz-fast-kdf` |
 | `split_item_frames` | format-2 on-disk frame walker (nonce ‖ ct_len ‖ ct ‖ tag), counts, and 40-byte trailer bounds |
 | `otpauth_uri` | `otpauth://` parsing: query split, percent-decoding, then TOTP computation |
-| `import_native_json` | hand-rolled JSON grammar + native schema-1 interpretation |
+| `import_native_json` | serde_json-backed native schema-1 interpretation with bounded conversion |
 | `import_bitwarden` | Bitwarden JSON adapter: type dispatch, field extraction, TOTP URIs |
 | `import_keepassxc` | KeePassXC CSV adapter: quoting, record/field caps |
 

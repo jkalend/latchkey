@@ -50,3 +50,10 @@ windows = { version = "0.62", features = [
 ] }
 
 [dev-dependencies]
+
+[features]
+# Harness-only KDF floor: substitutes migration/creation default KDF
+# parameters (8 MiB, t=1) so fuzz targets can exercise the full
+# cryptographic path without the ~1 s production derivation per input.
+# Never enabled in production builds.
+fuzz-fast-kdf = []

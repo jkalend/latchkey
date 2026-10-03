@@ -1,8 +1,9 @@
 use argon2::{Algorithm as Argon2Algorithm, Argon2, Block, Params, Version as Argon2Version};
-use secrecy::{ExposeSecret, SecretBox};
+use secrecy::ExposeSecret;
 use zeroize::Zeroizing;
 
 use crate::crypto::error::{Error, Result};
+use crate::crypto::keys::Key32;
 
 pub const SALT_LEN: usize = 16;
 pub const KEK_LEN: usize = 32;
@@ -11,7 +12,7 @@ const MAX_ARGON2_T: u32 = 64;
 const MAX_ARGON2_P: u8 = 8;
 const MAX_ARGON2_WORK_MIB: u32 = 8192;
 
-pub type SecretVec = SecretBox<[u8]>;
+pub use crate::crypto::keys::SecretVec;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct KdfParams {
@@ -20,11 +21,11 @@ pub struct KdfParams {
     pub argon2_p: u8,
 }
 
-#[cfg(not(test))]
+#[cfg(not(any(test, feature = "fuzz-fast-kdf")))]
 fn default_argon2_m_mib() -> u32 {
     64
 }
-#[cfg(test)]
+#[cfg(any(test, feature = "fuzz-fast-kdf"))]
 fn default_argon2_m_mib() -> u32 {
     8
 }
@@ -34,8 +35,12 @@ fn default_argon2_m_mib() -> u32 {
 /// t=34 → 0.94 s, t=36 → 1.00 s, t=38 → 1.09 s. If hardware assumptions
 /// change, re-measure with `cargo run --release --example kdf_bench` and
 /// update both this constant and CRYPTO_SPEC §3 (DEVELOPMENT.md release
-/// checklist).
+/// checklist). The fuzz-fast-kdf variant keeps the same derivation path at
+/// floor cost for harness-only execution.
+#[cfg(not(any(test, feature = "fuzz-fast-kdf")))]
 const DEFAULT_ARGON2_T: u32 = 36;
+#[cfg(any(test, feature = "fuzz-fast-kdf"))]
+const DEFAULT_ARGON2_T: u32 = 1;
 
 impl Default for KdfParams {
     fn default() -> Self {
@@ -93,7 +98,7 @@ impl Kdf {
     pub fn new(params: KdfParams) -> Self {
         Self { params }
     }
-    pub fn derive(&self, password: &SecretVec, salt: &[u8; SALT_LEN]) -> Result<SecretVec> {
+    pub fn derive(&self, password: &SecretVec, salt: &[u8; SALT_LEN]) -> Result<Key32> {
         let kib = self
             .params
             .argon2_m_mib
@@ -109,11 +114,14 @@ impl Kdf {
 
         let mut memory = Zeroizing::new(vec![Block::default(); params.block_count()]);
         let argon2 = Argon2::new(Argon2Algorithm::Argon2id, Argon2Version::V0x13, params);
-        let mut out = Zeroizing::new(vec![0u8; KEK_LEN]);
+        // Derive directly into a guarded fixed-size output buffer.
+        let mut out = Zeroizing::new([0u8; KEK_LEN]);
         argon2
-            .hash_password_into_with_memory(password.expose_secret(), salt, &mut out, &mut *memory)
+            .hash_password_into_with_memory(password.expose_secret(), salt, &mut *out, &mut *memory)
             .map_err(|e| Error::Kdf(format!("hash failed: {e}")))?;
-        Ok(SecretVec::new(std::mem::take(&mut *out).into_boxed_slice()))
+        Ok(crate::crypto::keys::Key32::from_array(std::mem::take(
+            &mut *out,
+        )))
     }
 }
 
@@ -124,9 +132,9 @@ mod tests {
     #[test]
     fn roundtrip_deterministic() {
         let params = KdfParams::default();
-        let kdf = Kdf::new(params);
         let password = SecretVec::new(b"test-password".to_vec().into_boxed_slice());
         let salt = [0x42u8; SALT_LEN];
+        let kdf = Kdf::new(params);
 
         let kek1 = kdf.derive(&password, &salt).unwrap();
         let kek2 = kdf.derive(&password, &salt).unwrap();

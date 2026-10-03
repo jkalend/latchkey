@@ -28,6 +28,12 @@ pub struct WriteLock {
 
 pub fn acquire_write_lock(target: &Path) -> Result<WriteLock> {
     let path = lock_path(target);
+    #[cfg(unix)]
+    if let Ok(meta) = std::fs::symlink_metadata(&path) {
+        if meta.file_type().is_symlink() {
+            return Err(Error::Encrypt("lock file is a symbolic link".into()));
+        }
+    }
     let mut opts = OpenOptions::new();
     opts.write(true).create(true).truncate(false);
     #[cfg(unix)]
@@ -71,7 +77,7 @@ pub fn atomic_write_locked(target: &Path, data: &[u8]) -> Result<()> {
     if let Some(parent) = parent {
         fsync_dir(parent)?;
     }
-    fs::rename(&tmp, target).map_err(io_err("rename temp→target"))?;
+    rename_atomic(&tmp, target).map_err(io_err("rename temp→target"))?;
     if let Some(parent) = parent {
         fsync_dir(parent)?;
     }
@@ -84,7 +90,8 @@ pub(crate) fn atomic_create_locked(target: &Path, data: &[u8]) -> Result<()> {
     let mut nonce = [0u8; 12];
     getrandom::getrandom(&mut nonce).map_err(|e| Error::Rng(e.to_string()))?;
     let mut name = target.as_os_str().to_owned();
-    name.push(format!(".{:02x?}.latchkey-new", nonce));
+    let nonce_hex: String = nonce.iter().map(|b| format!("{b:02x}")).collect();
+    name.push(format!(".{nonce_hex}.latchkey-new"));
     let tmp = PathBuf::from(name);
     let mut opts = OpenOptions::new();
     opts.write(true).create_new(true);
@@ -140,6 +147,43 @@ fn is_dir_fsync_unsupported(e: &std::io::Error) -> bool {
         // EISDIR (21) / EACCES (13) / ERROR_INVALID_FUNCTION (1) on Windows.
         c == 21 || c == 13 || c == 1
     })
+}
+
+/// Rename `from` to `to`, with retry on transient Windows file lock contention.
+fn rename_atomic(from: &Path, to: &Path) -> std::io::Result<()> {
+    #[cfg(windows)]
+    {
+        // On Windows, rapid successive file replacement or background OS processes
+        // (antivirus scanners, search indexer) can transiently hold a handle to the
+        // target file, causing MoveFileExW to fail with ERROR_ACCESS_DENIED (5) or
+        // ERROR_SHARING_VIOLATION (32). A retry loop with backoff allows
+        // the handle to release cleanly.
+        let mut attempts = 0;
+        loop {
+            match fs::rename(from, to) {
+                Ok(()) => return Ok(()),
+                Err(err) if attempts < 30 && is_windows_transient_rename_err(&err) => {
+                    attempts += 1;
+                    std::thread::sleep(std::time::Duration::from_millis(10 * attempts.min(10)));
+                }
+                Err(err) => return Err(err),
+            }
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        fs::rename(from, to)
+    }
+}
+
+#[cfg(windows)]
+fn is_windows_transient_rename_err(e: &std::io::Error) -> bool {
+    // 5: ERROR_ACCESS_DENIED, 32: ERROR_SHARING_VIOLATION
+    matches!(e.raw_os_error(), Some(5) | Some(32))
+        || matches!(
+            e.kind(),
+            std::io::ErrorKind::PermissionDenied | std::io::ErrorKind::WouldBlock
+        )
 }
 
 fn io_err(what: &'static str) -> impl Fn(std::io::Error) -> Error {
@@ -235,5 +279,16 @@ mod tests {
             0o600
         );
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn transient_rename_errors_detected() {
+        let err5 = std::io::Error::from_raw_os_error(5);
+        let err32 = std::io::Error::from_raw_os_error(32);
+        let other = std::io::Error::from_raw_os_error(2);
+        assert!(is_windows_transient_rename_err(&err5));
+        assert!(is_windows_transient_rename_err(&err32));
+        assert!(!is_windows_transient_rename_err(&other));
     }
 }

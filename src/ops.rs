@@ -10,6 +10,7 @@ use zeroize::Zeroize;
 
 // No Debug: these hold raw password/notes bytes (CRYPTO_SPEC §6 — secret
 // types do not derive Debug; the compiler enforces the redaction policy).
+#[derive(Default, Zeroize)]
 pub struct NewEntry {
     pub title: String,
     pub username: String,
@@ -42,15 +43,15 @@ pub struct CheckReport {
     pub tombstones: usize,
 }
 
-#[derive(Debug, Default)]
-pub enum Change<T> {
+#[derive(Debug, Default, PartialEq, Eq, Zeroize)]
+pub enum Change<T: Zeroize> {
     #[default]
     Keep,
     Set(T),
     Clear,
 }
 // No Debug: Change<Vec<u8>> fields hold raw secret bytes (CRYPTO_SPEC §6).
-#[derive(Default)]
+#[derive(Default, Zeroize)]
 pub struct EntryPatch {
     pub title: Option<String>,
     pub username: Option<String>,
@@ -295,5 +296,39 @@ mod tests {
         assert_eq!((report.live_items, report.tombstones), (0, 1));
         assert_eq!(std::fs::read(&path).unwrap(), before);
         let _ = std::fs::remove_file(path);
+    }
+
+    #[test]
+    fn new_entry_and_patch_zeroize() {
+        let mut entry = NewEntry {
+            title: "example".into(),
+            username: "user".into(),
+            password: Some(b"supersecret".to_vec()),
+            url: "https://example.com".into(),
+            notes: Some(b"topsecretnotes".to_vec()),
+            totp: None,
+        };
+        entry.zeroize();
+        assert!(entry.password.is_none());
+        assert!(entry.notes.is_none());
+        assert!(entry.title.is_empty());
+        assert!(entry.username.is_empty());
+        assert!(entry.url.is_empty());
+
+        let mut patch = EntryPatch {
+            title: Some("title".into()),
+            username: None,
+            password: Change::Set(b"secret".to_vec()),
+            url: None,
+            notes: Change::Keep,
+            totp: Change::Clear,
+        };
+        patch.zeroize();
+        assert!(patch.title.is_none());
+        match patch.password {
+            Change::Set(ref v) => assert!(v.is_empty() || v.iter().all(|&b| b == 0)),
+            Change::Keep => {}
+            Change::Clear => {}
+        }
     }
 }

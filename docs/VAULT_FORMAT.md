@@ -1,6 +1,6 @@
 # Vault File Format
 
-**Status:** Public-preview implementation (`latchkey` 0.3.0)
+**Status:** Public-preview implementation (`latchkey` 0.4.0)
 **Covers:** Format version 2 (`LKv` magic + binary version byte `0x02`)
 **Companion specs:** [CRYPTO_SPEC.md](CRYPTO_SPEC.md), [THREAT_MODEL.md](THREAT_MODEL.md)
 

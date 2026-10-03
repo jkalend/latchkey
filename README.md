@@ -13,7 +13,7 @@ vault is a single encrypted file on your own disk.
 
 ## Project status
 
-The package is `0.3.0`, a security-focused public preview. Vaults use format 2
+The package is `0.4.0`, a security-focused public preview. Vaults use format 2
 with full-file commit authentication; the native export schema remains version 1.
 Package, vault, and export versions are tracked independently.
 
@@ -111,14 +111,14 @@ Full contract per command: [docs/CLI_REFERENCE.md](docs/CLI_REFERENCE.md).
 From crates.io (once the crate is published):
 
 ```console
-$ cargo install --locked latchkey --version 0.3.0
+$ cargo install --locked latchkey --version 0.4.0
 ```
 
 Or download the archive for your platform from the repository's GitHub
 Releases page:
 
-- Windows: `latchkey-v0.3.0-x86_64-pc-windows-msvc.zip`
-- Linux/WSL2: `latchkey-v0.3.0-x86_64-unknown-linux-gnu.tar.gz`
+- Windows: `latchkey-v0.4.0-x86_64-pc-windows-msvc.zip`
+- Linux/WSL2: `latchkey-v0.4.0-x86_64-unknown-linux-gnu.tar.gz`
 
 Download `SHA256SUMS` from the same release and verify the archive before
 unpacking (`sha256sum -c SHA256SUMS` on Linux/WSL2, or compare

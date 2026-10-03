@@ -1,11 +1,33 @@
-# Next Release: latchkey 0.3.0
+# Next Release: latchkey 0.4.0
 
-**Status:** Local security verification complete; publication gates remain separate
-**Date:** 2026-09-12
-**Target:** Security-focused public preview following 0.2.0
-**Package version:** `0.3.0`
-**Vault format:** version 2 (`LKv` magic + binary version `0x02`), explicit legacy migration required
+**Status:** Implementation complete; local verification green, fuzz campaign and publication pending
+**Date:** 2026-10-03
+**Target:** Hardening release following the 0.3.0 security preview
+**Package version:** `0.4.0`
+**Vault format:** version 2 (`LKv` magic + binary version `0x02`), unchanged
 **Export schema:** version 1, unchanged
+
+## 0. What changed in 0.4.0
+
+Six hardening improvements over 0.3.0, one commit each:
+
+1. `add --generate` / `edit --generate` store the password silently;
+   `--reveal-generated` (requires `--generate`) prints it only after the
+   commit succeeds.
+2. Export and rotation read the vault through one authenticated immutable
+   snapshot (`VaultSnapshot`) instead of re-reading the file per item.
+3. All `Vault` state is private behind read accessors and `pub(crate)`
+   mutation seams; 256-bit keys use a fixed-size wiping `Key32` type;
+   mutations are prepare-then-commit (validation failures and save errors
+   leave the session and disk byte-identical).
+4. The hand-rolled JSON grammar is replaced by `serde_json` behind a
+   bounded, wiping conversion; integer fields (format_version, Bitwarden
+   type, TOTP period/digits) use lossless `as_u64` instead of f64.
+5. All CI/release actions are pinned by full commit SHA; release archives
+   get GitHub build-provenance attestations.
+6. New end-to-end fuzz harnesses: `authenticated_vault` (full `Vault::open`)
+   and `migrate_legacy` (full `Vault::migrate`, under the harness-only
+   `fuzz-fast-kdf` feature).
 
 ## 1. Decision
 

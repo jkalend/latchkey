@@ -1,6 +1,6 @@
 # Development Guide
 
-**Status:** Public-preview implementation (`latchkey` 0.3.0)
+**Status:** Public-preview implementation (`latchkey` 0.4.0)
 **Platforms:** Windows 10/11 (native), Linux under WSL2 — both are
 first-class; CI runs both.
 
@@ -64,7 +64,7 @@ CRYPTO_SPEC.md or VAULT_FORMAT.md in the same PR.**
 
 ## Release checklist
 
-Pushing a version tag such as `v0.3.0` runs
+Pushing a version tag such as `v0.4.0` runs
 `.github/workflows/release.yml`. The workflow rejects a tag that disagrees
 with `Cargo.toml`, builds locked Windows and Linux binaries, copies each binary
 into its release directory, and runs `--version` plus temporary-vault

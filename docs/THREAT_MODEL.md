@@ -1,6 +1,6 @@
 # Threat Model
 
-**Status:** Public-preview implementation (`latchkey` 0.3.0)
+**Status:** Public-preview implementation (`latchkey` 0.4.0)
 **Covers:** Current `main` branch
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
@@ -277,7 +277,7 @@ These are **not defended against**, stated plainly so nobody relies on them:
 
 ## 7. Deferred decisions
 
-- The unlock model remains per-process for 0.3.0. A resident agent or daemon
+- The unlock model remains per-process for 0.4.0. A resident agent or daemon
   would enlarge the memory-exposure and IPC attack surfaces.
 - Sync remains explicitly bring-your-own; the format is safe as an opaque file
   under naive sync (atomic writes, no partial states).

@@ -1,0 +1,20 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden n",
+      "notes": "note",
+      "attachments": [{"id": "aored"}],
+      "login": {     "username": "aliper30odi=",
+        "uris": [          {"uri": "https://example.com"},
+          {"uri": "httpsample.com"},        {"uri": "https://example.com"},
+          {"uri": "https://a?cd"}]
+      }
+    },
+  {
+              "identity": {"firsxName": "Example"}
+    }
+  ]
+}

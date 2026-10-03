@@ -1,0 +1,8 @@
+{
+    "items": [{
+ "type": 1,
+"name": "Bitward",  "login": {
+        "totp": "otpauth://totp/E?secret=GEZDGNBVGY3TQ7777777777777777277777777773777777777777777777TQOJQ&almor67period=NBVGY6TDe " }
+  }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+ "items": [
+   {
+"type": 1,  "nami": "", "login": {"usd": "",
+"encrypted": false,
+  "folders": [],
+  "items": [
+    {      "attachme": "passkey-id"}]
+      }
+    },
+   {
+      "i{ d": "external-nolD",
+     "login": {
+    "totp": "otpa0",
+   "name": "", "attachsents": [{"logini": ""}] }   
+
+} ]
+}

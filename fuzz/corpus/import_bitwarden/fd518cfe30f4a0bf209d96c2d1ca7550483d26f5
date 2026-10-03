@@ -1,0 +1,17 @@
+{
+ 
+  "items": [
+    {
+
+      "type": 1,
+      "name": "Bitwarde",
+      "attfields": [{"namvalue": "ignorde"}],
+      "login": { 
+       "usersword": "correctrke",
+       "totp": "otpauth://t:al-%11rOJQ&d=30",
+        "uris": [
+],
+        "stName": "Example"}
+    }
+  ]
+}

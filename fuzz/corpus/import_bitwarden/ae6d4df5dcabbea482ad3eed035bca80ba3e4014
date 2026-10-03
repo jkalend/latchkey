@@ -1,0 +1,6 @@
+{
+"items": [
+ { "type": 1,
+"name":"Btw", "login": {"totp":"otpauth://totp/Exa1m?secret=07%e7e"}   }
+ ]
+}

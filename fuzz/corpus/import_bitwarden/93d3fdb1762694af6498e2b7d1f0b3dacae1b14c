@@ -1,0 +1,10 @@
+{
+ "items": [
+    {      "type": 1,
+      "name": "Bin",
+"login": {
+    "totp": "otpauth://totp/Exe?secret=GEZTQOQ&algorithm=&SH1A",        "uris":     [     {"uri": "he"}]
+      }
+     }
+  ]
+}

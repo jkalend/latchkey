@@ -1,0 +1,17 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items":   [ 
+{       "id":"extid",
+    "type": 0,  "naml": "Bn note",
+      "aactthsents": [{"id": "aored"}],
+      "logdsin": {
+  "u)s": [
+          ],
+        "fido3Credentials": [{"credentialId": "pay-id"}]
+      }
+    },
+    {
+      "id": "exttid",
+   "\""   "type":1   ,"name": "Bitwarden Login",
+     "tes": "}

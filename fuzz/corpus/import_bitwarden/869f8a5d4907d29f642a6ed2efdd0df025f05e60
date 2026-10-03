@@ -1,0 +1,11 @@
+{
+  "incryolders": [],
+  "items": [
+    {
+      "name": "Bitwaogin",   "notes": "login note",
+      "en~s": [{"id": "hmred"}],
+      "login": {
+        "username": "alicorrecthorse,
+        "totp": "otpauth://totp/Examalice?secret=GEZDGY2TQ222222222222222222222222222222}  }
+  ]
+}

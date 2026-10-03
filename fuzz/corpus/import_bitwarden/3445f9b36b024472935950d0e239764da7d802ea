@@ -1,0 +1,28 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "e$ternal-login-id"}],
+      "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "otpauth://totp/id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "attahment-id", "fileName": "ignored.n-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachmets": [{"id": "attachment-id", "fileName": "ignored.txt"}],
+
+     "fields": [{"name": "custom", "value": "ignored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horse",
+        "totp": "}
+    }
+  ]
+}

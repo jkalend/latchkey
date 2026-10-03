@@ -371,10 +371,10 @@ pub fn parse_bitwarden(text: &str) -> Result<ParsedImport> {
 fn parse_bitwarden_item(item: &Json, skipped: &mut usize) -> Result<Option<CanonicalRecord>> {
     let item_type = item
         .get("type")
-        .and_then(Json::as_num)
-        .ok_or_else(|| CliError::Other("missing numeric 'type'".into()))?;
-    if item_type.fract() != 0.0 {
-        return Err(CliError::Other("'type' must be an integer".into()));
+        .and_then(Json::as_u64)
+        .ok_or_else(|| CliError::Other("missing integer 'type'".into()))?;
+    if item_type > u32::MAX as u64 {
+        return Err(CliError::Other("'type' is out of range".into()));
     }
     let item_type = item_type as u32;
     if matches!(item_type, 3 | 4) {
@@ -636,8 +636,8 @@ fn parse_record(obj: &Json) -> Result<ItemRecord> {
 }
 
 fn validate_format_version(doc: &Json) -> Result<()> {
-    match doc.get("format_version").and_then(Json::as_num) {
-        Some(1.0) => Ok(()),
+    match doc.get("format_version").and_then(Json::as_u64) {
+        Some(1) => Ok(()),
         Some(version) => Err(CliError::Other(format!(
             "import: unsupported format_version {version}; expected 1"
         ))),
@@ -685,10 +685,12 @@ fn uint_field(obj: &Json, key: &str, default: u32) -> Result<u32> {
     match obj.get(key) {
         None | Some(Json::Null) => Ok(default),
         Some(v) => {
-            let n = v
-                .as_num()
-                .ok_or_else(|| CliError::Other(format!("import: totp '{key}' must be a number")))?;
-            if n < 0.0 || n.fract() != 0.0 || n > u32::MAX as f64 {
+            let n = v.as_u64().ok_or_else(|| {
+                CliError::Other(format!(
+                    "import: totp '{key}' must be a non-negative integer"
+                ))
+            })?;
+            if n > u32::MAX as u64 {
                 return Err(CliError::Other(format!(
                     "import: totp '{key}' must be a non-negative integer"
                 )));

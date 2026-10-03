@@ -34,6 +34,7 @@ hmac = "0.12"
 hkdf = "0.12"
 ratatui = "0.30"
 crossterm = "0.29"
+serde_json = "1.0.151"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.62", features = [

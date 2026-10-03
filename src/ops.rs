@@ -4,7 +4,7 @@
 //! prompts, prints, renders, or touches the clipboard.
 
 use crate::crypto::error::{Error, Result};
-use crate::vault::shape::{validate_item, ItemRecord, TotpSubRecord, LIVE_STATE, TOMBSTONE_STATE};
+use crate::vault::shape::{validate_item, ItemRecord, TotpSubRecord};
 use crate::vault::vault_impl::Vault;
 use zeroize::Zeroize;
 
@@ -79,17 +79,9 @@ pub fn add_entry(vault: &mut Vault, input: NewEntry) -> Result<u32> {
 }
 
 pub fn update_entry(vault: &mut Vault, item_id: u32, patch: EntryPatch) -> Result<bool> {
-    let entry = vault
-        .entries
-        .iter()
-        .find(|entry| entry.item_id == item_id && entry.state == LIVE_STATE)
-        .cloned()
-        .ok_or_else(|| Error::Encrypt(format!("no such item {item_id}")))?;
-    vault.open_item(item_id)?;
-    let mut record = vault
-        .open_items
-        .remove(&entry.slot)
-        .ok_or_else(|| Error::Encrypt("item not open".into()))?;
+    // Prepare: work on clones of only the affected entry and record. The
+    // session keeps its original state until save() succeeds.
+    let (entry, mut record) = vault.record_for_update(item_id)?;
 
     let title = patch.title.unwrap_or_else(|| entry.title.clone());
     let username = patch.username.unwrap_or_else(|| entry.username.clone());
@@ -139,36 +131,22 @@ pub fn update_entry(vault: &mut Vault, item_id: u32, patch: EntryPatch) -> Resul
     }
 
     if !changed {
-        vault.open_items.insert(entry.slot, record);
+        // A no-op edit returns Ok(false) without saving. The session cache
+        // still holds the original record (the working copy was a clone).
         return Ok(false);
     }
 
     record.modified_unix = unix_now();
+    // Validate the whole candidate BEFORE touching session state; on failure
+    // the original cached record and metadata stay intact.
     validate_metadata(&title, &username)?;
     validate_item(&record)?;
-
-    let stored = vault
-        .entries
-        .iter_mut()
-        .find(|stored| stored.item_id == item_id)
-        .ok_or_else(|| Error::Encrypt("entry vanished".into()))?;
-    stored.title = title;
-    stored.username = username;
-    vault.open_items.insert(entry.slot, record);
-    vault.save()?;
+    vault.commit_entry(item_id, title, username, record)?;
     Ok(true)
 }
 
 pub fn delete_entry(vault: &mut Vault, item_id: u32) -> Result<()> {
-    let entry = vault
-        .entries
-        .iter_mut()
-        .find(|entry| entry.item_id == item_id && entry.state == LIVE_STATE)
-        .ok_or_else(|| Error::Encrypt(format!("no such item {item_id}")))?;
-    let slot = entry.slot;
-    entry.state = TOMBSTONE_STATE;
-    vault.open_items.remove(&slot);
-    vault.save()
+    vault.commit_tombstone(item_id)
 }
 
 pub fn apply_import(
@@ -176,7 +154,10 @@ pub fn apply_import(
     adds: Vec<ImportedEntry>,
     updates: Vec<ImportedUpdate>,
 ) -> Result<()> {
-    let mut next_id = vault.next_item_id;
+    // Validate the complete candidate BEFORE mutating session state. IDs are
+    // only simulated here; add_item allocates the real ones at commit time,
+    // so a failure does not consume any item_id.
+    let mut next_id = vault.next_item_id();
     for add in &adds {
         validate_metadata(&add.title, &add.username)?;
         validate_item(&add.record)?;
@@ -187,16 +168,12 @@ pub fn apply_import(
 
     let mut prepared_updates = Vec::with_capacity(updates.len());
     for mut update in updates {
-        let entry = vault
-            .entries
-            .iter()
-            .find(|entry| entry.item_id == update.item_id && entry.state == LIVE_STATE)
-            .cloned()
-            .ok_or_else(|| Error::Encrypt(format!("no such item {}", update.item_id)))?;
+        let entry = vault.entry_for_update(update.item_id)?;
+        // Cache the current record (identical to the committed disk bytes)
+        // to read created_unix for the candidate.
         vault.open_item(update.item_id)?;
         let existing = vault
-            .open_items
-            .get(&entry.slot)
+            .open_record(entry.slot)
             .ok_or_else(|| Error::Encrypt("item not open".into()))?;
         update.record.created_unix = existing.created_unix;
         validate_metadata(&entry.title, &entry.username)?;
@@ -204,22 +181,22 @@ pub fn apply_import(
         prepared_updates.push((entry.slot, update.record));
     }
 
-    for add in adds {
-        vault.add_item(add.title, add.username, add.record)?;
-    }
-    for (slot, record) in prepared_updates {
-        vault.open_items.insert(slot, record);
-    }
-    vault.save()
+    vault.commit_import(
+        adds.into_iter()
+            .map(|add| (add.title, add.username, add.record))
+            .collect(),
+        prepared_updates,
+    )
 }
 
 pub fn check_vault(vault: &Vault) -> Result<CheckReport> {
     let (live_items, tombstones) = vault.verify_all_items()?;
+    let config = vault.config();
     Ok(CheckReport {
-        format_version: vault.header.version,
-        wrap_algorithm: vault.header.wrap_alg,
-        item_algorithm: vault.header.item_alg,
-        kdf_params: vault.header.kdf_params,
+        format_version: config.version,
+        wrap_algorithm: config.wrap_alg,
+        item_algorithm: config.item_alg,
+        kdf_params: config.kdf_params,
         live_items,
         tombstones,
     })
@@ -300,7 +277,7 @@ mod tests {
 
         let mut reopened = Vault::open(&path, &password).unwrap();
         let entry = reopened
-            .entries
+            .entries()
             .iter()
             .find(|entry| entry.item_id == id)
             .unwrap();
@@ -308,7 +285,7 @@ mod tests {
         assert_eq!(entry.username, "bob");
         let slot = entry.slot;
         reopened.open_item(id).unwrap();
-        let record = &reopened.open_items[&slot];
+        let record = reopened.open_record(slot).unwrap();
         assert_eq!(record.password.as_deref(), Some(b"new-secret".as_slice()));
         assert!(record.notes.is_none());
 

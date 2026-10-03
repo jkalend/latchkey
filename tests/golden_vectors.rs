@@ -31,10 +31,10 @@ fn golden_vault_reads_back() {
     }
 
     let mut v = Vault::open(path, &pw(PASSWORD)).expect("golden vault must open");
-    assert_eq!(v.entries.len(), 3);
+    assert_eq!(v.entries().len(), 3);
 
     let expected = std::fs::read_to_string("test-vectors/expected.txt").unwrap();
-    for (entry, line) in v.entries.iter().zip(expected.lines()) {
+    for (entry, line) in v.entries().iter().zip(expected.lines()) {
         let rendered = format!(
             "{:>3} {:<24} {:<12}",
             entry.item_id, entry.title, entry.username
@@ -43,9 +43,9 @@ fn golden_vault_reads_back() {
     }
 
     // Spot-check every item's decrypted content.
-    for e in v.entries.clone() {
+    for e in v.entries().to_vec() {
         v.open_item(e.item_id).unwrap();
-        let rec = v.open_items.get(&e.slot).unwrap();
+        let rec = v.open_record(e.slot).unwrap();
 
         match e.item_id {
             1 => {

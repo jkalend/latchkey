@@ -8,7 +8,6 @@ use latchkey::gen::{GenerateSpec, Preset};
 use latchkey::totp::{totp_at, TotpParams};
 use latchkey::vault::shape::{IndexEntry, ItemRecord, TotpAlgorithm, TotpSubRecord};
 use latchkey::vault::vault_impl::Vault;
-use secrecy::ExposeSecret;
 
 fn pw(s: &str) -> SecretVec {
     SecretVec::new(s.as_bytes().to_vec().into_boxed_slice())
@@ -74,19 +73,19 @@ fn full_roundtrip_multiple_items_with_totp() {
     }
 
     let mut v = Vault::open(&path, &password).unwrap();
-    assert_eq!(v.entries.len(), 2);
+    assert_eq!(v.entries().len(), 2);
     // Duplicate titles are valid (Q7) — both live under "example.com".
     assert_eq!(
-        v.entries
+        v.entries()
             .iter()
             .filter(|e| e.title == "example.com")
             .count(),
         2
     );
 
-    for entry in v.entries.clone() {
+    for entry in v.entries().to_vec() {
         v.open_item(entry.item_id).unwrap();
-        let rec = &v.open_items[&entry.slot];
+        let rec = v.open_record(entry.slot).unwrap();
         assert_eq!(
             rec.password.as_deref(),
             Some(b"correct horse battery staple".as_slice())
@@ -132,24 +131,17 @@ fn delete_then_reopen_preserves_others() {
     {
         let mut v = Vault::open(&path, &password).unwrap();
         let victim = v
-            .entries
+            .entries()
             .iter()
             .find(|e| e.title == "drop")
             .unwrap()
             .clone();
-        let idx = v
-            .entries
-            .iter()
-            .position(|e| e.item_id == victim.item_id)
-            .unwrap();
-        v.entries[idx].state = latchkey::vault::shape::TOMBSTONE_STATE;
-        v.open_items.remove(&victim.slot);
-        v.save().unwrap();
+        latchkey::ops::delete_entry(&mut v, victim.item_id).unwrap();
     }
 
     let mut v = Vault::open(&path, &password).unwrap();
     let live: Vec<&IndexEntry> = v
-        .entries
+        .entries()
         .iter()
         .filter(|e| e.state == latchkey::vault::shape::LIVE_STATE)
         .collect();
@@ -216,10 +208,13 @@ fn cross_algorithm_vaults_roundtrip() {
             v.save().unwrap();
         }
         let mut v = Vault::open(&path, &password).unwrap();
-        let id = v.entries[0].item_id;
+        let id = v.entries()[0].item_id;
         v.open_item(id).unwrap();
         assert_eq!(
-            v.open_items[&v.entries[0].slot].password.as_deref(),
+            v.open_record(v.entries()[0].slot)
+                .unwrap()
+                .password
+                .as_deref(),
             Some(b"correct horse battery staple".as_slice())
         );
         let _ = std::fs::remove_file(&path);
@@ -265,10 +260,13 @@ fn generator_feeds_vault_roundtrip() {
     }
 
     let mut v = Vault::open(&path, &password).unwrap();
-    let id = v.entries[0].item_id;
+    let id = v.entries()[0].item_id;
     v.open_item(id).unwrap();
     assert_eq!(
-        v.open_items[&v.entries[0].slot].password.as_deref(),
+        v.open_record(v.entries()[0].slot)
+            .unwrap()
+            .password
+            .as_deref(),
         Some(g.value.as_bytes())
     );
     let _ = std::fs::remove_file(&path);
@@ -301,7 +299,7 @@ fn backup_is_byte_identical() {
 
     // The backup opens as a vault with the same password.
     let v = Vault::open(&backup, &password).unwrap();
-    assert_eq!(v.entries.len(), 1);
+    assert_eq!(v.entries().len(), 1);
 
     let _ = std::fs::remove_dir_all(path.parent().unwrap());
 }
@@ -325,24 +323,28 @@ fn edit_updates_index_and_item_atomically() {
         v.save().unwrap();
     }
 
-    // Reopen, mutate username (index) + password (item) in one save.
+    // Reopen, mutate username (index) + password (item) in one ops commit.
     {
         let mut v = Vault::open(&path, &password).unwrap();
-        let entry = v.entries[0].clone();
+        let entry = v.entries()[0].clone();
         v.open_item(entry.item_id).unwrap();
-        let mut rec = v.open_items.get(&entry.slot).unwrap().clone();
-        rec.password = Some(b"new-password-42".to_vec());
-        rec.url = "https://example.org".into();
-        rec.modified_unix += 1;
-        v.entries[0].username = "alice2".into();
-        v.open_items.insert(entry.slot, rec);
-        v.save().unwrap();
+        assert!(latchkey::ops::update_entry(
+            &mut v,
+            entry.item_id,
+            latchkey::ops::EntryPatch {
+                username: Some("alice2".into()),
+                password: latchkey::ops::Change::Set(b"new-password-42".to_vec()),
+                url: Some("https://example.org".into()),
+                ..latchkey::ops::EntryPatch::default()
+            }
+        )
+        .unwrap());
     }
 
     let mut v = Vault::open(&path, &password).unwrap();
-    assert_eq!(v.entries[0].username, "alice2");
-    v.open_item(v.entries[0].item_id).unwrap();
-    let rec = v.open_items.values().next().unwrap();
+    assert_eq!(v.entries()[0].username, "alice2");
+    v.open_item(v.entries()[0].item_id).unwrap();
+    let rec = v.open_record(v.entries()[0].slot).unwrap();
     assert_eq!(rec.password.as_deref(), Some(b"new-password-42".as_ref()));
     assert_eq!(rec.url, "https://example.org");
 
@@ -383,11 +385,11 @@ fn rotate_reencrypts_under_new_dek_and_kdf() {
     {
         let mut v = Vault::open(&path, &password).unwrap();
         let def = KdfParams::default();
-        assert_eq!(v.header.kdf_params.argon2_m_mib, def.argon2_m_mib);
-        assert_eq!(v.header.kdf_params.argon2_t, def.argon2_t);
-        assert_eq!(v.entries.len(), 2);
-        v.open_item(v.entries[0].item_id).unwrap();
-        let rec = v.open_items.values().next().unwrap();
+        assert_eq!(v.config().kdf_params.argon2_m_mib, def.argon2_m_mib);
+        assert_eq!(v.config().kdf_params.argon2_t, def.argon2_t);
+        assert_eq!(v.entries().len(), 2);
+        v.open_item(v.entries()[0].item_id).unwrap();
+        let rec = v.open_record(v.entries()[0].slot).unwrap();
         assert_eq!(
             rec.password.as_deref(),
             Some(b"correct horse battery staple".as_ref())
@@ -423,19 +425,19 @@ fn change_password_rewraps_same_dek() {
         v.add_item("x".into(), "u".into(), sample_item(true))
             .unwrap();
         v.save().unwrap();
-        let dek_before = v.dek.expose_secret().to_vec();
+        let dek_before = v.dek_fingerprint();
         v.change_password(&new_password).unwrap();
         // Same DEK — only the wrap changed.
-        assert_eq!(dek_before, v.dek.expose_secret().to_vec());
+        assert_eq!(dek_before, v.dek_fingerprint());
     }
 
     // Old password fails, new one opens the same content.
     assert!(Vault::open(&path, &password).is_err());
     {
         let mut v = Vault::open(&path, &new_password).unwrap();
-        assert_eq!(v.entries.len(), 1);
-        v.open_item(v.entries[0].item_id).unwrap();
-        let rec = v.open_items.values().next().unwrap();
+        assert_eq!(v.entries().len(), 1);
+        v.open_item(v.entries()[0].item_id).unwrap();
+        let rec = v.open_record(v.entries()[0].slot).unwrap();
         assert_eq!(
             rec.password.as_deref(),
             Some(b"correct horse battery staple".as_ref())
@@ -473,7 +475,7 @@ fn export_import_roundtrip() {
         v.save().unwrap();
 
         let live: Vec<latchkey::vault::shape::IndexEntry> = v
-            .entries
+            .entries()
             .iter()
             .filter(|e| e.state != 0xFF)
             .cloned()
@@ -481,7 +483,7 @@ fn export_import_roundtrip() {
         let mut items = Vec::new();
         for e in &live {
             v.open_item(e.item_id).unwrap();
-            let rec = v.open_items.get(&e.slot).unwrap().clone();
+            let rec = v.open_record(e.slot).unwrap().clone();
             items.push(export_item_json(e, &rec));
         }
         format!(
@@ -509,9 +511,9 @@ fn export_import_roundtrip() {
     // Verify both items came through with the same plaintext.
     let ids_by_title: std::collections::HashMap<String, u32> = {
         let mut v = Vault::open(&fresh, &fresh_pw).unwrap();
-        assert_eq!(v.entries.len(), 2);
+        assert_eq!(v.entries().len(), 2);
         let map: std::collections::HashMap<String, u32> = v
-            .entries
+            .entries()
             .iter()
             .map(|e| (e.title.clone(), e.item_id))
             .collect();
@@ -520,7 +522,13 @@ fn export_import_roundtrip() {
         assert_ne!(ex_id, gh_id);
 
         v.open_item(ex_id).unwrap();
-        let rec = v.open_items.values().next().unwrap().clone();
+        let ex_entry = v
+            .entries()
+            .iter()
+            .find(|e| e.item_id == ex_id)
+            .unwrap()
+            .clone();
+        let rec = v.open_record(ex_entry.slot).unwrap().clone();
         assert_eq!(rec.password, original.password);
         assert_eq!(rec.url, original.url);
         assert_eq!(rec.notes, original.notes);
@@ -544,8 +552,8 @@ fn export_import_roundtrip() {
         import_into(&mut v, &export, true, false).unwrap();
         drop(v);
         let check = Vault::open(&fresh, &fresh_pw).unwrap();
-        assert_eq!(check.entries.len(), 2);
-        for e in &check.entries {
+        assert_eq!(check.entries().len(), 2);
+        for e in check.entries() {
             assert_eq!(
                 e.item_id,
                 *ids_by_title.get(&e.title).unwrap(),
@@ -585,9 +593,18 @@ fn historical_index_and_item_splices_rejected_on_every_read_and_save_path() {
         .unwrap();
     vault.save().unwrap();
     let old = std::fs::read(&path).unwrap();
-    vault.entries[0].title = "new-title".into();
-    vault.open_items.get_mut(&0).unwrap().password = Some(b"replacement-password".to_vec());
-    vault.save().unwrap();
+    // Produce a second commit through the public seam: an edit rewrites the
+    // index (title) and the item (password) in one save.
+    assert!(latchkey::ops::update_entry(
+        &mut vault,
+        id,
+        latchkey::ops::EntryPatch {
+            title: Some("new-title".into()),
+            password: latchkey::ops::Change::Set(b"replacement-password".to_vec()),
+            ..latchkey::ops::EntryPatch::default()
+        }
+    )
+    .unwrap());
     let current = std::fs::read(&path).unwrap();
     drop(vault);
     let old_index_end = index_end(&old);
@@ -618,7 +635,7 @@ fn historical_index_and_item_splices_rejected_on_every_read_and_save_path() {
             Err(latchkey::crypto::Error::Decrypt)
         ));
         assert!(
-            lazy.open_items.is_empty(),
+            !lazy.has_open_records(),
             "failed authentication must not populate cache"
         );
         assert!(
@@ -652,21 +669,21 @@ fn explicit_migration_preserves_legacy_fixture_and_refuses_existing_target() {
     assert!(Vault::open(source, &password).is_err());
     let mut migrated = Vault::migrate(source, &target, &password).unwrap();
     assert_eq!(std::fs::read(source).unwrap(), original);
-    assert_eq!(migrated.next_item_id, 4);
-    assert_eq!(migrated.header.version, 2);
+    assert_eq!(migrated.next_item_id(), 4);
+    assert_eq!(migrated.config().version, 2);
     assert_eq!(migrated.verify_all_items().unwrap(), (3, 0));
     let mut golden = Vault::open(
         std::path::Path::new("test-vectors/vault-golden.bin"),
         &password,
     )
     .unwrap();
-    assert_eq!(migrated.entries, golden.entries);
-    for entry in migrated.entries.clone() {
+    assert_eq!(migrated.entries(), golden.entries());
+    for entry in migrated.entries().to_vec() {
         migrated.open_item(entry.item_id).unwrap();
         golden.open_item(entry.item_id).unwrap();
         assert_eq!(
-            migrated.open_items[&entry.slot],
-            golden.open_items[&entry.slot]
+            migrated.open_record(entry.slot).unwrap(),
+            golden.open_record(entry.slot).unwrap()
         );
     }
     let committed = std::fs::read(&target).unwrap();

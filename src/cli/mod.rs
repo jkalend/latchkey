@@ -455,9 +455,9 @@ fn cmd_init(path: &std::path::Path, force: bool, context: CommandContext) -> Res
     println!(
         "Argon2id key derivation took {:.2}s ({} MiB, t={}, p={})",
         elapsed.as_secs_f64(),
-        vault.header.kdf_params.argon2_m_mib,
-        vault.header.kdf_params.argon2_t,
-        vault.header.kdf_params.argon2_p,
+        vault.config().kdf_params.argon2_m_mib,
+        vault.config().kdf_params.argon2_t,
+        vault.config().kdf_params.argon2_p,
     );
     Ok(())
 }
@@ -592,11 +592,11 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
 
 fn cmd_list(path: &std::path::Path, context: CommandContext) -> Result<()> {
     let (vault, _pw) = open_vault(path, context)?;
-    if vault.entries.is_empty() {
+    if vault.entries().is_empty() {
         eprintln!("vault is empty — add something with `latchkey add <title>`");
         return Ok(());
     }
-    for e in &vault.entries {
+    for e in vault.entries() {
         if e.state != crate::vault::shape::LIVE_STATE {
             continue;
         }
@@ -625,8 +625,7 @@ fn cmd_get(
         .open_item(entry.item_id)
         .map_err(|e| CliError::Other(e.to_string()))?;
     let rec = vault
-        .open_items
-        .get(&entry.slot)
+        .open_record(entry.slot)
         .ok_or_else(|| CliError::Other("item not open".into()))?;
     let pw = Zeroizing::new(
         rec.password
@@ -669,8 +668,7 @@ fn cmd_copy(
         .open_item(entry.item_id)
         .map_err(|e| CliError::Other(e.to_string()))?;
     let rec = vault
-        .open_items
-        .get(&entry.slot)
+        .open_record(entry.slot)
         .ok_or_else(|| CliError::Other("item not open".into()))?;
     let pw = Zeroizing::new(
         rec.password
@@ -774,8 +772,7 @@ fn cmd_totp(
         .open_item(entry.item_id)
         .map_err(|e| CliError::Other(e.to_string()))?;
     let rec = vault
-        .open_items
-        .get(&entry.slot)
+        .open_record(entry.slot)
         .ok_or_else(|| CliError::Other("item not open".into()))?;
     let t = rec
         .totp
@@ -1074,8 +1071,7 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         .open_item(entry.item_id)
         .map_err(|e| CliError::Other(e.to_string()))?;
     let rec = vault
-        .open_items
-        .get(&entry.slot)
+        .open_record(entry.slot)
         .ok_or_else(|| CliError::Other("item not open".into()))?
         .clone();
 
@@ -1176,9 +1172,9 @@ fn cmd_rotate(path: &std::path::Path, new_password: bool, context: CommandContex
     let (mut vault, pw) = open_vault(path, context)?;
     eprintln!(
         "current KDF: {} MiB, t={}, p={}",
-        vault.header.kdf_params.argon2_m_mib,
-        vault.header.kdf_params.argon2_t,
-        vault.header.kdf_params.argon2_p
+        vault.config().kdf_params.argon2_m_mib,
+        vault.config().kdf_params.argon2_t,
+        vault.config().kdf_params.argon2_p
     );
     // Rotate first (fresh DEK, current-policy KDF); then optionally re-wrap
     // under a new master password. Two atomic writes, each self-consistent.
@@ -1191,7 +1187,7 @@ fn cmd_rotate(path: &std::path::Path, new_password: bool, context: CommandContex
             .change_password(&secret_vec(np.to_vec()))
             .map_err(|e| CliError::Other(e.to_string()))?;
     }
-    let h = &vault.header.kdf_params;
+    let h = &vault.config().kdf_params;
     println!(
         "rotated — KDF is now {} MiB, t={}, p={}",
         h.argon2_m_mib, h.argon2_t, h.argon2_p
@@ -1232,7 +1228,7 @@ fn cmd_export(
         .map_err(|e| CliError::Other(e.to_string()))?;
     let mut items: Zeroizing<Vec<String>> = Zeroizing::new(Vec::new());
     let live: Vec<crate::vault::shape::IndexEntry> = vault
-        .entries
+        .entries()
         .iter()
         .filter(|e| e.state == crate::vault::shape::LIVE_STATE)
         .cloned()

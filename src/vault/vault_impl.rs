@@ -18,12 +18,10 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use zeroize::Zeroizing;
 
-use secrecy::ExposeSecret;
-
 use crate::crypto::ciphers::{AeadCipher, Algorithm, NONCE_LEN};
 use crate::crypto::error::{Error, Result};
 use crate::crypto::kdf::{KdfParams, SecretVec};
-use crate::crypto::keys::{random_dek, random_salt};
+use crate::crypto::keys::{random_dek, random_salt, Key32};
 use crate::vault::atomic_write::{acquire_write_lock, atomic_create_locked, atomic_write_locked};
 use crate::vault::parse::{self, ParsedHeader, HEADER_LEN, WRAPPED_DEK_CIPHER_LEN, WRAP_TAG_LEN};
 use crate::vault::shape::{
@@ -63,18 +61,18 @@ fn random_nonce() -> Result<[u8; NONCE_LEN]> {
 /// In-memory vault with the index decrypted. Item payloads are decrypted lazily
 /// (in `open_item` / `store_item`) so `list` doesn't materialize secrets.
 pub struct Vault {
-    pub path: PathBuf,
-    /// Public crypto config reflected from the header.
-    pub header: VaultCryptoConfig,
+    path: PathBuf,
+    /// Crypto config reflected from the header.
+    header: VaultCryptoConfig,
     /// KEK and DEK, in-memory only, zeroized on drop.
-    kek: SecretVec,
-    pub dek: SecretVec,
+    kek: Key32,
+    dek: Key32,
     /// Index — encrypted metadata. Items are not decrypted here.
-    pub entries: Vec<IndexEntry>,
+    entries: Vec<IndexEntry>,
     /// Decrypted items, slot → record. Populated by `open_item`.
-    pub open_items: std::collections::BTreeMap<u32, ItemRecord>,
+    open_items: std::collections::BTreeMap<u32, ItemRecord>,
     /// One-past-highest used item_id (monotonic, never reused).
-    pub next_item_id: u32,
+    next_item_id: u32,
     /// Authenticated full-file commit identity; CRC is not a security boundary.
     last_disk_tag: Option<[u8; FILE_MAC_LEN]>,
 }
@@ -107,8 +105,7 @@ impl Vault {
         let kek = kdf.derive(password, &kdf_salt)?;
 
         // Generate DEK
-        let dek_vec = Zeroizing::new(random_dek().to_vec());
-        let dek: SecretVec = SecretVec::new(dek_vec.as_slice().to_vec().into_boxed_slice());
+        let dek = random_dek();
 
         // Randomize the KEK-wrapping nonce for every new vault.
         let wrap_cipher = AeadCipher::new(wrap_alg);
@@ -130,7 +127,7 @@ impl Vault {
             future_pad: [0u8; parse::FUTURE_PAD_LEN],
         };
         let aad = parse::header_aad(&placeholder);
-        let ct_with_tag = wrap_cipher.encrypt_raw(&kek, &wrap_nonce, &dek_vec, &aad)?;
+        let ct_with_tag = wrap_cipher.encrypt_raw(&kek, &wrap_nonce, dek.expose_secret(), &aad)?;
         debug_assert_eq!(ct_with_tag.len(), WRAPPED_DEK_CIPHER_LEN + WRAP_TAG_LEN);
         let mut wrapped_dek = [0u8; WRAPPED_DEK_CIPHER_LEN];
         wrapped_dek.copy_from_slice(&ct_with_tag[..WRAPPED_DEK_CIPHER_LEN]);
@@ -195,7 +192,7 @@ impl Vault {
         ct_with_tag.extend_from_slice(&header.wrapped_dek);
         ct_with_tag.extend_from_slice(&header.wrap_tag);
         let aad = parse::header_aad(&header);
-        let mut dek_vec = Zeroizing::new(wrap_cipher.decrypt_raw(
+        let dek_vec = Zeroizing::new(wrap_cipher.decrypt_raw(
             &kek,
             &header.wrap_nonce,
             &ct_with_tag,
@@ -207,7 +204,7 @@ impl Vault {
                 actual: dek_vec.len(),
             });
         }
-        let dek: SecretVec = SecretVec::new(std::mem::take(&mut *dek_vec).into_boxed_slice());
+        let dek = Key32::from_exact(&dek_vec)?;
         let commit_tag = if legacy {
             let trailer = bytes
                 .len()
@@ -296,7 +293,7 @@ impl Vault {
         let params = KdfParams::default();
         let salt = random_salt();
         vault.kek = crate::crypto::kdf::Kdf::new(params).derive(password, &salt)?;
-        vault.dek = SecretVec::new(random_dek().to_vec().into_boxed_slice());
+        vault.dek = random_dek();
         vault.path = target.to_path_buf();
         vault.header.version = parse::CURRENT_VERSION;
         vault.header.kdf_params = params;
@@ -346,6 +343,76 @@ impl Vault {
         })
     }
 
+    /// Test/inspection support: a stable fingerprint of the current DEK
+    /// (SHA-256 of the key). Never exposes the key material itself.
+    pub fn dek_fingerprint(&self) -> Vec<u8> {
+        use sha2::{Digest, Sha256};
+        Sha256::digest(self.dek.expose_secret()).to_vec()
+    }
+
+    /// Read-only view of the index (encrypted metadata, decrypted).
+    pub fn entries(&self) -> &[IndexEntry] {
+        &self.entries
+    }
+
+    /// Read-only access to one decrypted record by slot, if open.
+    pub fn open_record(&self, slot: u32) -> Option<&ItemRecord> {
+        self.open_items.get(&slot)
+    }
+
+    /// Read-only crypto configuration (KDF params, algorithms, counter).
+    pub fn config(&self) -> &VaultCryptoConfig {
+        &self.header
+    }
+
+    /// Whether any decrypted record is cached.
+    pub fn has_open_records(&self) -> bool {
+        !self.open_items.is_empty()
+    }
+
+    /// Vault file path (read-only).
+    pub fn path(&self) -> &Path {
+        &self.path
+    }
+
+    /// One-past-highest used item_id (monotonic, never reused).
+    pub fn next_item_id(&self) -> u32 {
+        self.next_item_id
+    }
+
+    /// The live index entry for `item_id`, if present.
+    pub fn live_entry(&self, item_id: u32) -> Option<&IndexEntry> {
+        self.entries
+            .iter()
+            .find(|e| e.item_id == item_id && e.state == LIVE_STATE)
+    }
+
+    /// Clone the live index entry for `item_id` as the working copy for a
+    /// candidate mutation (prepare-then-commit).
+    pub(crate) fn entry_for_update(&self, item_id: u32) -> Result<IndexEntry> {
+        self.live_entry(item_id)
+            .cloned()
+            .ok_or_else(|| Error::Encrypt(format!("no such item {item_id}")))
+    }
+
+    /// Apply a prepared import in one commit: adds install via
+    /// [`Vault::add_item`] and updates replace the cached records, then a
+    /// single `save` publishes everything. On failure the session keeps its
+    /// prior state (except records cached by the pre-validating `open_item`
+    /// calls, which mirror the committed disk bytes).
+    pub(crate) fn commit_import(
+        &mut self,
+        adds: Vec<(String, String, ItemRecord)>,
+        updates: Vec<(u32, ItemRecord)>,
+    ) -> Result<()> {
+        for (title, username, record) in adds {
+            self.add_item(title, username, record)?;
+        }
+        for (slot, record) in updates {
+            self.open_items.insert(slot, record);
+        }
+        self.save()
+    }
     /// Decrypt one item into `open_items`.
     pub fn open_item(&mut self, item_id: u32) -> Result<()> {
         // Even a cached record must not conceal a corrupted or stale disk commit.
@@ -374,6 +441,74 @@ impl Vault {
         } else {
             Err(Error::Encrypt(format!("no such item {item_id}")))
         }
+    }
+    /// Clone the decrypted record for `item_id` as the working copy for a
+    /// candidate edit. The session cache keeps the original until a commit
+    /// replaces it, so a failed candidate leaves the session untouched.
+    pub(crate) fn record_for_update(&mut self, item_id: u32) -> Result<(IndexEntry, ItemRecord)> {
+        let entry = self.entry_for_update(item_id)?;
+        self.open_item(item_id)?;
+        let record = self
+            .open_items
+            .get(&entry.slot)
+            .cloned()
+            .ok_or_else(|| Error::Encrypt("item not open".into()))?;
+        Ok((entry, record))
+    }
+
+    /// Commit an edited entry: the prepared index metadata and record replace
+    /// the session's state only after `save` succeeds. On failure the
+    /// in-memory session and the cached original record are restored.
+    pub(crate) fn commit_entry(
+        &mut self,
+        item_id: u32,
+        title: String,
+        username: String,
+        record: ItemRecord,
+    ) -> Result<()> {
+        let stored = self
+            .entries
+            .iter()
+            .position(|stored| stored.item_id == item_id)
+            .ok_or_else(|| Error::Encrypt("entry vanished".into()))?;
+        let slot = self.entries[stored].slot;
+        let old_title = std::mem::replace(&mut self.entries[stored].title, title);
+        let old_username = std::mem::replace(&mut self.entries[stored].username, username);
+        let old_record = self.open_items.insert(slot, record);
+        if let Err(error) = self.save() {
+            self.entries[stored].title = old_title;
+            self.entries[stored].username = old_username;
+            if let Some(old_record) = old_record {
+                self.open_items.insert(slot, old_record);
+            }
+            return Err(error);
+        }
+        Ok(())
+    }
+
+    /// Commit a deletion: the entry is tombstoned and the cached record
+    /// dropped only after `save` succeeds; on failure both are restored so
+    /// the item stays live and readable in the session.
+    pub(crate) fn commit_tombstone(&mut self, item_id: u32) -> Result<()> {
+        let slot = self
+            .live_entry(item_id)
+            .map(|entry| entry.slot)
+            .ok_or_else(|| Error::Encrypt(format!("no such item {item_id}")))?;
+        let stored = self
+            .entries
+            .iter()
+            .position(|stored| stored.item_id == item_id)
+            .ok_or_else(|| Error::Encrypt("entry vanished".into()))?;
+        let cached = self.open_items.remove(&slot);
+        let old_state = std::mem::replace(&mut self.entries[stored].state, TOMBSTONE_STATE);
+        if let Err(error) = self.save() {
+            self.entries[stored].state = old_state;
+            if let Some(record) = cached {
+                self.open_items.insert(slot, record);
+            }
+            return Err(error);
+        }
+        Ok(())
     }
 
     /// Authenticate and parse every item frame without retaining plaintext.
@@ -423,7 +558,7 @@ impl Vault {
         )
     }
 
-    fn authenticate_current(&self, bytes: &[u8], disk_dek: &SecretVec) -> Result<()> {
+    fn authenticate_current(&self, bytes: &[u8], disk_dek: &Key32) -> Result<()> {
         let tag = authenticate_snapshot(bytes, disk_dek)?;
         if self.last_disk_tag != Some(tag) {
             return Err(Error::Stale);
@@ -439,17 +574,13 @@ impl Vault {
     }
 
     /// Acquire the vault write lock before rebuilding the complete file.
-    fn save_with_header(&mut self, header: &ParsedHeader, disk_dek: &SecretVec) -> Result<()> {
+    fn save_with_header(&mut self, header: &ParsedHeader, disk_dek: &Key32) -> Result<()> {
         let _lock = acquire_write_lock(&self.path)?;
         self.save_with_header_locked(header, disk_dek)
     }
 
     /// Write the complete file while the caller holds the write lock.
-    fn save_with_header_locked(
-        &mut self,
-        header: &ParsedHeader,
-        disk_dek: &SecretVec,
-    ) -> Result<()> {
+    fn save_with_header_locked(&mut self, header: &ParsedHeader, disk_dek: &Key32) -> Result<()> {
         let old = if self.path.exists() {
             read_vault_bytes(&self.path)?
         } else {
@@ -662,7 +793,7 @@ impl Vault {
     fn read_index_entries_with(
         raw: &[u8],
         header: &parse::ParsedHeader,
-        dek: &SecretVec,
+        dek: &Key32,
         item_alg: Algorithm,
     ) -> Result<(Vec<IndexEntry>, usize)> {
         let mut cursor = HEADER_LEN;
@@ -781,7 +912,7 @@ impl Vault {
         let new_params = KdfParams::default();
         let kdf_salt = random_salt();
         let new_kek = crate::crypto::kdf::Kdf::new(new_params).derive(password, &kdf_salt)?;
-        let new_dek = SecretVec::new(random_dek().to_vec().into_boxed_slice());
+        let new_dek = random_dek();
         let header = ParsedHeader {
             version: self.header.version,
             kdf_id: 0x01,
@@ -849,7 +980,7 @@ impl Vault {
 /// drop as usual.
 pub struct VaultSnapshot {
     header: VaultCryptoConfig,
-    dek: SecretVec,
+    dek: Key32,
     frames: Vec<Vec<u8>>,
 }
 
@@ -880,7 +1011,7 @@ impl VaultSnapshot {
 }
 
 fn decrypt_item_frame_with(
-    dek: &SecretVec,
+    dek: &Key32,
     item_alg: Algorithm,
     version: u8,
     frame: &[u8],
@@ -965,7 +1096,7 @@ fn item_plaintext_len(record: &ItemRecord) -> usize {
         + record.totp.as_ref().map_or(0, |t| 13 + t.secret.len())
 }
 
-fn file_mac(bytes: &[u8], dek: &SecretVec) -> Result<[u8; FILE_MAC_LEN]> {
+fn file_mac(bytes: &[u8], dek: &Key32) -> Result<[u8; FILE_MAC_LEN]> {
     let mut key = Zeroizing::new([0u8; FILE_MAC_LEN]);
     Hkdf::<Sha256>::new(None, dek.expose_secret())
         .expand(b"latchkey/v2/file-mac", &mut *key)
@@ -976,7 +1107,7 @@ fn file_mac(bytes: &[u8], dek: &SecretVec) -> Result<[u8; FILE_MAC_LEN]> {
     Ok(mac.finalize().into_bytes().into())
 }
 
-fn authenticate_snapshot(bytes: &[u8], dek: &SecretVec) -> Result<[u8; FILE_MAC_LEN]> {
+fn authenticate_snapshot(bytes: &[u8], dek: &Key32) -> Result<[u8; FILE_MAC_LEN]> {
     parse::parse_header(bytes)?;
     let trailer_start = bytes
         .len()

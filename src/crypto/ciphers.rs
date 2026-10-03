@@ -1,10 +1,9 @@
 use aes_gcm::aead::{Aead, KeyInit, Payload};
 use aes_gcm::{Aes256Gcm, Key as AesKey, Nonce as AesNonce};
 use chacha20poly1305::{ChaCha20Poly1305, Key as ChaKey, Nonce as ChaNonce};
-use secrecy::ExposeSecret;
 
 use crate::crypto::error::{Error, Result};
-use crate::crypto::kdf::SecretVec;
+use crate::crypto::keys::Key32;
 
 pub const NONCE_LEN: usize = 12;
 pub const DEK_LEN: usize = 32;
@@ -51,25 +50,23 @@ impl AeadCipher {
     /// aead crate).
     pub fn encrypt_raw(
         &self,
-        key: &SecretVec,
+        key: &Key32,
         nonce: &[u8; NONCE_LEN],
         plaintext: &[u8],
         aad: &[u8],
     ) -> Result<Vec<u8>> {
-        let k: &[u8; DEK_LEN] = key.expose_secret().as_ref().try_into().unwrap();
-        self.encrypt_with_aad(k, nonce, plaintext, aad)
+        self.encrypt_with_aad(key.expose(), nonce, plaintext, aad)
     }
 
     /// Inverse of `encrypt_raw`.
     pub fn decrypt_raw(
         &self,
-        key: &SecretVec,
+        key: &Key32,
         nonce: &[u8; NONCE_LEN],
         ciphertext: &[u8],
         aad: &[u8],
     ) -> Result<Vec<u8>> {
-        let k: &[u8; DEK_LEN] = key.expose_secret().as_ref().try_into().unwrap();
-        self.decrypt_with_aad(k, nonce, ciphertext, aad)
+        self.decrypt_with_aad(key.expose(), nonce, ciphertext, aad)
     }
 
     fn encrypt_with_aad(
@@ -150,7 +147,7 @@ mod tests {
 
     fn roundtrip(alg: Algorithm) {
         let cipher = AeadCipher::new(alg);
-        let key = SecretVec::new(random_dek().to_vec().into_boxed_slice());
+        let key = random_dek();
         let nonce = [7u8; NONCE_LEN];
         let ct = cipher.encrypt_raw(&key, &nonce, b"secret", b"aad").unwrap();
         assert_eq!(
@@ -163,7 +160,7 @@ mod tests {
         assert!(cipher.decrypt_raw(&key, &nonce, &tampered, b"aad").is_err());
         assert!(cipher.decrypt_raw(&key, &nonce, &ct, b"other-aad").is_err());
 
-        let wrong_key = SecretVec::new(random_dek().to_vec().into_boxed_slice());
+        let wrong_key = random_dek();
         assert!(cipher.decrypt_raw(&wrong_key, &nonce, &ct, b"aad").is_err());
     }
 

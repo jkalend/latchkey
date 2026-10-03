@@ -225,7 +225,7 @@ fn build_plan(vault: &Vault, parsed: ParsedImport) -> Result<Plan> {
     for record in parsed.records {
         let duplicate_count = file_counts.get(&record.title).copied().unwrap_or(0);
         let live: Vec<_> = vault
-            .entries
+            .entries()
             .iter()
             .filter(|entry| entry.state == LIVE_STATE && entry.title == record.title)
             .collect();
@@ -826,14 +826,18 @@ mod tests {
         apply(&mut v, plan).unwrap();
 
         // The update preserved item_id and created_unix, replaced secrets.
-        let updated = v.entries.iter().find(|e| e.title == "one.example").unwrap();
-        let rec = v.open_items.get(&updated.slot).unwrap();
+        let updated = v
+            .entries()
+            .iter()
+            .find(|e| e.title == "one.example")
+            .unwrap();
+        let rec = v.open_record(updated.slot).unwrap();
         assert_eq!(rec.password.as_deref(), Some(b"new-pw".as_ref()));
         assert_eq!(rec.created_unix, 111);
         // The collision became a third 'dup'.
-        assert_eq!(v.entries.iter().filter(|e| e.title == "dup").count(), 3);
+        assert_eq!(v.entries().iter().filter(|e| e.title == "dup").count(), 3);
         // next_item_id never reused a file id (9/10/11 are ignored).
-        assert!(v.next_item_id >= 4);
+        assert!(v.next_item_id() >= 4);
 
         let _ = std::fs::remove_dir_all(&dir);
     }
@@ -967,18 +971,22 @@ mod tests {
         import_format_into(&mut vault, "keepassxc-csv", fixture, false, true).unwrap();
         drop(vault);
         let mut reopened = Vault::open(&path, &password).unwrap();
-        assert_eq!(reopened.entries.len(), 2);
+        assert_eq!(reopened.entries().len(), 2);
         let item_id = reopened
-            .entries
+            .entries()
             .iter()
             .find(|entry| entry.title == "KeePassXC Login")
             .unwrap()
             .item_id;
         reopened.open_item(item_id).unwrap();
         assert!(reopened
-            .open_items
-            .values()
-            .any(|record| record.password.as_deref() == Some(b"open-sesame".as_slice())));
+            .entries()
+            .iter()
+            .any(|entry| entry.state == LIVE_STATE
+                && reopened
+                    .open_record(entry.slot)
+                    .map(|record| record.password.as_deref() == Some(b"open-sesame".as_slice()))
+                    .unwrap_or(false)));
         let _ = std::fs::remove_file(path);
     }
 
@@ -1010,7 +1018,7 @@ mod tests {
             "{error}"
         );
         assert_eq!(std::fs::read(&path).unwrap(), before);
-        assert!(vault.entries.is_empty());
+        assert!(vault.entries().is_empty());
         let _ = std::fs::remove_file(path);
     }
 }

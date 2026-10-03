@@ -13,7 +13,7 @@ pub fn resolve_title(vault: &Vault, title: &str, item_id: Option<u32>) -> Result
     // --id bypasses title matching entirely (CLI_REFERENCE `latchkey get`).
     if let Some(id) = item_id {
         return vault
-            .entries
+            .entries()
             .iter()
             .find(|e| e.item_id == id && e.state == LIVE_STATE)
             .cloned()
@@ -21,7 +21,7 @@ pub fn resolve_title(vault: &Vault, title: &str, item_id: Option<u32>) -> Result
     }
 
     let matches: Vec<&IndexEntry> = vault
-        .entries
+        .entries()
         .iter()
         .filter(|e| e.state == LIVE_STATE && e.title == title)
         .collect();
@@ -36,7 +36,7 @@ pub fn resolve_title(vault: &Vault, title: &str, item_id: Option<u32>) -> Result
 fn no_match(vault: &Vault, title: &str) -> CliError {
     // Rank similar titles by case-insensitive substring, then prefix.
     let mut similar: Vec<(usize, &str)> = vault
-        .entries
+        .entries()
         .iter()
         .filter(|e| e.state == LIVE_STATE)
         .map(|e| e.title.as_str())

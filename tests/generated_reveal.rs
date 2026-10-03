@@ -61,12 +61,12 @@ fn stored_password(path: &Path, item_id: u32) -> String {
     let mut vault = Vault::open(path, &password("gen-master")).unwrap();
     vault.open_item(item_id).unwrap();
     let entry = vault
-        .entries
+        .entries()
         .iter()
         .find(|e| e.item_id == item_id)
         .unwrap()
         .clone();
-    let record = vault.open_items.get(&entry.slot).unwrap();
+    let record = vault.open_record(entry.slot).unwrap();
     String::from_utf8(record.password.clone().unwrap()).unwrap()
 }
 

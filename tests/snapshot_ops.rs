@@ -62,8 +62,8 @@ fn snapshot_serves_bulk_reads_and_rejects_disk_changes() {
 
     // The snapshot decrypts every record from one image.
     let snapshot = vault.snapshot().unwrap();
-    assert_eq!(snapshot.frame_count(), vault.entries.len());
-    for entry in vault.entries.clone() {
+    assert_eq!(snapshot.frame_count(), vault.entries().len());
+    for entry in vault.entries().to_vec() {
         let rec = snapshot.decrypt_item(&entry).unwrap();
         assert_eq!(
             rec.password.as_deref(),
@@ -81,9 +81,13 @@ fn snapshot_serves_bulk_reads_and_rejects_disk_changes() {
     for id in ids {
         reopened.open_item(id).unwrap();
     }
-    let entry = reopened.entries[0].clone();
+    let entry = reopened.entries()[0].clone();
     assert_eq!(
-        reopened.open_items[&entry.slot].password.as_deref(),
+        reopened
+            .open_record(entry.slot)
+            .unwrap()
+            .password
+            .as_deref(),
         Some(vec![b'a'; 24].as_slice()),
         "rotation must preserve record content"
     );

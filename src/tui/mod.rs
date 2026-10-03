@@ -223,7 +223,7 @@ impl App {
             return Vec::new();
         };
         let q = self.search.to_lowercase();
-        v.entries
+        v.entries()
             .iter()
             .filter(|e| e.state == crate::vault::shape::LIVE_STATE)
             .filter(|e| {
@@ -616,7 +616,7 @@ fn start_edit(app: &mut App, item_id: u32) {
         return;
     };
     let Some(entry) = vault
-        .entries
+        .entries()
         .iter()
         .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
         .cloned()
@@ -628,7 +628,7 @@ fn start_edit(app: &mut App, item_id: u32) {
         app.status = format!("open item: {error}");
         return;
     }
-    let Some(record) = vault.open_items.get(&entry.slot) else {
+    let Some(record) = vault.open_record(entry.slot) else {
         app.status = "item not open".into();
         return;
     };
@@ -826,7 +826,7 @@ fn copy_password(app: &mut App, item_id: u32) {
         return;
     };
     let entry = vault
-        .entries
+        .entries()
         .iter()
         .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
         .cloned();
@@ -837,7 +837,7 @@ fn copy_password(app: &mut App, item_id: u32) {
         app.status = format!("open item: {error}");
         return;
     }
-    let Some(record) = vault.open_items.get(&entry.slot) else {
+    let Some(record) = vault.open_record(entry.slot) else {
         return;
     };
     let Some(password) = record.password.clone() else {
@@ -852,7 +852,7 @@ fn copy_totp(app: &mut App, item_id: u32) {
         return;
     };
     let entry = vault
-        .entries
+        .entries()
         .iter()
         .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
         .cloned();
@@ -863,7 +863,7 @@ fn copy_totp(app: &mut App, item_id: u32) {
         app.status = format!("open item: {error}");
         return;
     }
-    let Some(record) = vault.open_items.get(&entry.slot) else {
+    let Some(record) = vault.open_record(entry.slot) else {
         return;
     };
     let Some(params) = record.totp.as_ref() else {
@@ -960,7 +960,7 @@ fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
         return;
     };
     let Some(entry) = vault
-        .entries
+        .entries()
         .iter()
         .find(|entry| entry.item_id == item_id && entry.state == crate::vault::shape::LIVE_STATE)
         .cloned()
@@ -968,7 +968,7 @@ fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
         return;
     };
     if let Some(vault) = app.vault.as_mut() {
-        if !vault.open_items.contains_key(&entry.slot) {
+        if vault.open_record(entry.slot).is_none() {
             if let Err(error) = vault.open_item(item_id) {
                 app.status = format!("could not decrypt item: {error}");
                 return;
@@ -978,7 +978,7 @@ fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
     let Some(vault) = app.vault.as_ref() else {
         return;
     };
-    let Some(record) = vault.open_items.get(&entry.slot) else {
+    let Some(record) = vault.open_record(entry.slot) else {
         return;
     };
 
@@ -1091,11 +1091,12 @@ fn draw_form(f: &mut Frame, app: &App, area: Rect) {
 }
 
 fn draw_delete(f: &mut Frame, app: &App, item_id: u32, area: Rect) {
-    let Some(entry) = app
-        .vault
-        .as_ref()
-        .and_then(|vault| vault.entries.iter().find(|entry| entry.item_id == item_id))
-    else {
+    let Some(entry) = app.vault.as_ref().and_then(|vault| {
+        vault
+            .entries()
+            .iter()
+            .find(|entry| entry.item_id == item_id)
+    }) else {
         return;
     };
     let text = vec![
@@ -1238,9 +1239,9 @@ mod tests {
         drop(app);
 
         let mut reopened = Vault::open(&path, &password).unwrap();
-        let entry = reopened.entries[0].clone();
+        let entry = reopened.entries()[0].clone();
         reopened.open_item(entry.item_id).unwrap();
-        let record = &reopened.open_items[&entry.slot];
+        let record = reopened.open_record(entry.slot).unwrap();
         assert_eq!(entry.title, "example.com");
         assert_eq!(entry.username, "alice");
         assert_eq!(record.password.as_deref(), Some(b"secret".as_slice()));
@@ -1299,11 +1300,11 @@ mod tests {
         assert!(matches!(app.mode, Mode::Detail { .. }));
         let vault = app.vault.as_ref().unwrap();
         let entry = vault
-            .entries
+            .entries()
             .iter()
             .find(|entry| entry.item_id == item_id)
             .unwrap();
-        let record = &vault.open_items[&entry.slot];
+        let record = vault.open_record(entry.slot).unwrap();
         assert_eq!(entry.title, "new.example");
         assert_eq!(entry.username, "bob");
         assert_eq!(record.password.as_deref(), Some(b"new-secret".as_slice()));
@@ -1320,7 +1321,7 @@ mod tests {
         drop(app);
         let reopened = Vault::open(&path, &password).unwrap();
         assert_eq!(
-            reopened.entries[0].state,
+            reopened.entries()[0].state,
             crate::vault::shape::TOMBSTONE_STATE
         );
         let _ = std::fs::remove_file(path);

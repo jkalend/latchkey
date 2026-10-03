@@ -115,12 +115,12 @@ fn external_import_preview_list_and_delete_escape_metadata_without_changing_data
     assert_terminal_safe(&imported.stderr);
     let id = {
         let mut vault = Vault::open(&path, &master).unwrap();
-        assert_eq!(vault.entries[0].title, title);
-        assert_eq!(vault.entries[0].username, username);
-        let entry = vault.entries[0].clone();
+        assert_eq!(vault.entries()[0].title, title);
+        assert_eq!(vault.entries()[0].username, username);
+        let entry = vault.entries()[0].clone();
         vault.open_item(entry.item_id).unwrap();
         assert_eq!(
-            vault.open_items[&entry.slot].password.as_deref(),
+            vault.open_record(entry.slot).unwrap().password.as_deref(),
             Some(b"secret\x1b[2J".as_slice())
         );
         entry.item_id.to_string()
@@ -243,7 +243,7 @@ fn migrate_is_explicit_preserves_source_and_refuses_existing_destinations() {
     assert_eq!(std::fs::read(&source).unwrap(), original);
     let mut vault = Vault::open(&target, &password(input.trim_end())).unwrap();
     let entry = vault
-        .entries
+        .entries()
         .iter()
         .find(|entry| entry.item_id == 1)
         .unwrap()
@@ -252,7 +252,7 @@ fn migrate_is_explicit_preserves_source_and_refuses_existing_destinations() {
     assert_eq!(entry.username, "alice");
     vault.open_item(entry.item_id).unwrap();
     assert_eq!(
-        vault.open_items[&entry.slot].password.as_deref(),
+        vault.open_record(entry.slot).unwrap().password.as_deref(),
         Some(b"correct horse battery staple".as_slice())
     );
     drop(vault);

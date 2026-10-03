@@ -1226,7 +1226,10 @@ fn cmd_export(
         ));
     }
 
-    let (mut vault, _pw) = open_vault(path, context)?;
+    let (vault, _pw) = open_vault(path, context)?;
+    let snapshot = vault
+        .snapshot()
+        .map_err(|e| CliError::Other(e.to_string()))?;
     let mut items: Zeroizing<Vec<String>> = Zeroizing::new(Vec::new());
     let live: Vec<crate::vault::shape::IndexEntry> = vault
         .entries
@@ -1236,14 +1239,9 @@ fn cmd_export(
         .collect();
 
     for e in &live {
-        vault
-            .open_item(e.item_id)
+        let rec = snapshot
+            .decrypt_item(e)
             .map_err(|er| CliError::Other(er.to_string()))?;
-        let rec = vault
-            .open_items
-            .get(&e.slot)
-            .ok_or_else(|| CliError::Other("item not open".into()))?
-            .clone();
         // The export schema is UTF-8 JSON: a non-UTF-8 secret would be
         // silently corrupted (U+FFFD) and a re-import would overwrite the
         // real bytes with the damage. Refuse instead — same policy as

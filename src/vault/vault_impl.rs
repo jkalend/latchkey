@@ -323,6 +323,29 @@ impl Vault {
         Ok(vault)
     }
 
+    /// One authenticated, immutable disk image for bulk read operations
+    /// (export, rotation). The file is read, MAC-verified against the
+    /// session's committed tag, and frame-split exactly once; records
+    /// decrypt on demand from the image — no per-item re-read.
+    pub fn snapshot(&self) -> Result<VaultSnapshot> {
+        let bytes = read_vault_bytes(&self.path)?;
+        self.authenticate_current(&bytes, &self.dek)?;
+        let frames = Self::split_item_frames_with_layout(&bytes, true, TRAILER_LEN)?
+            .into_iter()
+            .map(<[u8]>::to_vec)
+            .collect::<Vec<_>>();
+        if frames.len() != self.entries.len() {
+            return Err(Error::Encrypt(
+                "index entry count does not match item frame count".into(),
+            ));
+        }
+        Ok(VaultSnapshot {
+            header: self.header.clone(),
+            dek: self.dek.clone(),
+            frames,
+        })
+    }
+
     /// Decrypt one item into `open_items`.
     pub fn open_item(&mut self, item_id: u32) -> Result<()> {
         // Even a cached record must not conceal a corrupted or stale disk commit.
@@ -391,43 +414,13 @@ impl Vault {
     }
 
     fn decrypt_item_frame(&self, frame: &[u8], item_id: u32) -> Result<ItemRecord> {
-        let nonce: [u8; NONCE_LEN] = frame
-            .get(..NONCE_LEN)
-            .and_then(|bytes| bytes.try_into().ok())
-            .ok_or_else(|| Error::Encrypt("truncated item nonce".into()))?;
-        let ct_len = u32::from_be_bytes(
-            frame
-                .get(NONCE_LEN..NONCE_LEN + 4)
-                .and_then(|bytes| bytes.try_into().ok())
-                .ok_or_else(|| Error::Encrypt("truncated item ciphertext length".into()))?,
-        ) as usize;
-        let ct_end = NONCE_LEN
-            .checked_add(4)
-            .and_then(|start| start.checked_add(ct_len))
-            .ok_or_else(|| Error::Encrypt("item ciphertext length overflow".into()))?;
-        let ct = frame
-            .get(NONCE_LEN + 4..ct_end)
-            .ok_or_else(|| Error::Encrypt("truncated item ciphertext".into()))?;
-        let tag = frame
-            .get(ct_end..)
-            .ok_or_else(|| Error::Encrypt("truncated item tag".into()))?;
-        let mut ct_with_tag = Vec::with_capacity(ct.len() + tag.len());
-        ct_with_tag.extend_from_slice(ct);
-        ct_with_tag.extend_from_slice(tag);
-
-        let pt = Zeroizing::new(AeadCipher::new(self.header.item_alg).decrypt_raw(
+        decrypt_item_frame_with(
             &self.dek,
-            &nonce,
-            &ct_with_tag,
-            &item_aad(self.header.version, item_id),
-        )?);
-        let (record, embedded_id) = parse_item(&pt)?;
-        if embedded_id != item_id {
-            return Err(Error::Encrypt(format!(
-                "item id mismatch: index={item_id}, body={embedded_id}"
-            )));
-        }
-        Ok(record)
+            self.header.item_alg,
+            self.header.version,
+            frame,
+            item_id,
+        )
     }
 
     fn authenticate_current(&self, bytes: &[u8], disk_dek: &SecretVec) -> Result<()> {
@@ -767,18 +760,23 @@ impl Vault {
     }
 
     /// Rotate the DEK, KDF salt, and password-derived KEK. Every live item is
-    /// opened before the key swap so no old-DEK frame can be copied.
+    /// decrypted from one authenticated snapshot before the key swap so no
+    /// old-DEK frame can be copied.
     pub fn rotate(&mut self, password: &SecretVec) -> Result<()> {
-        let item_ids: Vec<u32> = self
-            .entries
-            .iter()
-            .filter(|e| e.state == LIVE_STATE)
-            .map(|e| e.item_id)
-            .collect();
-        for item_id in item_ids {
-            self.open_item(item_id)?;
+        // One authenticated read: decrypt every live record up front, then
+        // install them into the cache so save() re-encrypts them under the
+        // new DEK. No per-item re-read of the file.
+        let snapshot = self.snapshot()?;
+        let mut live_records = std::collections::BTreeMap::new();
+        for entry in self.entries.clone() {
+            if entry.state == LIVE_STATE {
+                let record = snapshot.decrypt_item(&entry)?;
+                live_records.insert(entry.slot, record);
+            }
         }
-
+        for (slot, record) in live_records {
+            self.open_items.insert(slot, record);
+        }
         let old_dek = self.dek.clone();
         let new_params = KdfParams::default();
         let kdf_salt = random_salt();
@@ -842,6 +840,89 @@ impl Vault {
         }
         Ok(())
     }
+}
+
+/// A single authenticated, immutable image of the vault file, taken from one
+/// `Vault` session. Created by [`Vault::snapshot`]. The complete file is
+/// read and MAC-verified once against the session's committed tag; frames
+/// are located once and decrypted on demand. Each decrypted record wipes on
+/// drop as usual.
+pub struct VaultSnapshot {
+    header: VaultCryptoConfig,
+    dek: SecretVec,
+    frames: Vec<Vec<u8>>,
+}
+
+impl VaultSnapshot {
+    /// Decrypt one item's record from this image without touching the
+    /// session cache. Embedded IDs are cross-checked as in `open_item`.
+    pub fn decrypt_item(&self, entry: &IndexEntry) -> Result<ItemRecord> {
+        let slot = usize::try_from(entry.slot)
+            .map_err(|_| Error::Encrypt("item slot is out of range".into()))?;
+        let frame = self
+            .frames
+            .get(slot)
+            .ok_or_else(|| Error::Encrypt(format!("slot {} out of range", entry.slot)))?;
+        decrypt_item_frame_with(
+            &self.dek,
+            self.header.item_alg,
+            self.header.version,
+            frame,
+            entry.item_id,
+        )
+    }
+
+    /// Frame count in this image (matches the session's index length —
+    /// verified by the commit-tag match in `Vault::snapshot`).
+    pub fn frame_count(&self) -> usize {
+        self.frames.len()
+    }
+}
+
+fn decrypt_item_frame_with(
+    dek: &SecretVec,
+    item_alg: Algorithm,
+    version: u8,
+    frame: &[u8],
+    item_id: u32,
+) -> Result<ItemRecord> {
+    let nonce: [u8; NONCE_LEN] = frame
+        .get(..NONCE_LEN)
+        .and_then(|bytes| bytes.try_into().ok())
+        .ok_or_else(|| Error::Encrypt("truncated item nonce".into()))?;
+    let ct_len = u32::from_be_bytes(
+        frame
+            .get(NONCE_LEN..NONCE_LEN + 4)
+            .and_then(|bytes| bytes.try_into().ok())
+            .ok_or_else(|| Error::Encrypt("truncated item ciphertext length".into()))?,
+    ) as usize;
+    let ct_end = NONCE_LEN
+        .checked_add(4)
+        .and_then(|start| start.checked_add(ct_len))
+        .ok_or_else(|| Error::Encrypt("item ciphertext length overflow".into()))?;
+    let ct = frame
+        .get(NONCE_LEN + 4..ct_end)
+        .ok_or_else(|| Error::Encrypt("truncated item ciphertext".into()))?;
+    let tag = frame
+        .get(ct_end..)
+        .ok_or_else(|| Error::Encrypt("truncated item tag".into()))?;
+    let mut ct_with_tag = Vec::with_capacity(ct.len() + tag.len());
+    ct_with_tag.extend_from_slice(ct);
+    ct_with_tag.extend_from_slice(tag);
+
+    let pt = Zeroizing::new(AeadCipher::new(item_alg).decrypt_raw(
+        dek,
+        &nonce,
+        &ct_with_tag,
+        &item_aad(version, item_id),
+    )?);
+    let (record, embedded_id) = parse_item(&pt)?;
+    if embedded_id != item_id {
+        return Err(Error::Encrypt(format!(
+            "item id mismatch: index={item_id}, body={embedded_id}"
+        )));
+    }
+    Ok(record)
 }
 
 fn read_vault_bytes(path: &Path) -> Result<Vec<u8>> {

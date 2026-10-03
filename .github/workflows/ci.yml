@@ -16,11 +16,15 @@ jobs:
     name: fmt + clippy (ubuntu)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.98
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # dtolnay/rust-toolchain branch 1.98
+      - uses: dtolnay/rust-toolchain@c6590455eca8e79d081430ebfe2074192ae90290
         with:
+          toolchain: 1.98
           components: rustfmt, clippy
-      - uses: Swatinem/rust-cache@v2
+      # Swatinem/rust-cache v2.9.2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       - name: rustfmt
         run: cargo fmt --check
       - name: clippy
@@ -30,9 +34,14 @@ jobs:
     name: test (windows)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.98
-      - uses: Swatinem/rust-cache@v2
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # dtolnay/rust-toolchain branch 1.98
+      - uses: dtolnay/rust-toolchain@c6590455eca8e79d081430ebfe2074192ae90290
+        with:
+          toolchain: 1.98
+      # Swatinem/rust-cache v2.9.2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       - name: cargo test
         run: cargo test --locked
       - name: cargo build (binary)
@@ -42,9 +51,14 @@ jobs:
     name: test (ubuntu)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.98
-      - uses: Swatinem/rust-cache@v2
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # dtolnay/rust-toolchain branch 1.98
+      - uses: dtolnay/rust-toolchain@c6590455eca8e79d081430ebfe2074192ae90290
+        with:
+          toolchain: 1.98
+      # Swatinem/rust-cache v2.9.2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       - name: cargo test
         run: cargo test --locked
       - name: cargo build (binary)
@@ -54,8 +68,12 @@ jobs:
     name: cargo audit + deny
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.98
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # dtolnay/rust-toolchain branch 1.98
+      - uses: dtolnay/rust-toolchain@c6590455eca8e79d081430ebfe2074192ae90290
+        with:
+          toolchain: 1.98
       - name: install cargo-audit
         run: cargo install cargo-audit --locked
       - name: cargo audit
@@ -70,7 +88,8 @@ jobs:
     name: no-network grep (ADR-0005)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: no socket APIs in src/
         run: |
           ! grep -rniE "std::net|TcpStream|UdpSocket|SocketAddr" src/

@@ -86,3 +86,18 @@ into its release directory, and runs `--version` plus temporary-vault
       (SECURITY.md's reporting path depends on it)
 - [ ] `Cargo.toml` version matches the tag; review generated release notes
 - [ ] Packaged binary smoke passes on both release runners
+
+### Verifying release artifacts
+
+Every release archive is attested with GitHub build provenance. Verify a
+downloaded artifact against the repository:
+
+```console
+gh attestation verify latchkey-v0.4.0-x86_64-pc-windows-msvc.zip --repo jkalend/latchkey
+gh attestation verify latchkey-v0.4.0-x86_64-unknown-linux-gnu.tar.gz --repo jkalend/latchkey
+```
+
+Check the SHA-256 against `SHA256SUMS` on the release page as well. All
+workflow actions are pinned by full commit SHA (see
+`.github/workflows/`); updates go through a review that re-resolves the
+tag to its upstream commit.

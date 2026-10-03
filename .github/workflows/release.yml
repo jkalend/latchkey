@@ -12,8 +12,12 @@ jobs:
     name: Verify release tag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.98
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # dtolnay/rust-toolchain branch 1.98
+      - uses: dtolnay/rust-toolchain@c6590455eca8e79d081430ebfe2074192ae90290
+        with:
+          toolchain: 1.98
       - name: Match tag to Cargo package version
         run: |
           version="$(cargo metadata --locked --no-deps --format-version 1 |
@@ -25,9 +29,14 @@ jobs:
     runs-on: ubuntu-latest
     needs: metadata
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.98
-      - uses: Swatinem/rust-cache@v2
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # dtolnay/rust-toolchain branch 1.98
+      - uses: dtolnay/rust-toolchain@c6590455eca8e79d081430ebfe2074192ae90290
+        with:
+          toolchain: 1.98
+      # Swatinem/rust-cache v2.9.2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       - run: cargo build --release --locked --target x86_64-unknown-linux-gnu
       - name: Package and smoke copied binary
         env:
@@ -56,7 +65,8 @@ jobs:
           [[ "$check_output" == *"records: 1 live, 0 tombstone"* ]]
 
           tar -czf "${dir}.tar.gz" "$dir"
-      - uses: actions/upload-artifact@v4
+      # actions/upload-artifact v4.7.0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: linux-release
           path: latchkey-*.tar.gz
@@ -67,9 +77,14 @@ jobs:
     runs-on: windows-latest
     needs: metadata
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@1.98
-      - uses: Swatinem/rust-cache@v2
+      # actions/checkout v4.4.0
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      # dtolnay/rust-toolchain branch 1.98
+      - uses: dtolnay/rust-toolchain@c6590455eca8e79d081430ebfe2074192ae90290
+        with:
+          toolchain: 1.98
+      # Swatinem/rust-cache v2.9.2
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
       - run: cargo build --release --locked --target x86_64-pc-windows-msvc
       - name: Package and smoke copied binary
         shell: pwsh
@@ -109,27 +124,52 @@ jobs:
           Remove-Item $vault -Force
 
           Compress-Archive -Path $dir -DestinationPath "$dir.zip"
-      - uses: actions/upload-artifact@v4
+      # actions/upload-artifact v4.7.0
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: windows-release
           path: latchkey-*.zip
           if-no-files-found: error
 
-  publish:
-    name: Publish GitHub release
+  attest:
+    name: Attest build provenance
     needs: [linux, windows]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+      id-token: write
+      attestations: write
     steps:
-      - uses: actions/download-artifact@v4
+      # actions/download-artifact v4.3.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           path: dist
           merge-multiple: true
       - name: Write checksums
         working-directory: dist
         run: sha256sum *.tar.gz *.zip > SHA256SUMS
-      - uses: softprops/action-gh-release@v2
+      # actions/attest-build-provenance v3.2.0 — signs the exact release
+      # archive bytes (the digest matches the uploaded asset).
+      - uses: actions/attest-build-provenance@62fc1d596301d0ab9914e1fec14dc5c8d93f65cd
+        with:
+          subject-path: |
+            dist/*.tar.gz
+            dist/*.zip
+
+  publish:
+    name: Publish GitHub release
+    needs: [linux, windows, attest]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # actions/download-artifact v4.3.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          path: dist
+          merge-multiple: true
+      # softprops/action-gh-release v2.3.4
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           generate_release_notes: true
           files: dist/*

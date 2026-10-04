@@ -1,0 +1,8 @@
+{
+    "items": [
+  {"type":1   ,"name": "Bgi",
+     "login": {
+     "totp": "NY6TQOJ"}
+    }
+  ]
+}

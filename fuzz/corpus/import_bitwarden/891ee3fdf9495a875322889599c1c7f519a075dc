@@ -1,0 +1,19 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externalogin-",
+      "type": 1,
+      "name": "Bitwarn",
+      "nts": [{"id": "attach.txt"}],
+     "login": {
+      "totp": "otpauth://totp/Examce?secret=GE&digits=86period=30",
+       "fido2Credentials": [{"credential": "passkey-id"}]
+      }
+    },
+    {
+  
+    }
+  ]
+}

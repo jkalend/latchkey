@@ -1,0 +1,8 @@
+{
+
+  "fol": [],
+  "items": [  {
+ "type": 1,     "name": "B",
+  "login": {   "totp":"otpauth://totp/EBVQ"}
+  }
+  ]}

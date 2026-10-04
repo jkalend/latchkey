@@ -1,0 +1,9 @@
+{
+ "items": [
+   {     "type": 1,
+      "name": "Bitwarden Login",
+  "login": {
+     "totp": "otpauth://totp/Ee:lice?secret=EEEEEEEEEEEEEEEEEEEETQOJQ&riod=29"    }
+   }
+  ]
+}

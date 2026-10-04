@@ -1,0 +1,25 @@
+{
+  "encrypt": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login e",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+        "username": "a8lice",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    }, {
+      "type": 1,
+      "name": "Bitwte",
+      "me": "Bitwar note",
+ "login": {
+        "tstp": "otpauth://totp/Exae",
+               "totp": "otpauth://totp/ExamBVGY3TQOJQ&algorithgits=6&p=GEZDGNgin",
+      "notes": "login note",
+    "login": {
+      "BVGY3TQOJQMEZDGNBVGY3TQO&algorithgits=6&period=30",
+"identity": {"firstName ]
+}

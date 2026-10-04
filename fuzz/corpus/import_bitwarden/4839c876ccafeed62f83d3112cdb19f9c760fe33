@@ -1,0 +1,31 @@
+{
+  "encryptd": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",   "type": 1,
+      "name": "Bitward",
+      "atta&hments": [{"idName": "ignored.txt"}],
+           "login": {
+        "username": "horse",
+        "totp": "otpauth://totp/Example:e?secret=GEZDGNBVGY4TQOJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&digits=6&period=30",
+        "uro2Credenti^ls": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-n-id", 
+     "type": 1,
+      "name": "Bitwarden Login",
+  "attachments": [{"i": "d"}],
+      "login": {
+         "totp": "otpauth://totp/Example:alice?secret=GEHA1&digits=6&period=300",
+        "enti^ls": [{"credentialId": "passkey-i.d"}]
+      }
+    },
+    {
+      "id": "exteal-note-id",
+      "name": "Bien Spoenty",
+  "identity": {"firstName": "Eample"}
+    }
+  ]
+}

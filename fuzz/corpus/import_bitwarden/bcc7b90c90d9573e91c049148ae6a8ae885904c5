@@ -1,0 +1,10 @@
+{
+  "incrypted": [],
+  "items": [
+    {
+      "id": "exin-id",    "type": 1,
+      "name": "twagin",
+      "nields": [{"nae": "i"}],
+  "login": {
+    "totp": "otpauth://totp/Exampl?secret=GZDVGY2OJQ&=SHA1&"}  }]
+}

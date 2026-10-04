@@ -1,0 +1,15 @@
+{
+  "encrd": false,
+  "fders": [],
+  "items": [
+    {
+      "id": "exten-id",
+      "type": 1,
+      "name": "Bitwarin",
+   "fields": [{"value": "ignored"}],
+      "login": {
+        "password": "cose",
+        "totp": "ototp/Examplbbbbbbbple"}
+    }
+  ]
+}

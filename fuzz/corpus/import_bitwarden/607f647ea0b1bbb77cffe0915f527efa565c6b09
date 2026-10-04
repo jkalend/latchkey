@@ -1,0 +1,7 @@
+{    "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": {"u.ri": "https://account.example.c\\\\\\\\\\\\\\\\\\\\\\\\\\namhorse",
+        "totp": "otpauth://totp/Exam\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"} 
+   }
+  ]
+}

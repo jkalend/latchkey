@@ -1,0 +1,8 @@
+{"digitss": [],
+  "items": [
+{   "type": 1,  "name": "war",
+   "login": {
+    "totp": "otpauth://totp/Ee?sec?t=yyyyyyy&&&&V0"}
+    }
+  ]
+}

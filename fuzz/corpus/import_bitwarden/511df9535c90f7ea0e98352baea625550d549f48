@@ -1,0 +1,12 @@
+{
+ "encry": false,
+  
+  "items": [
+  {
+  
+    "type": 1,
+     "name": "BitwaR Login",
+    "login": {  "totp": "otpauth://totp/Ee?secret=&period=0"}
+   }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "encrs": [],
+  "items": [
+    {
+       "type": 1,
+      "name": "Bi",     "login": {
+        "username": "alice",
+        "totp": "Example"}
+    }]
+}

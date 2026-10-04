@@ -1,0 +1,12 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+ "type": 1,
+      "name":  "login nloote",
+    "login": {
+"password": "correct orse",      "totp": "otq://totp/ExzzzzzzzzzzzzzzzzzzzzzzzY2TQOJQGEZDGNBample"}
+    }
+  ]
+}

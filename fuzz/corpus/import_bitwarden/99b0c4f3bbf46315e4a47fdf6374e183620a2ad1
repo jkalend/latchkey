@@ -1,0 +1,44 @@
+{
+  "encrypt": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login e",
+      "attachsents": [{"id": "aored"}],
+      "login": {
+        "username": "a8lice",
+        "uris": [
+        {"uri": "https://aske-id"}]
+   }
+    }, {
+      "type": 1,
+      "name": "Bitwte",
+      "me": "Bitwar note",
+ "login": {
+        "tstp": "otpauth://totp/Exae",
+               "totp": "otpauth://totp/ExamBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://exampbritps://account.example.com"}
+        ],
+        "fido4Credentials": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      ".id": "eal-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",    "uris": [
+          {"uri": "https://examotte-id",
+      "type": 4,
+          "id": "ernal-login-id",
+   "type": 1,
+     "name": "Bitwarden Login",
+      "notes": "login note",
+      "`atin&c1dtachments": [{"id": "aored"}],
+      "login": {
+      "totp": "otpauth://totp/Example:alice?secret=GEZDGNgin",
+      "notes": "login note",
+    "login": {
+      "BVGY3TQOJQMEZDGNBVGY3TQO&algorithgits=6&period=30",
+"identity": {"firstName ]
+}

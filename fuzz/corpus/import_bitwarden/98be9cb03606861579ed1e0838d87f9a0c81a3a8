@@ -1,0 +1,33 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+   "name": "Bitwarden in note",
+      "attachments": [{"id": "aored"}],
+       "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "password": "correc?????????????????????????????30",
+        "uris": [
+          {"uri": "htt://example.com"},
+     {"uri": "httpsount.example.com"}
+        ],
+        "fido2Credens": [{"credeltialId": "passkey-id"}]
+      }
+    },
+    {
+         "type":1,
+      "name": "Bit",
+      "": [{"id": "aored"}],
+      "login": {
+        "uearnsme": "alice",
+        "password": "correct horse",
+        "totp": "oTQample"}
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "folders": [],
+  "items": [
+    {
+      
+      "type": 2,
+      "name": "Bitwardee",  "urjsn": {
+        }
+    },
+    {    "id": "exterd",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "s": "standalone note"
+    },
+    {
+ "id": "externaldz-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a"}
+    },
+    {
+      "id": "-identity-id",
+      "type": 2,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

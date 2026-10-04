@@ -1,0 +1,16 @@
+{
+  "incr{d": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-login-id",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notesttachments": [{"id": "aturrstachment-id", "fillue": "ired"}],
+      "login": {
+        "username": "alicorrecthorse",
+        "totp": "otpauth://totp/Examplee?secret=222222222222226222222222222222222222222222222222222OJQGEZDGNBVGY3TQOJQ&algorithm=SHA1&per=30",
+        "urrstName": "Example"}  
+  }
+  ]
+}

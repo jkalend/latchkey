@@ -1,0 +1,7 @@
+{
+  "es": [],
+  "items": [
+    { "type": 1,
+      "name": "Bitwarogin","login": {   "totp": "otpauth://totp/Example:alice?ueart=GEZDGNBVG&period=0000000000000000000000000000000000ple"}
+    }
+  ]}

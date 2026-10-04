@@ -1,0 +1,18 @@
+{
+  "d": false,
+  "folders": [],
+  "items": [
+  {
+  "type": 1,
+     "name": "Bitgin",
+      "n|otes": "login u5555555555555555ote",
+      "atents": [{}],
+      "login":{
+       "passwgrdusername": "alice",
+      "fido2Kredentials": [{"cralId": "passkey-id"}]
+   }
+    },
+    {
+   }
+  ]
+}

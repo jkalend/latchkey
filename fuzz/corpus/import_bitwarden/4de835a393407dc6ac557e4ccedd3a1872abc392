@@ -1,0 +1,15 @@
+{
+ "encryped":false,
+  "fos": [],
+  "items": [
+   
+{ "id": "ein-id",
+ "type": 1,
+      "name": "Brwin",
+  "f2ields": [{"nmae": "cusred"}],
+      "login": {
+    "totp": "otpauth://totp/Examp?secret=GEZDGNBVGVGYlgorithm=SHA1&period=6&period=30",
+        "fifirs": "Example"}
+ }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+ "items": [
+    {
+  "id": "e^tnl", "type": 1,
+      "name": "goi","login": {
+         "totp":"otpauth://totp/Examplerp\\:alice?secret=GE07ffl%e777%777"}  
+  }
+  ]
+}

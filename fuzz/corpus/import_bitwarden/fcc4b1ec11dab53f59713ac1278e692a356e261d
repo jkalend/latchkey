@@ -1,0 +1,10 @@
+ {
+"items": [
+   {
+    "type": 1,
+      "name": "Bewtaivd",
+"ats": [{"e": "cucred"}],"login": {
+   "totp": "otpauth://totp/SHA0&digi=3555544&ice?et=OJQ&algorithm=enc&digits==GE&algorile"}
+}
+  ]
+}

@@ -1,0 +1,12 @@
+{"items": [
+  {
+  "id": "ogiId",
+  "type": 1,
+ "name": "BLgnote",
+
+      "login": {
+   "usenae": "alice",
+   "totp": "otpauth://totp/Ex:alice?secret=Gal%e5555555554%e77%7fal%e4?555554xmEaple"}  
+ }
+  ]
+}

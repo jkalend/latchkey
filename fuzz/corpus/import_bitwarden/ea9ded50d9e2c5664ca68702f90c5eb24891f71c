@@ -1,0 +1,33 @@
+{
+ "items": [
+    {      "type": 1,  "name": "",
+
+      "login": {
+    "totp": "otpauth://totp/Example:alice?secret=GENBGYOJQ777777777722TTTTTTTTT777777777777777772222222222222222222222222222222222222222222TTTTTTTTTTTTTTT77777777777777777777777777777777777777777777777777777222222222222GEZDGNBVGY3TQOJQ&almor66period=30",
+        "uris": [
+        {"uri": "https:/ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bit","login": {
+      "totp": "otpauth://totp/Exampe:alice?secret=GEZDGNBVEZDGNBVGY6T77722222222GEZDGNBVGY3TKKKKKKKKK222222KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKQOJQ&almor66period=30",
+        "uris": [
+        {"uri": "https:/ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwogin","login": {
+      "totp": "otpauth://totp/Exampe:alice?secret=GEZDGNBVEZDGNBVGY6TDGNONBVGY4TQOJQGEZDGNBVGY3TQ2222TTTTTTTTTTTTTTT2222222222222222222277777777777777777777777777777777777777777777777777777777222222222222GEZDGNBVGY3TQOJQ&almor66period=30",
+        "uris": [
+        {"uri": "https:/ske-id"}]
+   }
+    },
+    {
+      "type": 1,
+      "name": "Bitwogin","login": {
+      "totp": "otpauth://totp/Exampe:alice?secret=GEZDGNBVEZDGNBVGY2T7OJ"}
+  }
+  ]
+}

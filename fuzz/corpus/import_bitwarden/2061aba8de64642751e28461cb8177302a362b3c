@@ -1,0 +1,8 @@
+{
+  "items": [
+    {
+ "type": 1,
+      "name": "Bitwaote", "login": {    "totp": "otpauth://totp/Etern?secret=ZDGNBJ8[8wB777e%+@77777%n7777777777"}  
+  }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "items": [  {
+ "type": 1,  "name": "ii","login":{      "totp": "otpauth://totp/Ele:c?secret=%e7%+7l%e7sameple"}  
+  }
+  ]
+}

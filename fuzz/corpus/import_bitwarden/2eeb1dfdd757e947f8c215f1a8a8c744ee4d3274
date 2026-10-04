@@ -1,0 +1,16 @@
+{
+
+  "items": [
+    {
+ "type": 1,
+      "name": "Bilo",
+     "login": {
+  "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY2WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWGY&od=30",
+        "uris": [
+      {"u uri": ".com"}
+]
+  }
+  },   {
+       }
+  ]
+}

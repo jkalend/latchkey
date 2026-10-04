@@ -1,0 +1,9 @@
+{
+  "incypers": [],
+  "items": [{
+  "type": 1,
+      "name": "Bitwa",
+ "login": {
+       "totp": "otpauth://totp/Ece?sechm=SHA2&period=0000-00d=xa"}  }
+  ]
+}

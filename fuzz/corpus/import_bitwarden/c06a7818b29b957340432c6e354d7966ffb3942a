@@ -1,0 +1,5 @@
+{  "items": [
+  {   "type": 1,    "name": "Bin",
+    "login": { "totp": "otpauth://totp/:lice?secret=GEZ%GhleM"}}
+  ]
+}

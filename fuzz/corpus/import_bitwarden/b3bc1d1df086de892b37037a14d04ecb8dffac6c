@@ -1,0 +1,10 @@
+ {
+"items": [
+   {
+    "type": 1,
+      "name": "Bwtaivd",
+"ats": [{"e": "cuct"}],"login": {
+   "totp": "otpauth://totp/e?t=O6ts=3&algorithm=SHA2&diagitstotp&a"
+
+} } ]
+}

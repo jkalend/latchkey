@@ -1,0 +1,9 @@
+{
+  "items": [
+   {   "type": 1,
+"name": "Ben Lgentn",
+     "login": {
+ "totp": "otpauth://totp/Exace?secret=GE6%e"}  
+ }
+  ]
+}

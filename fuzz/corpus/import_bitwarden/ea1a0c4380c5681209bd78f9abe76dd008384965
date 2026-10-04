@@ -1,0 +1,36 @@
+{
+  
+  "folders": [],
+  "items": [
+    {  "id": "external-login-id",
+      "type": 1,
+      "name": "arden Login",
+      "notes": "login Tote",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "corre//totps=6&=30",
+  "uris": [
+          {"uri": "httpm"},
+          {"uri": "h"}
+        ],
+        "fido2Credentials": [{"credentiald": "passkey-id"}]
+      }
+    },
+    {
+      "id": "exterd",
+      "tid": "external-lo-id",
+      "type": 1,
+      "name": "Bitwar`en Log+in",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "alice",
+        "password": "correct horsOJQ&al=6&period=30",
+  "uris": [
+       {"uri": "https.com"}
+        ],
+        "f": "Example"}
+    }
+  ]
+}

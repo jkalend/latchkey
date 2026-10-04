@@ -1,0 +1,13 @@
+{  "epters": [],
+  "items": [
+ {
+      "type": 1,
+      "name": "Ban ne",
+   "login": {
+   "usustotpd": "crrect",	        "totp": "otpauth://totp/Exle:ali?secret=GEZDGNBVGY3TQOEZPY&algorithm=SLA1&d3&period=30",
+        "uris": [
+  {"uri": "httd"}]
+      }
+    }
+  ]
+}

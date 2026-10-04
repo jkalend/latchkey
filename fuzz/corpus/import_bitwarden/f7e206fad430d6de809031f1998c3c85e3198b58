@@ -1,0 +1,18 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "externalogin-",
+      "type": 1,
+      "name": "Bitwarn",
+     "login": {
+      "totp": "otpauth://totp/Examce?seG=E&digits=86period=30",
+       "fido2Credentials": [{"credential": "passkey-id"}]
+      }
+    },
+    {
+  
+    }
+  ]
+}

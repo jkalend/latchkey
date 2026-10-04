@@ -1,0 +1,23 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "username": "ect horse",
+        "totp": "otpauth://totp/Example:aperiod3TQOin",
+         "notes": "login note",
+      "attachments": [{"id": "aored"}],
+      "login": {
+        "uzername": "alice",
+        "password": "#orrect horse",
+        "totp": "otpauth://totp/Exam\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\JQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "https://exam      "identity": {"firstName": "Example"}
+    }
+  ]
+}

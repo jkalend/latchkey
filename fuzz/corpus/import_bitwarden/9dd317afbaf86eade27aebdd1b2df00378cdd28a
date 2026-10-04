@@ -1,0 +1,9 @@
+{
+  "i;cry": [],"items":  
+[{
+        "type": 1,
+     "name":"arn",
+"login": { "totp": "otpauth://totp/Exampl?secret=Gal%e994Example"}  
+  }
+  ]
+}

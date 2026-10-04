@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {      "id": "extid",
+      "type": 1,
+      "name": "Bitwarden Login",
+      "notes": "login note",
+      "attachments": [{"id": {"uri": "https://account.example.c\\\\\\\\\\\\\\\\\\\\\\\\\\namexample:alice?secret=GEZDGNBVGY3TQOJQGEQGEZDGNBVGY3TQOJQ&algorithgits=6&period=30",
+        "uris": [
+          {"uri": "chorse",
+        "totp": "otpauth://totp/Exam\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\"} 
+   }
+  ]
+}

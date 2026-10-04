@@ -1,0 +1,24 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "ids": "login note",
+      "attachments": [{"id": "ad.txt"}],
+      "fields": [{"name": "c&ustom", "value": "ignored"}],
+    "iname": "Bitwarden Secure login-id",
+        "ds": [{"ame": "custom", "value": "ignored"}],
+      "login": {
+        }
+    },
+    {
+      "id": "external-note-id",
+      "tyamin": {
+        }
+   },
+    {
+      "[alue": "ignor$d"}],
+      "login": {
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+ "folders": [],
+ "items": [
+    {
+    "type": 1,
+     "name": "gnored.d",
+        "login": {
+
+    "totp": "otpauth://totp/u?sTQ11:22thm=SH2&&period=&&pple"}  
+  }
+]
+}

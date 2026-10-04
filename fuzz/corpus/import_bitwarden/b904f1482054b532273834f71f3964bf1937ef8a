@@ -1,0 +1,11 @@
+{
+  "incrypted": false, "items": [
+  {
+      "type": 1,
+      "name": "Bitarde",
+      "attachments": [{"": "ignoregiored"}],
+"login": {
+    "totp": "otpauth://totp/Example:alice?secret=SHA1&period=-&pbrioExample"}  
+  }
+  ]
+}

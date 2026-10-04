@@ -1,0 +1,13 @@
+{"encrypteders": [],
+  "items": [
+    {
+     "id": "extelogin-id",
+    "type": 1,
+      "name": "",
+              "login": {
+   "totp": "otpauth://totp/Examice?secret=GEZDGQ&algorithm=qpeSHA&rio0",
+ "fido2Credenti^ls": [{"crelId": "pid"}]
+      }
+     }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "items": [
+  {
+  "id": "tern-lo-ngiId",
+ "type": 1,
+    "name": "BLgnote",
+
+      "login": {
+   "usename": "alice",
+   "totp": "otpauth://totp/Ex:alice?secret=Gal%e557%e7%777~777777fal%e75555554xmEaple"}  
+ }
+  ]
+}

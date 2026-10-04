@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "rd": "exd",
+      "type": 1,
+      "name": "Bitwarden Lon",  "notes": "log",
+ 
+      "login": {
+     "password": "cororse",
+        "totp": "BVGY%Z15",
+        "uris": [
+       ],
+    "fintials": "Example"}
+    }
+  ]
+}

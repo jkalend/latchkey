@@ -1,0 +1,32 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      
+      "type": 2,
+      "name": "Bitwardein note",
+    "attachments": [{"id": "attachmentignored.txt"}],
+      "fields": [{"name": "cred"}],
+     "login": {
+        }
+    },
+    {    "id": "exterd",
+      "type": 2,
+      "name": "Bitwarden Secure Note",
+      "notes": "standalone note"
+    },
+    {
+      "id": "externaldz-id",
+      "type": 2,
+      "name": "Unsupported Card",
+      "card": {"number": "not-a"}
+    },
+    {
+      "id": "-identity-id",
+      "type": 2,
+      "name": "Unsupported Identity",
+      "identity": {"firstName": "Example"}
+    }
+  ]
+}

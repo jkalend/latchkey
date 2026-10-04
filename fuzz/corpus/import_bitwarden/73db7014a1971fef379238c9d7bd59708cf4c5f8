@@ -1,0 +1,12 @@
+{
+  
+  "folders": [],
+  "items": [
+    {
+ "type": 1,
+      "name":  "login n",
+    "login": {
+"password": "correct orse",      "totp": "QOJQGEZDGNBample"}
+    }
+  ]
+}

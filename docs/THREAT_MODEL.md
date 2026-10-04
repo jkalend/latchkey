@@ -1,6 +1,6 @@
 # Threat Model
 
-**Status:** Public-preview implementation (`latchkey` 0.4.0)
+**Status:** Public-preview implementation (`latchkey` 0.4.1)
 **Covers:** Current `main` branch
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 

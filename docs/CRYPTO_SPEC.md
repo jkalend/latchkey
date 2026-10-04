@@ -1,6 +1,6 @@
 # Cryptography Specification
 
-**Status:** Public-preview implementation (`latchkey` 0.4.0)
+**Status:** Public-preview implementation (`latchkey` 0.4.1)
 **Covers:** Vault format 2 (`LKv` magic + binary version `0x02`)
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 

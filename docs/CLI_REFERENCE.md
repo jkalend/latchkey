@@ -1,6 +1,6 @@
 # CLI Reference
 
-**Status:** Public preview (`latchkey` 0.4.0)
+**Status:** Public preview (`latchkey` 0.4.1)
 **Binary name:** `latchkey`
 
 ---
@@ -326,7 +326,7 @@ an authentication-specific condition.
 
 ## Configuration file
 
-A configuration file remains out of scope for 0.4.0: the three environment
+A configuration file remains out of scope for 0.4.1: the three environment
 variables above do not justify another precedence layer or persisted plaintext
 settings. Revisit only when real settings outgrow them
 ([release non-goals](NEXT_RELEASE.md#5-explicit-non-goals-for-030)).

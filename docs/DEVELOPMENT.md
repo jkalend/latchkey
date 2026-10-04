@@ -1,6 +1,6 @@
 # Development Guide
 
-**Status:** Public-preview implementation (`latchkey` 0.4.0)
+**Status:** Public-preview implementation (`latchkey` 0.4.1)
 **Platforms:** Windows 10/11 (native), Linux under WSL2 — both are
 first-class; CI runs both.
 
@@ -64,7 +64,7 @@ CRYPTO_SPEC.md or VAULT_FORMAT.md in the same PR.**
 
 ## Release checklist
 
-Pushing a version tag such as `v0.4.0` runs
+Pushing a version tag such as `v0.4.1` runs
 `.github/workflows/release.yml`. The workflow rejects a tag that disagrees
 with `Cargo.toml`, builds locked Windows and Linux binaries, copies each binary
 into its release directory, and runs `--version` plus temporary-vault
@@ -93,8 +93,8 @@ Every release archive is attested with GitHub build provenance. Verify a
 downloaded artifact against the repository:
 
 ```console
-gh attestation verify latchkey-v0.4.0-x86_64-pc-windows-msvc.zip --repo jkalend/latchkey
-gh attestation verify latchkey-v0.4.0-x86_64-unknown-linux-gnu.tar.gz --repo jkalend/latchkey
+gh attestation verify latchkey-v0.4.1-x86_64-pc-windows-msvc.zip --repo jkalend/latchkey
+gh attestation verify latchkey-v0.4.1-x86_64-unknown-linux-gnu.tar.gz --repo jkalend/latchkey
 ```
 
 Check the SHA-256 against `SHA256SUMS` on the release page as well. All

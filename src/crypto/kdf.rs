@@ -23,6 +23,10 @@ pub struct KdfParams {
 
 #[cfg(not(any(test, feature = "fuzz-fast-kdf")))]
 fn default_argon2_m_mib() -> u32 {
+    #[cfg(debug_assertions)]
+    if std::env::var_os("LATCHKEY_FAST_KDF").is_some() {
+        return 8;
+    }
     64
 }
 #[cfg(any(test, feature = "fuzz-fast-kdf"))]
@@ -35,18 +39,26 @@ fn default_argon2_m_mib() -> u32 {
 /// t=34 → 0.94 s, t=36 → 1.00 s, t=38 → 1.09 s. If hardware assumptions
 /// change, re-measure with `cargo run --release --example kdf_bench` and
 /// update both this constant and CRYPTO_SPEC §3 (DEVELOPMENT.md release
-/// checklist). The fuzz-fast-kdf variant keeps the same derivation path at
-/// floor cost for harness-only execution.
+/// checklist). The fuzz-fast-kdf variant and debug LATCHKEY_FAST_KDF keep the
+/// same derivation path at floor cost for test and harness execution.
 #[cfg(not(any(test, feature = "fuzz-fast-kdf")))]
-const DEFAULT_ARGON2_T: u32 = 36;
+fn default_argon2_t() -> u32 {
+    #[cfg(debug_assertions)]
+    if std::env::var_os("LATCHKEY_FAST_KDF").is_some() {
+        return 1;
+    }
+    36
+}
 #[cfg(any(test, feature = "fuzz-fast-kdf"))]
-const DEFAULT_ARGON2_T: u32 = 1;
+fn default_argon2_t() -> u32 {
+    1
+}
 
 impl Default for KdfParams {
     fn default() -> Self {
         Self {
             argon2_m_mib: default_argon2_m_mib(),
-            argon2_t: DEFAULT_ARGON2_T,
+            argon2_t: default_argon2_t(),
             argon2_p: 1,
         }
     }
@@ -191,5 +203,10 @@ mod tests {
             .unwrap()
             .validate_policy()
             .is_err());
+    }
+
+    #[test]
+    fn default_kdf_params_within_policy() {
+        assert!(KdfParams::default().validate_policy().is_ok());
     }
 }

@@ -43,6 +43,7 @@ fn cli(path: &Path, args: &[&str], input: &str) -> Output {
         .arg("--from-stdin")
         .args(args)
         .env("NO_COLOR", "1")
+        .env("LATCHKEY_FAST_KDF", "1")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

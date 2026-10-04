@@ -21,7 +21,7 @@ chacha20poly1305 = "0.10"
 zeroize = { version = "1", features = ["derive"] }
 secrecy = "0.10"
 getrandom = "0.2"
-thiserror = "1"
+thiserror = "2"
 crc32c = "0.6"
 clap = { version = "4", features = ["derive"] }
 csv = "1"

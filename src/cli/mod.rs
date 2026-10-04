@@ -1440,4 +1440,23 @@ mod tests {
         assert!(json.contains("\"password\": null"));
         assert!(json.contains("\"notes\": null"));
     }
+
+    #[test]
+    fn completions_generate_for_supported_shells() {
+        use clap::CommandFactory;
+        for shell in [
+            clap_complete::Shell::Bash,
+            clap_complete::Shell::Zsh,
+            clap_complete::Shell::Fish,
+            clap_complete::Shell::PowerShell,
+        ] {
+            let mut cmd = super::Cli::command();
+            let mut buf = Vec::new();
+            clap_complete::generate(shell, &mut cmd, "latchkey", &mut buf);
+            assert!(
+                !buf.is_empty(),
+                "completions buffer must not be empty for {shell:?}"
+            );
+        }
+    }
 }

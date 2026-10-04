@@ -472,6 +472,19 @@ fn export_import_roundtrip() {
             .unwrap();
         v.add_item("github.com".into(), "bob".into(), sample_item(false))
             .unwrap();
+        v.add_item(
+            "note.example".into(),
+            "carol".into(),
+            ItemRecord {
+                password: None,
+                url: "https://note.example".into(),
+                notes: None,
+                totp: None,
+                created_unix: 1_700_000_000,
+                modified_unix: 1_700_000_000,
+            },
+        )
+        .unwrap();
         v.save().unwrap();
 
         let live: Vec<latchkey::vault::shape::IndexEntry> = v
@@ -511,7 +524,7 @@ fn export_import_roundtrip() {
     // Verify both items came through with the same plaintext.
     let ids_by_title: std::collections::HashMap<String, u32> = {
         let mut v = Vault::open(&fresh, &fresh_pw).unwrap();
-        assert_eq!(v.entries().len(), 2);
+        assert_eq!(v.entries().len(), 3);
         let map: std::collections::HashMap<String, u32> = v
             .entries()
             .iter()
@@ -519,7 +532,9 @@ fn export_import_roundtrip() {
             .collect();
         let ex_id = *map.get("example.com").unwrap();
         let gh_id = *map.get("github.com").unwrap();
+        let note_id = *map.get("note.example").unwrap();
         assert_ne!(ex_id, gh_id);
+        assert_ne!(ex_id, note_id);
 
         v.open_item(ex_id).unwrap();
         let ex_entry = v
@@ -533,6 +548,20 @@ fn export_import_roundtrip() {
         assert_eq!(rec.url, original.url);
         assert_eq!(rec.notes, original.notes);
         assert_eq!(rec.totp, original.totp);
+
+        v.open_item(note_id).unwrap();
+        let note_entry = v
+            .entries()
+            .iter()
+            .find(|e| e.item_id == note_id)
+            .unwrap()
+            .clone();
+        let note_rec = v.open_record(note_entry.slot).unwrap().clone();
+        assert_eq!(note_rec.password, None);
+        assert_eq!(note_rec.notes, None);
+        assert_eq!(note_rec.totp, None);
+        assert_eq!(note_rec.url, "https://note.example");
+
         v.open_item(gh_id).unwrap();
         map
     };
@@ -552,7 +581,7 @@ fn export_import_roundtrip() {
         import_into(&mut v, &export, true, false).unwrap();
         drop(v);
         let check = Vault::open(&fresh, &fresh_pw).unwrap();
-        assert_eq!(check.entries().len(), 2);
+        assert_eq!(check.entries().len(), 3);
         for e in check.entries() {
             assert_eq!(
                 e.item_id,

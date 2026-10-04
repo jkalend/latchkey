@@ -1325,18 +1325,20 @@ pub fn export_item_json(
         }
         out
     }
-    let password = Zeroizing::new(
-        rec.password
-            .as_ref()
-            .map(|p| String::from_utf8_lossy(p).to_string())
-            .unwrap_or_default(),
-    );
-    let notes = Zeroizing::new(
-        rec.notes
-            .as_ref()
-            .map(|n| String::from_utf8_lossy(n).to_string())
-            .unwrap_or_default(),
-    );
+    let password_json = match &rec.password {
+        Some(p) => {
+            let s = Zeroizing::new(String::from_utf8_lossy(p).to_string());
+            format!("\"{}\"", esc(&s))
+        }
+        None => "null".to_string(),
+    };
+    let notes_json = match &rec.notes {
+        Some(n) => {
+            let s = Zeroizing::new(String::from_utf8_lossy(n).to_string());
+            format!("\"{}\"", esc(&s))
+        }
+        None => "null".to_string(),
+    };
     let totp = rec.totp.as_ref().map(|t| {
         let alg = match t.algorithm {
             crate::vault::shape::TotpAlgorithm::Sha1 => "SHA1",
@@ -1359,13 +1361,13 @@ pub fn export_item_json(
         None => "null".to_string(),
     };
     format!(
-        "    \"{}\": {{\n      \"title\": \"{}\",\n      \"username\": \"{}\",\n      \"password\": \"{}\",\n      \"url\": \"{}\",\n      \"notes\": \"{}\",\n      \"totp\": {},\n      \"created_unix\": {},\n      \"modified_unix\": {}\n    }}",
+        "    \"{}\": {{\n      \"title\": \"{}\",\n      \"username\": \"{}\",\n      \"password\": {},\n      \"url\": \"{}\",\n      \"notes\": {},\n      \"totp\": {},\n      \"created_unix\": {},\n      \"modified_unix\": {}\n    }}",
         e.item_id,
         esc(&e.title),
         esc(&e.username),
-        esc(&password),
+        password_json,
         esc(&rec.url),
-        esc(&notes),
+        notes_json,
         totp_json,
         rec.created_unix,
         rec.modified_unix
@@ -1435,7 +1437,7 @@ mod tests {
         };
         let json = super::export_item_json(&e, &rec);
         assert!(json.contains("\"totp\": null"));
-        assert!(json.contains("\"password\": \"\""));
-        assert!(json.contains("\"notes\": \"\""));
+        assert!(json.contains("\"password\": null"));
+        assert!(json.contains("\"notes\": null"));
     }
 }

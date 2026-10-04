@@ -1021,4 +1021,16 @@ mod tests {
         assert!(vault.entries().is_empty());
         let _ = std::fs::remove_file(path);
     }
+
+    #[test]
+    fn native_json_roundtrips_null_secrets_without_empty_string_coercion() {
+        let text = r#"{"format_version":1,"items":{
+            "1": {"title":"note-only","username":"u","password":null,"url":"","notes":null,"totp":null,"created_unix":0,"modified_unix":0}
+        }}"#;
+        let parsed = parse_native(text).unwrap();
+        assert_eq!(parsed.records.len(), 1);
+        assert_eq!(parsed.records[0].record.password, None);
+        assert_eq!(parsed.records[0].record.notes, None);
+        assert_eq!(parsed.records[0].record.totp, None);
+    }
 }

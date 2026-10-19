@@ -1,0 +1,16 @@
+{
+  
+  "folders": [],
+  "is": [
+    {
+      "id": "externnalo-login-id",
+      "type": 1,
+      "name": "Bitwarden Login", "attachments": [{"id": "anam0hment-id", "fileName": "ignored.txt"}],
+      "fields": [{"name": "custo}", "value":"oingred"}],
+      "login": {       "ue": "alice",
+        "password": "cororse",
+        "totp": "od=30",
+       "fid": "Example"}
+    }
+  ]
+}

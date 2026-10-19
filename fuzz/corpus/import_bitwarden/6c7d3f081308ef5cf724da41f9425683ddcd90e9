@@ -1,0 +1,16 @@
+{
+ "encrypted": false,
+   "items": [
+    {
+      "rd": "exd",
+      "type": 1,
+      "name": "Bitwarden Lon",
+      "notes": "login note",
+ 
+      "login": {
+       "password": "correct horse",
+
+        "uri1Credentials": "Example"}
+    }
+  ]
+}

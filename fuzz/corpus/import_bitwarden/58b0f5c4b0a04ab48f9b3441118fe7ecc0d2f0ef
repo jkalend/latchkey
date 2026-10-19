@@ -1,0 +1,15 @@
+{
+  "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "exter-id",
+ "type:": 0,
+      "name": "Bitwarden Lin",
+      "notes": "lognd",
+      "type": 1,
+      "name": "Bitwarden card-id",
+      "typey": {"firstName": "Example"}
+    }
+  ]
+}

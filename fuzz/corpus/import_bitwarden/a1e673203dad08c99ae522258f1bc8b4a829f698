@@ -1,0 +1,11 @@
+{
+  
+ "items": [
+    {
+ "type": 1,
+  "name":  "e",
+    "login": {
+"password": "cor",      "totp": "h://te"}
+    }
+  ]
+}

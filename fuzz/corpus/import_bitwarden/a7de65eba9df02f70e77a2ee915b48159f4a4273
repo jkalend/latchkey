@@ -1,0 +1,9 @@
+{
+  "encrrs": [],
+  "items": [
+    { "type": 1,"name": "Bit",
+  "login": {
+ "totp": "otpauth://totp/Ex?secret=GEZDGNBVGY4TOJQGETROJQ&=30"}   },
+    {}
+  ]
+}

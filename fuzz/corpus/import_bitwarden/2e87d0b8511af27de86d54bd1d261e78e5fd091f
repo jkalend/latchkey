@@ -1,0 +1,8 @@
+{
+    "items": [
+    {
+    "type": 1,"name": "",
+   "login": {
+   "totp": "otpauth://totp/E?ealsecret=DGname&agl/rithm=SA0&digperiod=30",
+"ue": "Examle"}    }
+  ]}

@@ -1,0 +1,3 @@
+{"items": [{"type":1,"name":"",
+"login":{"totp": "otpauth://totp/E?cre=m=SHA1&digits=6&&algorithm=s=6&p"}
+}]}

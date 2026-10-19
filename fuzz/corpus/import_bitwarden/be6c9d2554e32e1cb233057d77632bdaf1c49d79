@@ -1,0 +1,11 @@
+{
+  "oes": [],
+  "items": [
+    {
+   "id": "extrnd",
+      "type": 1,
+  "name": "te",
+      "login": {
+       "totp": "otpauth://totp/:aice?secret=GEZDGNBVGY/TQe"}
+    } ]
+}

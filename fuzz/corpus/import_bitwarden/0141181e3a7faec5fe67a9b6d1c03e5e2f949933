@@ -1,0 +1,11 @@
+{
+  "items": [
+    {  "type": 1,
+      "name": "Bn",
+           "ield": [{"name": "c", "value": "inored"}],
+     "login": {
+      "totp": "otpauth://totp/Example:oalice?secret=GEZDGNBVGyy&period=6VVVVVVV0",
+        "ame": "Example"}
+    }
+  ]
+}

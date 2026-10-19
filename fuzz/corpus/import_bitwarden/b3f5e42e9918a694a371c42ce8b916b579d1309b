@@ -1,0 +1,19 @@
+{
+  "encrders": [],
+  "items":   [ 
+{       "id": "extid",
+      "type": 1,  "name": 0 ,"name": "Bitin",
+ "notsents": [{"id": "aored"}],
+      "login": {
+     "totp": "otpauth://totp/Example:alice?secret=GENBVGY2TQOJQGEZD",
+        "ur": [{"dentlId": "pasd"}]
+      }
+    },
+    {
+    "type": 1,
+   "name": "Bitwardnte",
+     "login": {
+        "totp": "otpauth://totp/Example:alice?secret=GEZDGNBVGY5TQOJ"}
+   }
+ ]
+}

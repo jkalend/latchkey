@@ -1,0 +1,14 @@
+{
+  "encrd": false,
+  "fders": [],
+  "items": [
+    {
+      "type": 1,
+      "name": "Bitwarin",
+   "fields": [{"value": "ignored"}],
+      "login": {
+        "password": "cose",
+        "totp": "ototp/Examplbbbbbbbple"}
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "folders": [],
+  "items": [    {
+     "type": 1,"name": "en Login",
+ "n|otes": "login note", "login": {
+    "passwgrdusername": "alice",
+ "fido3Kredenvials": [{"cre": "pkey-id"}]
+}    }
+  ]
+}

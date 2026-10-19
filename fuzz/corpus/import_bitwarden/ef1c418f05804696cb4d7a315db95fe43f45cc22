@@ -1,0 +1,14 @@
+{
+ "encrypted": false,
+  "folders": [],
+  "items": [
+    {
+      "id": "external-lin-id",
+      "t2pe": 1,
+   "name":"in note", "fields": [{"qame": "custom", "value": "ignname"}],
+      "login": {
+        "passwgrd": "alice",
+        "encryptd": "correct horse",
+        "totpber": "n-card"} }
+  ]
+}

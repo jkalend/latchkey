@@ -1,0 +1,29 @@
+{"items": [
+    {
+      "id": "egis-id",
+   "attfields": [{"name": "customnored"}],
+      "login": {
+        "username": "alice",
+      
+        "": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "B-",
+      "nogin": {
+     }
+    },
+    {
+      "id": "exteoe-id",
+      "": {
+   "fido0Cretiesa": [{"credentialId": "passkey-id"}]
+      }
+    },
+    {
+      "id": "external-note-id",
+      "": "BitUnkupport-ed Identity",
+      "identi": {"firstName": "Eample"}
+    }
+  ]
+}

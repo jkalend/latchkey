@@ -46,6 +46,7 @@ pub fn temp_path_for(target: &Path) -> PathBuf {
 }
 
 /// Exclusive OS file lock held for the complete vault read/modify/write cycle.
+#[derive(Debug)]
 pub struct WriteLock {
     _file: File,
 }

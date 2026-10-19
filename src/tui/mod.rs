@@ -67,7 +67,7 @@ impl FormField {
     }
 }
 
-#[derive(Clone, Debug, Zeroize)]
+#[derive(Clone, Zeroize)]
 #[zeroize(drop)]
 struct EntryForm {
     title: String,
@@ -77,6 +77,29 @@ struct EntryForm {
     notes: String,
     totp: String,
     field: usize,
+}
+
+// Manual Debug: the derived one would render the password, notes, and TOTP
+// secret into any error/log path that formats the form (H-02).
+impl std::fmt::Debug for EntryForm {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EntryForm")
+            .field("title", &self.title)
+            .field("username", &self.username)
+            .field("url", &self.url)
+            .field("password", &"[redacted]")
+            .field(
+                "notes",
+                &if self.notes.is_empty() {
+                    "[empty]"
+                } else {
+                    "[set]"
+                },
+            )
+            .field("totp", &"[redacted]")
+            .field("field", &self.field)
+            .finish()
+    }
 }
 
 impl EntryForm {
@@ -988,7 +1011,10 @@ fn draw_detail(f: &mut Frame, app: &mut App, item_id: u32, area: Rect) {
         .unwrap_or(false);
     let mask = |secret: &str| {
         if revealed_now {
-            secret.to_string()
+            // The revealed line and the mask buffer are wiped on drop (H-02)
+            // so a terminal-render copy does not outlive the frame.
+            let mut line = zeroize::Zeroizing::new(secret.to_string());
+            std::mem::take(&mut *line)
         } else {
             "•".repeat(secret.chars().count().max(8))
         }

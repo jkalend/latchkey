@@ -1,6 +1,6 @@
 # Cryptography Specification
 
-**Status:** Public-preview implementation (`latchkey` 0.4.1)
+**Status:** Public-preview implementation (`latchkey` 0.4.2)
 **Covers:** Vault format 2 (`LKv` magic + binary version `0x02`)
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
@@ -62,7 +62,13 @@ random Data-Encryption-Key encrypts the actual items.
 - Parameter values are **stored in the header** (m, t, p, salt), so future
   upgrades re-derive with new params and re-wrap the DEK — no vault
   re-encryption.
-- The `rotate` command raises KDF parameters to current policy.
+- The `rotate` command raises KDF parameters to current policy. With
+  `--new-password`, the replacement password is collected **before any
+  write**: the fresh DEK is published directly under a KEK derived from
+  the new password in a single atomic commit. No on-disk intermediate
+  state ever carries the new DEK wrapped under the old password, so a
+  retained intermediate cannot decrypt secrets saved after the password
+  change (security review SEC-01).
 - Parameter **bounds are enforced on read**: below the floor (8 MiB,
   t=1, p=1), above the individual ceiling (1024 MiB, t=64, p=8), or
   above 8192 MiB-passes (`m × t`), the vault refuses to open. These

@@ -1,21 +1,45 @@
 //! Atomic vault write protocol (VAULT_FORMAT.md §7).
 //!
-//! A write is: temp file → fsync → rename → fsync dir.
-//! The temp file lives in the same directory as the target so `rename(2)` is atomic
-//! on the same filesystem. On crash mid-write, the old vault is untouched; the
-//! deterministic temp path is safely overwritten by the next write.
+//! A write is: exclusive random-sibling temp file → fsync → rename → fsync dir.
+//! The temp file lives in the same directory as the target so `rename(2)` is
+//! atomic on the same filesystem. On crash mid-write, the old vault is
+//! untouched; the unique temp name is cleaned up by the next successful write
+//! only if this process left it behind — otherwise it is inert disk junk with
+//! no predictable name for an attacker to pre-link (SEC-03, CWE-377).
 use crate::crypto::error::{Error, Result};
 use std::fs::{self, File, OpenOptions};
 use std::io::Write;
 #[cfg(unix)]
-use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+use std::os::unix::fs::{MetadataExt, OpenOptionsExt, PermissionsExt};
 use std::path::{Path, PathBuf};
 
 pub const TEMP_SUFFIX: &str = ".latchkey-tmp";
 
-// temp filename derived deterministically from the target so concurrent writes to
-// the same vault clash (one will lose the race and error) rather than corrupting.
-fn temp_path(target: &Path) -> PathBuf {
+// Random sibling temp name, opened with create_new. A pre-existing symlink or
+// hard link at a predictable temp path could redirect the write and truncate
+// an unrelated victim file; create_new rejects ANY pre-existing directory
+// entry, including dangling links, so substitution before the open fails
+// closed. Collision probability for concurrent writers is negligible
+// (128-bit nonce); the retry loop only covers an astronomically unlikely
+// duplicate draw.
+fn temp_path(target: &Path) -> Result<PathBuf> {
+    let mut nonce = [0u8; 16];
+    getrandom::getrandom(&mut nonce).map_err(|e| Error::Rng(e.to_string()))?;
+    Ok(temp_path_for_nonce(target, &nonce))
+}
+
+fn temp_path_for_nonce(target: &Path, nonce: &[u8; 16]) -> PathBuf {
+    let mut p = target.as_os_str().to_owned();
+    let hex: String = nonce.iter().map(|b| format!("{b:02x}")).collect();
+    p.push(format!(".{hex}{TEMP_SUFFIX}"));
+    PathBuf::from(p)
+}
+
+/// The deterministic legacy temp name (`<target>.latchkey-tmp`). No longer
+/// used for writing — public so tests can pre-link it and prove the clobber
+/// path is gone.
+#[allow(dead_code)]
+pub fn temp_path_for(target: &Path) -> PathBuf {
     let mut p = target.as_os_str().to_owned();
     p.push(TEMP_SUFFIX);
     PathBuf::from(p)
@@ -28,20 +52,42 @@ pub struct WriteLock {
 
 pub fn acquire_write_lock(target: &Path) -> Result<WriteLock> {
     let path = lock_path(target);
-    #[cfg(unix)]
-    if let Ok(meta) = std::fs::symlink_metadata(&path) {
-        if meta.file_type().is_symlink() {
-            return Err(Error::Encrypt("lock file is a symbolic link".into()));
-        }
-    }
     let mut opts = OpenOptions::new();
     opts.write(true).create(true).truncate(false);
     #[cfg(unix)]
     opts.mode(0o600);
     let file = opts.open(&path).map_err(io_err("open vault write lock"))?;
+    // Substitution hardening: verify what we actually opened still matches the
+    // directory entry. A symlink (or, on Unix, any inode swap) planted between
+    // the entry check and the open is rejected here; after this point we hold
+    // the real handle, so later swaps cannot affect us.
     #[cfg(unix)]
-    file.set_permissions(std::fs::Permissions::from_mode(0o600))
-        .map_err(io_err("secure vault write lock"))?;
+    {
+        let via_path = fs::symlink_metadata(&path).map_err(io_err("stat vault write lock"))?;
+        if via_path.file_type().is_symlink() {
+            return Err(Error::Encrypt("lock file is a symbolic link".into()));
+        }
+        let via_handle = file
+            .metadata()
+            .map_err(io_err("stat opened vault write lock"))?;
+        if (via_handle.dev(), via_handle.ino()) != (via_path.dev(), via_path.ino()) {
+            return Err(Error::Encrypt(
+                "vault write lock was substituted before open".into(),
+            ));
+        }
+        file.set_permissions(std::fs::Permissions::from_mode(0o600))
+            .map_err(io_err("secure vault write lock"))?;
+    }
+    #[cfg(windows)]
+    {
+        // std cannot read reparse tags; symlinks (the reachable substitution)
+        // are visible through symlink_metadata.
+        if let Ok(meta) = fs::symlink_metadata(&path) {
+            if meta.file_type().is_symlink() {
+                return Err(Error::Encrypt("lock file is a symbolic link".into()));
+            }
+        }
+    }
     file.try_lock()
         .map_err(|e| Error::Encrypt(format!("atomic write acquire vault write lock: {e}")))?;
     Ok(WriteLock { _file: file })
@@ -55,23 +101,31 @@ pub fn atomic_write(target: &Path, data: &[u8]) -> Result<()> {
 
 /// Atomically replace target while the caller holds `WriteLock`.
 pub fn atomic_write_locked(target: &Path, data: &[u8]) -> Result<()> {
-    let tmp = temp_path(target);
-    let mut opts = OpenOptions::new();
-    opts.write(true).create(true).truncate(true);
-    #[cfg(unix)]
-    {
-        // Owner-only from creation; set_permissions also repairs a stale
-        // deterministic temp file created by an older, permissive build.
-        opts.mode(0o600);
+    let mut tmp = temp_path(target)?;
+    loop {
+        let mut opts = OpenOptions::new();
+        opts.write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            // Owner-only from creation.
+            opts.mode(0o600);
+        }
+        match opts.open(&tmp) {
+            // The handle lives only inside this block: write, fsync, close —
+            // the rename below never races our own open handle on Windows.
+            Ok(mut f) => {
+                f.write_all(data).map_err(io_err("write temp"))?;
+                f.sync_all().map_err(io_err("fsync temp"))?;
+                break;
+            }
+            // Retry only a duplicate name draw. Every other error — including
+            // a pre-created entry at our random name — fails closed.
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                tmp = temp_path(target)?;
+            }
+            Err(e) => return Err(io_err("create temp")(e)),
+        }
     }
-    let mut f = opts.open(&tmp).map_err(io_err("create temp"))?;
-    #[cfg(unix)]
-    f.set_permissions(std::fs::Permissions::from_mode(0o600))
-        .map_err(io_err("secure temp"))?;
-
-    f.write_all(data).map_err(io_err("write temp"))?;
-    f.sync_all().map_err(io_err("fsync temp"))?;
-    drop(f);
 
     let parent = target.parent().filter(|p| !p.as_os_str().is_empty());
     if let Some(parent) = parent {
@@ -82,6 +136,16 @@ pub fn atomic_write_locked(target: &Path, data: &[u8]) -> Result<()> {
         fsync_dir(parent)?;
     }
     Ok(())
+}
+
+/// Serialize and publish a NEW file without ever replacing an existing
+/// target. The existence check and publication are one atomic operation
+/// (hard-link publish), closing the check/write race where another writer
+/// creates the destination between `out.exists()` and our write (H-04).
+/// Public for the CLI backup path.
+pub fn atomic_create(target: &Path, data: &[u8]) -> Result<()> {
+    let _lock = acquire_write_lock(target)?;
+    atomic_create_locked(target, data)
 }
 
 /// Publish a complete new vault without ever replacing an existing target.
@@ -102,7 +166,13 @@ pub(crate) fn atomic_create_locked(target: &Path, data: &[u8]) -> Result<()> {
         file.write_all(data).map_err(io_err("write new temp"))?;
         file.sync_all().map_err(io_err("fsync new temp"))?;
         drop(file);
-        fs::hard_link(&tmp, target).map_err(io_err("publish new vault without replacement"))?;
+        fs::hard_link(&tmp, target).map_err(|e| {
+            if e.kind() == std::io::ErrorKind::AlreadyExists {
+                Error::Encrypt(format!("target {} already exists", target.display()))
+            } else {
+                io_err("publish new vault without replacement")(e)
+            }
+        })?;
         if let Some(parent) = target.parent().filter(|p| !p.as_os_str().is_empty()) {
             fsync_dir(parent)?;
         }
@@ -190,17 +260,21 @@ fn io_err(what: &'static str) -> impl Fn(std::io::Error) -> Error {
     move |e| Error::Encrypt(format!("atomic write {what}: {e}"))
 }
 
-// Public for tests / future temp-file cleanup.
-#[allow(dead_code)]
-pub fn temp_path_for(target: &Path) -> PathBuf {
-    temp_path(target)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::fs;
     use std::io::Read;
+
+    fn no_temp_leftover(dir: &Path) {
+        let leftovers: Vec<_> = fs::read_dir(dir)
+            .unwrap()
+            .filter_map(|e| e.ok())
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(TEMP_SUFFIX) || n.ends_with(".latchkey-new"))
+            .collect();
+        assert!(leftovers.is_empty(), "temp leftovers: {leftovers:?}");
+    }
 
     #[test]
     fn write_then_read_same_bytes() {
@@ -214,9 +288,7 @@ mod tests {
         let mut got = Vec::new();
         File::open(&target).unwrap().read_to_end(&mut got).unwrap();
         assert_eq!(got, data);
-
-        // temp file should be gone
-        assert!(!temp_path(&target).exists());
+        no_temp_leftover(&dir);
 
         // overwrite existing file
         let data2 = b"new contents that are longer";
@@ -224,6 +296,7 @@ mod tests {
         let mut got2 = Vec::new();
         File::open(&target).unwrap().read_to_end(&mut got2).unwrap();
         assert_eq!(got2, data2);
+        no_temp_leftover(&dir);
 
         let _ = fs::remove_dir_all(&dir);
     }
@@ -240,6 +313,24 @@ mod tests {
         let got = fs::read(&target).unwrap();
         assert_eq!(got, b"short");
 
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // SEC-03 regression: the old deterministic temp name must never be used
+    // for writing again. A hard link planted there is ignored, not truncated.
+    #[test]
+    fn legacy_temp_hardlink_is_left_unouched() {
+        let dir = std::env::temp_dir().join(format!("latchkey_awt_link_{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("vault.latchkey");
+        let unrelated = dir.join("unrelated.txt");
+        fs::write(&unrelated, b"original unrelated data").unwrap();
+        fs::hard_link(&unrelated, temp_path_for(&target)).unwrap();
+
+        atomic_write(&target, b"synthetic replacement").unwrap();
+
+        assert_eq!(fs::read(&unrelated).unwrap(), b"original unrelated data");
+        assert_eq!(fs::read(&target).unwrap(), b"synthetic replacement");
         let _ = fs::remove_dir_all(&dir);
     }
 
@@ -278,6 +369,23 @@ mod tests {
                 & 0o777,
             0o600
         );
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    // SEC-03 regression: a symlink substituted at the lock path must be
+    // rejected at the open boundary, not merely inspected before it.
+    #[cfg(unix)]
+    #[test]
+    fn symlinked_lock_is_rejected() {
+        let dir = std::env::temp_dir().join(format!("latchkey_awt_symlink_{}", std::process::id()));
+        fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("vault.latchkey");
+        let victim = dir.join("victim.txt");
+        fs::write(&victim, b"victim").unwrap();
+        std::os::unix::fs::symlink(&victim, lock_path(&target)).unwrap();
+        let err = acquire_write_lock(&target).unwrap_err().to_string();
+        assert!(err.contains("symbolic link"), "{err}");
+        assert_eq!(fs::read(&victim).unwrap(), b"victim");
         let _ = fs::remove_dir_all(&dir);
     }
 

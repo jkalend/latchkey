@@ -98,7 +98,10 @@ fn invalid_edit_retains_original_cached_record_and_metadata() {
         EntryPatch {
             title: Some(too_long),
             password: Change::Set(b"attacker-replacement".to_vec()),
-            ..EntryPatch::default()
+            username: None,
+            url: None,
+            notes: Change::Keep,
+            totp: Change::Keep,
         },
     )
     .unwrap_err();

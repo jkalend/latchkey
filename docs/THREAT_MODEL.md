@@ -1,6 +1,6 @@
 # Threat Model
 
-**Status:** Public-preview implementation (`latchkey` 0.4.1)
+**Status:** Public-preview implementation (`latchkey` 0.4.2)
 **Covers:** Current `main` branch
 **Platforms:** Windows 10/11 (native), Linux under WSL2
 
@@ -99,8 +99,9 @@ These are **not defended against**, stated plainly so nobody relies on them:
   CPU (CRYPTO_SPEC §3); random 128-bit salt per vault so no precomputation
   or cross-vault amortization is possible.
 - **Residual risk:** a weak master password falls to brute force. Document
-  minimum-entropy guidance; enforce length and run a basic common-password
-  check against a small embedded deny-list (not a network API).
+  minimum-entropy guidance; enforce length, reject all-whitespace values,
+  and run basic common-password checks against a small embedded deny-list
+  plus a predictable-password list (H-01) — not a network API.
 - **Priority:** P0 for the KDF parameter decision.
 
 ### 5.2 Clipboard leakage
@@ -123,6 +124,19 @@ These are **not defended against**, stated plainly so nobody relies on them:
     clipboard lock before destroying that window. WSL/Linux compare content.
     An intervening user copy is left alone; native ownership also distinguishes
     a replacement containing identical text.
+  - **Overlapping latchkey copies (SEC-04):** each copy writes a small
+    expiry marker (a registered clipboard format with a generation number
+    and deadline) alongside the text. An older copy whose marker has been
+    superseded by a newer latchkey copy never restores its snapshot — the
+    snapshot is the newer copy's secret, and the newer copy's own expiry
+    owns it. A genuine user copy removes the marker and is still left
+    alone. The marker carries no secret material.
+  - **Cleanup verification (SEC-05):** at expiry, WSL/Linux distinguish an
+    empty clipboard from a failed read. A read that keeps failing after a
+    bounded retry returns an error stating the clipboard may still hold
+    the secret — the tool never claims success for a cleanup it could not
+    verify. The Linux probe additionally requires `wl-paste` whenever it
+    accepts `wl-copy`.
   - Ordinary TUI quit, Ctrl-C, and error returns cancel and join the owned
     clipboard worker after dropping vault/form secrets and restoring the
     terminal. Native cleanup waits while another application holds the

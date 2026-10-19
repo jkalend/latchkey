@@ -175,6 +175,33 @@ fn restore_if_owner(hwnd: HWND, previous: Option<&[u16]>) -> Result<()> {
     Ok(())
 }
 
+/// A superseded copy (another latchkey copy claimed a newer generation) must
+/// not restore its snapshot: that snapshot is the newer copy's secret, and
+/// when the newer copy expires nothing remains to clear it (SEC-04).
+/// Returns Some(previous) when the caller is authoritative.
+fn authoritative_snapshot(
+    hwnd: HWND,
+    previous: Option<&zeroize::Zeroizing<Vec<u16>>>,
+    generation: u64,
+) -> Option<Option<&[u16]>> {
+    let authoritative = match super::win32::read_expiry_marker().ok().flatten() {
+        // Our generation is still the newest latchkey claim on the clipboard.
+        Some(marker) if marker.generation == generation => true,
+        // A newer latchkey copy superseded us: leave its state untouched and
+        // do not restore (the snapshot belongs to it).
+        Some(_) => false,
+        // No marker (user copy cleared/overwrote it, or marker write failed):
+        // fall back to ownership — the classic restore path.
+        None => true,
+    };
+    // The window must still own the clipboard for any restore.
+    if authoritative && unsafe { GetClipboardOwner() }.ok() == Some(hwnd) {
+        Some(previous.map(|text| text.as_slice()))
+    } else {
+        None
+    }
+}
+
 struct Announcer {
     close: Option<mpsc::Sender<()>>,
     thread: Option<JoinHandle<Result<()>>>,
@@ -199,7 +226,12 @@ impl Drop for Announcer {
     }
 }
 
-fn spawn_announcer(secret: &[u8]) -> Result<Announcer> {
+fn spawn_announcer(secret: &[u8], timeout_secs: u64) -> Result<Announcer> {
+    let generation = super::win32::next_generation();
+    let deadline_unix = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs() + timeout_secs)
+        .unwrap_or(u64::MAX);
     let (close, requests) = mpsc::channel::<()>();
     let (ready, announced) = mpsc::channel::<Result<()>>();
     let secret = zeroize::Zeroizing::new(to_utf16(secret));
@@ -224,6 +256,11 @@ fn spawn_announcer(secret: &[u8]) -> Result<Announcer> {
                     restore_open_clipboard(previous.as_deref().map(|text| text.as_slice()))?;
                     return Err(error);
                 }
+                // Claim this copy as the newest latchkey generation so an
+                // overlapping older copy never restores our snapshot as
+                // static text (SEC-04). Failure is non-fatal: expiry then
+                // falls back to ownership-only behavior.
+                let _ = super::win32::set_expiry_marker(generation, deadline_unix);
                 Ok(previous)
             })() {
                 Ok(previous) => previous,
@@ -243,7 +280,11 @@ fn spawn_announcer(secret: &[u8]) -> Result<Announcer> {
             }
             // The window lives until restore completes (including unrendered
             // formats). Closing first destroys the only ownership evidence.
-            restore_if_owner(window.0, previous.as_deref().map(|text| text.as_slice()))
+            match authoritative_snapshot(window.0, previous.as_ref(), generation) {
+                Some(previous_bytes) => restore_if_owner(window.0, previous_bytes),
+                // Superseded: a newer latchkey copy owns the clipboard now.
+                None => Ok(()),
+            }
         })
         .map_err(|e| ClipError::Other(format!("spawn render thread: {e}")))?;
     let mut announcer = Announcer {
@@ -275,7 +316,7 @@ pub fn copy_and_hold_cancellable(
     crate::clip::validate_timeout(timeout_secs)?;
     // Install the native CLI console handler before entering the hold loop.
     let _ = crate::clip::ctrlc_flag();
-    let mut announcer = spawn_announcer(secret)?;
+    let mut announcer = spawn_announcer(secret, timeout_secs)?;
     cancel.hold(timeout_secs);
     announcer.finish()
 }
@@ -310,11 +351,11 @@ mod tests {
         let _serial = lock_clipboard();
         let _restore = PreserveClipboard::new();
         copy_now(b"previous-text").unwrap();
-        let mut first = spawn_announcer(b"first-secret").unwrap();
+        let mut first = spawn_announcer(b"first-secret", 0).unwrap();
         // No GetClipboardData before close: this must not render the secret.
         first.finish().unwrap();
         assert_text("previous-text");
-        let mut second = spawn_announcer(b"second-secret").unwrap();
+        let mut second = spawn_announcer(b"second-secret", 0).unwrap();
         assert_text("second-secret");
         second.finish().unwrap();
         assert_text("previous-text");
@@ -325,7 +366,7 @@ mod tests {
         let _serial = lock_clipboard();
         let _restore = PreserveClipboard::new();
         super::super::win32::restore_clipboard(&None).unwrap();
-        let mut copy = spawn_announcer(b"rendered-secret").unwrap();
+        let mut copy = spawn_announcer(b"rendered-secret", 0).unwrap();
         assert_text("rendered-secret");
         copy.finish().unwrap();
         assert_eq!(snapshot_clipboard().unwrap(), None);
@@ -337,7 +378,7 @@ mod tests {
         let _restore = PreserveClipboard::new();
         for replacement in [b"user-replacement".as_slice(), b"our-secret"] {
             copy_now(b"previous-text").unwrap();
-            let mut copy = spawn_announcer(b"our-secret").unwrap();
+            let mut copy = spawn_announcer(b"our-secret", 0).unwrap();
             copy_now(replacement).unwrap();
             copy.finish().unwrap();
             assert_text(std::str::from_utf8(replacement).unwrap());

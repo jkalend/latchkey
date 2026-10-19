@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-latchkey = { path = "..", features = ["fuzz-fast-kdf"] }
+latchkey = { path = ".." }
 
 [[bin]]
 name = "authenticated_vault"

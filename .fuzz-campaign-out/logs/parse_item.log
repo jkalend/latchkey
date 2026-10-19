@@ -1,0 +1,270 @@
+warning: binary `authenticated_vault` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\authenticated_vault.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::non_kebab_case_bins` is set to `warn` by default
+help: to change the binary name to `authenticated-vault`, convert `bin.name`
+  --> Cargo.toml:15:8
+   |
+15 - name = "authenticated_vault"
+15 + name = "authenticated-vault"
+   |
+warning: binary `import_bitwarden` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_bitwarden.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-bitwarden`, convert `bin.name`
+  --> Cargo.toml:71:8
+   |
+71 - name = "import_bitwarden"
+71 + name = "import-bitwarden"
+   |
+warning: binary `import_keepassxc` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_keepassxc.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-keepassxc`, convert `bin.name`
+  --> Cargo.toml:78:8
+   |
+78 - name = "import_keepassxc"
+78 + name = "import-keepassxc"
+   |
+warning: binary `import_native_json` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_native_json.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-native-json`, convert `bin.name`
+  --> Cargo.toml:64:8
+   |
+64 - name = "import_native_json"
+64 + name = "import-native-json"
+   |
+warning: binary `migrate_legacy` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\migrate_legacy.exe
+   |                                                        ^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `migrate-legacy`, convert `bin.name`
+  --> Cargo.toml:22:8
+   |
+22 - name = "migrate_legacy"
+22 + name = "migrate-legacy"
+   |
+warning: binary `otpauth_uri` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\otpauth_uri.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `otpauth-uri`, convert `bin.name`
+  --> Cargo.toml:57:8
+   |
+57 - name = "otpauth_uri"
+57 + name = "otpauth-uri"
+   |
+warning: binary `parse_header` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_header.exe
+   |                                                        ^^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-header`, convert `bin.name`
+  --> Cargo.toml:29:8
+   |
+29 - name = "parse_header"
+29 + name = "parse-header"
+   |
+warning: binary `parse_index` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_index.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-index`, convert `bin.name`
+  --> Cargo.toml:36:8
+   |
+36 - name = "parse_index"
+36 + name = "parse-index"
+   |
+warning: binary `parse_item` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_item.exe
+   |                                                        ^^^^^^^^^^
+   |
+help: to change the binary name to `parse-item`, convert `bin.name`
+  --> Cargo.toml:43:8
+   |
+43 - name = "parse_item"
+43 + name = "parse-item"
+   |
+warning: binary `split_item_frames` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\split_item_frames.exe
+   |                                                        ^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `split-item-frames`, convert `bin.name`
+  --> Cargo.toml:50:8
+   |
+50 - name = "split_item_frames"
+50 + name = "split-item-frames"
+   |
+warning: `latchkey-fuzz` (manifest) generated 10 warnings
+warning: explicit `package.readme` can be inferred
+ --> E:\Side-Projects\rust_password_manager\Cargo.toml:8:1
+  |
+8 | readme = "README.md"
+  | ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `cargo::manual_readme` is set to `warn` by default
+help: consider removing `package.readme`
+warning: `latchkey` (manifest) generated 1 warning
+   Compiling latchkey-fuzz v0.0.0 (E:\Side-Projects\rust_password_manager\fuzz)
+    Finished `release` profile [optimized + debuginfo] target(s) in 1.96s
+warning: binary `authenticated_vault` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\authenticated_vault.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::non_kebab_case_bins` is set to `warn` by default
+help: to change the binary name to `authenticated-vault`, convert `bin.name`
+  --> Cargo.toml:15:8
+   |
+15 - name = "authenticated_vault"
+15 + name = "authenticated-vault"
+   |
+warning: binary `import_bitwarden` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_bitwarden.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-bitwarden`, convert `bin.name`
+  --> Cargo.toml:71:8
+   |
+71 - name = "import_bitwarden"
+71 + name = "import-bitwarden"
+   |
+warning: binary `import_keepassxc` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_keepassxc.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-keepassxc`, convert `bin.name`
+  --> Cargo.toml:78:8
+   |
+78 - name = "import_keepassxc"
+78 + name = "import-keepassxc"
+   |
+warning: binary `import_native_json` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_native_json.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-native-json`, convert `bin.name`
+  --> Cargo.toml:64:8
+   |
+64 - name = "import_native_json"
+64 + name = "import-native-json"
+   |
+warning: binary `migrate_legacy` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\migrate_legacy.exe
+   |                                                        ^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `migrate-legacy`, convert `bin.name`
+  --> Cargo.toml:22:8
+   |
+22 - name = "migrate_legacy"
+22 + name = "migrate-legacy"
+   |
+warning: binary `otpauth_uri` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\otpauth_uri.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `otpauth-uri`, convert `bin.name`
+  --> Cargo.toml:57:8
+   |
+57 - name = "otpauth_uri"
+57 + name = "otpauth-uri"
+   |
+warning: binary `parse_header` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_header.exe
+   |                                                        ^^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-header`, convert `bin.name`
+  --> Cargo.toml:29:8
+   |
+29 - name = "parse_header"
+29 + name = "parse-header"
+   |
+warning: binary `parse_index` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_index.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-index`, convert `bin.name`
+  --> Cargo.toml:36:8
+   |
+36 - name = "parse_index"
+36 + name = "parse-index"
+   |
+warning: binary `parse_item` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_item.exe
+   |                                                        ^^^^^^^^^^
+   |
+help: to change the binary name to `parse-item`, convert `bin.name`
+  --> Cargo.toml:43:8
+   |
+43 - name = "parse_item"
+43 + name = "parse-item"
+   |
+warning: binary `split_item_frames` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\split_item_frames.exe
+   |                                                        ^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `split-item-frames`, convert `bin.name`
+  --> Cargo.toml:50:8
+   |
+50 - name = "split_item_frames"
+50 + name = "split-item-frames"
+   |
+warning: `latchkey-fuzz` (manifest) generated 10 warnings
+warning: explicit `package.readme` can be inferred
+ --> E:\Side-Projects\rust_password_manager\Cargo.toml:8:1
+  |
+8 | readme = "README.md"
+  | ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `cargo::manual_readme` is set to `warn` by default
+help: consider removing `package.readme`
+warning: `latchkey` (manifest) generated 1 warning
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.42s
+     Running `target\x86_64-pc-windows-msvc\release\parse_item.exe '-artifact_prefix=E:\Side-Projects\rust_password_manager\fuzz\artifacts\parse_item\' -max_total_time=1800 -timeout=25 -rss_limit_mb=4096 'E:\Side-Projects\rust_password_manager\fuzz\corpus\parse_item'`
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 1263690689
+INFO: Loaded 1 modules   (1986 inline 8-bit counters): 1986 [00007FF6B92E2E88, 00007FF6B92E364A), 
+INFO: Loaded 1 PC tables (1986 PCs): 1986 [00007FF6B92B9DD0,00007FF6B92C19F0), 
+INFO:      281 files found in E:\Side-Projects\rust_password_manager\fuzz\corpus\parse_item
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+INFO: seed corpus: files: 281 min: 1b max: 301b total: 12187b rss: 43Mb
+#282	INITED cov: 464 ft: 1101 corp: 125/3774b exec/s: 282 rss: 46Mb
+#65536	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 827 exec/s: 32768 rss: 66Mb
+#131072	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 1475 exec/s: 43690 rss: 84Mb
+#262144	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 2781 exec/s: 52428 rss: 118Mb
+#524288	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 4096 exec/s: 65536 rss: 188Mb
+#1048576	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 4096 exec/s: 74898 rss: 326Mb
+#2097152	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 4096 exec/s: 80659 rss: 530Mb
+#4194304	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 4096 exec/s: 80659 rss: 532Mb
+#8388608	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 4096 exec/s: 81442 rss: 535Mb
+#16777216	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 4096 exec/s: 81840 rss: 537Mb
+#33554432	pulse  cov: 464 ft: 1101 corp: 125/3774b lim: 4096 exec/s: 81245 rss: 542Mb
+#43862119	REDUCE cov: 464 ft: 1101 corp: 125/3758b lim: 4096 exec/s: 81076 rss: 545Mb L: 163/166 MS: 2 EraseBytes-ChangeBit-
+#67108864	pulse  cov: 464 ft: 1101 corp: 125/3758b lim: 4096 exec/s: 80854 rss: 553Mb
+#114644193	REDUCE cov: 464 ft: 1101 corp: 125/3752b lim: 4096 exec/s: 80226 rss: 557Mb L: 53/166 MS: 4 ChangeBinInt-ChangeByte-ChangeBinInt-EraseBytes-
+#134217728	pulse  cov: 464 ft: 1101 corp: 125/3752b lim: 4096 exec/s: 80082 rss: 558Mb
+#144012863	DONE   cov: 464 ft: 1101 corp: 125/3752b lim: 4096 exec/s: 79962 rss: 558Mb
+Done 144012863 runs in 1801 second(s)

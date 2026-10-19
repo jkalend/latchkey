@@ -9,6 +9,21 @@ use latchkey::totp::{totp_at, TotpParams};
 use latchkey::vault::shape::{IndexEntry, ItemRecord, TotpAlgorithm, TotpSubRecord};
 use latchkey::vault::vault_impl::Vault;
 
+/// Tests that touch LATCHKEY_FAST_KDF must not run concurrently with each
+/// other: the override is process-global. Serialize those tests with this
+/// mutex; everything else stays parallel.
+static FAST_KDF_GUARD: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+fn with_fast_kdf<T>(f: impl FnOnce() -> T) -> T {
+    let _guard = FAST_KDF_GUARD
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner());
+    std::env::set_var("LATCHKEY_FAST_KDF", "1");
+    let result = f();
+    std::env::remove_var("LATCHKEY_FAST_KDF");
+    result
+}
+
 fn pw(s: &str) -> SecretVec {
     SecretVec::new(s.as_bytes().to_vec().into_boxed_slice())
 }
@@ -335,7 +350,9 @@ fn edit_updates_index_and_item_atomically() {
                 username: Some("alice2".into()),
                 password: latchkey::ops::Change::Set(b"new-password-42".to_vec()),
                 url: Some("https://example.org".into()),
-                ..latchkey::ops::EntryPatch::default()
+                title: None,
+                notes: latchkey::ops::Change::Keep,
+                totp: latchkey::ops::Change::Keep,
             }
         )
         .unwrap());
@@ -353,98 +370,109 @@ fn edit_updates_index_and_item_atomically() {
 
 #[test]
 fn rotate_reencrypts_under_new_dek_and_kdf() {
-    let path = tmp_vault("rot");
-    let password = pw("rotate-master-pw");
+    with_fast_kdf(|| {
+        let path = tmp_vault("rot");
+        let password = pw("rotate-master-pw");
+        // rotate() re-derives with KdfParams::default() by design; the
+        // debug-only env override keeps the test at the floor KDF.
 
-    {
-        let mut v = Vault::create(
-            &path,
-            &password,
-            test_kdf(),
-            Algorithm::Aes256Gcm,
-            Algorithm::Aes256Gcm,
-        )
-        .unwrap();
-        v.add_item("a".into(), "ua".into(), sample_item(true))
+        {
+            let mut v = Vault::create(
+                &path,
+                &password,
+                test_kdf(),
+                Algorithm::Aes256Gcm,
+                Algorithm::Aes256Gcm,
+            )
             .unwrap();
-        v.add_item("b".into(), "ub".into(), sample_item(false))
-            .unwrap();
-        v.save().unwrap();
-    }
-
-    // Rotate opens all live items internally before swapping the DEK.
-    {
-        let mut v = Vault::open(&path, &password).unwrap();
-        let before = std::fs::read(&path).unwrap();
-        v.rotate(&password).unwrap();
-        let after = std::fs::read(&path).unwrap();
-        assert_ne!(before, after);
-    }
-
-    // Reopen with the same password; KDF params are now the production defaults.
-    {
-        let mut v = Vault::open(&path, &password).unwrap();
-        let def = KdfParams::default();
-        assert_eq!(v.config().kdf_params.argon2_m_mib, def.argon2_m_mib);
-        assert_eq!(v.config().kdf_params.argon2_t, def.argon2_t);
-        assert_eq!(v.entries().len(), 2);
-        v.open_item(v.entries()[0].item_id).unwrap();
-        let rec = v.open_record(v.entries()[0].slot).unwrap();
-        assert_eq!(
-            rec.password.as_deref(),
-            Some(b"correct horse battery staple".as_ref())
-        );
-        // TOTP still works after rotation.
-        if let Some(t) = &rec.totp {
-            let code = totp_at(&TotpParams::from(t), 59).unwrap();
-            assert_eq!(code.len(), 6);
+            v.add_item("a".into(), "ua".into(), sample_item(true))
+                .unwrap();
+            v.add_item("b".into(), "ub".into(), sample_item(false))
+                .unwrap();
+            v.save().unwrap();
         }
-    }
 
-    // Old password still works (rotate is not a password change).
-    assert!(Vault::open(&path, &password).is_ok());
+        // Rotate opens all live items internally before swapping the DEK.
+        {
+            let mut v = Vault::open(&path, &password).unwrap();
+            let before = std::fs::read(&path).unwrap();
+            v.rotate(&password).unwrap();
+            let after = std::fs::read(&path).unwrap();
+            assert_ne!(before, after);
+        }
 
-    let _ = std::fs::remove_dir_all(path.parent().unwrap());
+        // Reopen with the same password; KDF params are the rotate-time defaults.
+        // Under the fast override they are the floor; without it, production.
+        // Either way m/t must match whatever KdfParams::default() produced at
+        // rotation time — the invariant is self-consistency, not the constant.
+        {
+            let mut v = Vault::open(&path, &password).unwrap();
+            let def = KdfParams::default();
+            assert_eq!(v.config().kdf_params.argon2_m_mib, def.argon2_m_mib);
+            assert_eq!(v.config().kdf_params.argon2_t, def.argon2_t);
+            assert_eq!(v.entries().len(), 2);
+            v.open_item(v.entries()[0].item_id).unwrap();
+            let rec = v.open_record(v.entries()[0].slot).unwrap();
+            assert_eq!(
+                rec.password.as_deref(),
+                Some(b"correct horse battery staple".as_ref())
+            );
+            // TOTP still works after rotation.
+            if let Some(t) = &rec.totp {
+                let code = totp_at(&TotpParams::from(t), 59).unwrap();
+                assert_eq!(code.len(), 6);
+            }
+        }
+
+        // Old password still works (rotate is not a password change).
+        assert!(Vault::open(&path, &password).is_ok());
+
+        let _ = std::fs::remove_dir_all(path.parent().unwrap());
+    });
 }
 
 #[test]
 fn change_password_rewraps_same_dek() {
-    let path = tmp_vault("pw");
-    let password = pw("original-master-pw");
-    let new_password = pw("a-fresh-master-pw");
+    with_fast_kdf(|| {
+        let path = tmp_vault("pw");
+        let password = pw("original-master-pw");
+        let new_password = pw("a-fresh-master-pw");
+        // change_password() re-derives with KdfParams::default() by design; the
+        // debug-only env override keeps the test at the floor KDF.
 
-    {
-        let mut v = Vault::create(
-            &path,
-            &password,
-            test_kdf(),
-            Algorithm::Aes256Gcm,
-            Algorithm::Aes256Gcm,
-        )
-        .unwrap();
-        v.add_item("x".into(), "u".into(), sample_item(true))
+        {
+            let mut v = Vault::create(
+                &path,
+                &password,
+                test_kdf(),
+                Algorithm::Aes256Gcm,
+                Algorithm::Aes256Gcm,
+            )
             .unwrap();
-        v.save().unwrap();
-        let dek_before = v.dek_fingerprint();
-        v.change_password(&new_password).unwrap();
-        // Same DEK — only the wrap changed.
-        assert_eq!(dek_before, v.dek_fingerprint());
-    }
+            v.add_item("x".into(), "u".into(), sample_item(true))
+                .unwrap();
+            v.save().unwrap();
+            let dek_before = v.dek_fingerprint();
+            v.change_password(&new_password).unwrap();
+            // Same DEK — only the wrap changed.
+            assert_eq!(dek_before, v.dek_fingerprint());
+        }
 
-    // Old password fails, new one opens the same content.
-    assert!(Vault::open(&path, &password).is_err());
-    {
-        let mut v = Vault::open(&path, &new_password).unwrap();
-        assert_eq!(v.entries().len(), 1);
-        v.open_item(v.entries()[0].item_id).unwrap();
-        let rec = v.open_record(v.entries()[0].slot).unwrap();
-        assert_eq!(
-            rec.password.as_deref(),
-            Some(b"correct horse battery staple".as_ref())
-        );
-    }
+        // Old password fails, new one opens the same content.
+        assert!(Vault::open(&path, &password).is_err());
+        {
+            let mut v = Vault::open(&path, &new_password).unwrap();
+            assert_eq!(v.entries().len(), 1);
+            v.open_item(v.entries()[0].item_id).unwrap();
+            let rec = v.open_record(v.entries()[0].slot).unwrap();
+            assert_eq!(
+                rec.password.as_deref(),
+                Some(b"correct horse battery staple".as_ref())
+            );
+        }
 
-    let _ = std::fs::remove_dir_all(path.parent().unwrap());
+        let _ = std::fs::remove_dir_all(path.parent().unwrap());
+    });
 }
 
 /// The full export → import round trip through the CLI's own JSON emitter
@@ -630,7 +658,10 @@ fn historical_index_and_item_splices_rejected_on_every_read_and_save_path() {
         latchkey::ops::EntryPatch {
             title: Some("new-title".into()),
             password: latchkey::ops::Change::Set(b"replacement-password".to_vec()),
-            ..latchkey::ops::EntryPatch::default()
+            username: None,
+            url: None,
+            notes: latchkey::ops::Change::Keep,
+            totp: latchkey::ops::Change::Keep,
         }
     )
     .unwrap());

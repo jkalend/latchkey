@@ -3,15 +3,15 @@
 //! successful migration must produce an openable v2 vault whose records
 //! round-trip. Source bytes must be preserved either way.
 //!
-//! The `fuzz-fast-kdf` crate feature (see src/crypto/kdf.rs) substitutes
-//! floor KDF parameters for the default profile so the full cryptographic
-//! path runs without the ~1 s production derivation per successful input.
-//! The feature is never enabled in production builds.
+//! The harness passes the floor KDF profile explicitly (`migrate_with_kdf`,
+//! SEC-06): no cargo feature can weaken production defaults, and the full
+//! cryptographic path still runs without the ~1 s production derivation per
+//! successful input.
 
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use latchkey::crypto::kdf::SecretVec;
+use latchkey::crypto::kdf::{KdfParams, SecretVec};
 use latchkey::vault::vault_impl::Vault;
 
 fuzz_target!(|data: &[u8]| {
@@ -33,7 +33,8 @@ fuzz_target!(|data: &[u8]| {
         return;
     }
     let password = SecretVec::new(b"fuzz-password".to_vec().into_boxed_slice());
-    match Vault::migrate(&source, &target, &password) {
+    let floor_kdf = KdfParams::new(8, 1, 1).expect("floor KDF params are valid");
+    match Vault::migrate_with_kdf(&source, &target, &password, floor_kdf) {
         Ok(migrated) => {
             // Success implies the target is a coherent v2 vault.
             assert_eq!(migrated.config().version, 2);

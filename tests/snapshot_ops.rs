@@ -74,9 +74,12 @@ fn snapshot_serves_bulk_reads_and_rejects_disk_changes() {
     drop(snapshot);
 
     // Rotation: all records decrypt from one snapshot and remain correct
-    // after the re-encryption under a fresh DEK.
+    // after the re-encryption under a fresh DEK. rotate() re-derives with
+    // KdfParams::default(); the debug-only env override keeps the test fast.
+    std::env::set_var("LATCHKEY_FAST_KDF", "1");
     vault.rotate(&password).unwrap();
     vault.save().unwrap();
+    std::env::remove_var("LATCHKEY_FAST_KDF");
     let mut reopened = Vault::open(&path, &password).unwrap();
     for id in ids {
         reopened.open_item(id).unwrap();

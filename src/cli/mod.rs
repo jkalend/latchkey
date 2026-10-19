@@ -7,6 +7,9 @@ pub mod resolve;
 pub(crate) mod terminal;
 pub mod vault_path;
 
+#[cfg(windows)]
+pub mod windows_acl;
+
 pub use error::{CliError, ExitCode, Result};
 pub use vault_path::default_vault_path;
 
@@ -41,6 +44,14 @@ pub struct Cli {
     /// Read master-password prompts from stdin, one line per prompt
     #[arg(long, global = true)]
     from_stdin: bool,
+
+    /// Revealed secrets are printed byte-exact even on a terminal (default
+    /// behavior escapes control characters and bidi marks so a hostile
+    /// imported secret cannot emit terminal commands). Pipe/file/stdin
+    /// output is always byte-exact and needs no flag. Use for scripted
+    /// extraction where the exact bytes matter (SEC-07).
+    #[arg(long, global = true)]
+    exact_output: bool,
 
     /// Interactive interface (fuzzy search, detail view, copy)
     #[command(subcommand)]
@@ -274,12 +285,16 @@ pub fn run(args: std::env::Args) -> i32 {
 struct CommandContext {
     quiet: bool,
     from_stdin: bool,
+    /// When true, deliberate secret output must be byte-exact even on a
+    /// terminal (`--exact-output`). Default false: escape control chars.
+    exact_output: bool,
 }
 
 fn dispatch(cli: Cli) -> Result<()> {
     let context = CommandContext {
         quiet: cli.quiet,
         from_stdin: cli.from_stdin,
+        exact_output: cli.exact_output,
     };
     let vault_path = vault_path::resolve(cli.vault.as_deref());
     // Bare `latchkey` → the TUI (CLI_REFERENCE: tui is the interactive default).
@@ -556,7 +571,10 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
         let value = g.into_value();
         (Some(value.as_bytes().to_vec()), Some((value, entropy)))
     } else {
-        (Some(passwords::prompt_item_password()?.to_vec()), None)
+        (
+            Some(passwords::prompt_item_password(context.from_stdin)?.to_vec()),
+            None,
+        )
     };
 
     let totp_rec = if want_totp_uri {
@@ -583,11 +601,27 @@ fn cmd_add(path: &std::path::Path, a: AddArgs) -> Result<()> {
     println!("added item {id}");
     if let Some((value, entropy)) = generated {
         if reveal_generated {
-            // Deliberate secret output — Terminal() must not escape it.
-            println!("generated password ({} bits): {}", entropy as u64, *value);
+            // Generated values cannot contain control characters (the
+            // generator alphabet is printable), but keep the same terminal
+            // boundary discipline as `get --reveal` (SEC-07).
+            print_secret_line(
+                &format!("generated password ({} bits): {}", entropy as u64, *value),
+                context,
+            );
         }
     }
     Ok(())
+}
+
+/// Print one deliberate-secret line. Byte-exact on a pipe/file or with the
+/// `--exact-output` opt-in; escaped at the terminal boundary otherwise.
+fn print_secret_line(line: &str, context: CommandContext) {
+    let exact = context.exact_output || !std::io::IsTerminal::is_terminal(&std::io::stdout());
+    if exact {
+        println!("{line}");
+    } else {
+        println!("{}", Terminal(line));
+    }
 }
 
 fn cmd_list(path: &std::path::Path, context: CommandContext) -> Result<()> {
@@ -647,7 +681,16 @@ fn cmd_get(
                 "warning: the secret is now in your terminal scrollback; clear it (or close the terminal) when done"
             );
         }
-        println!("{}", pw_str.as_str());
+        // On a terminal, control sequences and bidi marks are escaped so a
+        // hostile imported secret cannot move the cursor or spoof output
+        // (SEC-07). Byte-exact extraction requires stdout to not be a
+        // terminal, or the explicit --exact-output opt-in.
+        let exact = context.exact_output || !std::io::IsTerminal::is_terminal(&std::io::stdout());
+        if exact {
+            println!("{}", pw_str.as_str());
+        } else {
+            println!("{}", Terminal(pw_str.as_str()));
+        }
         Ok(())
     } else {
         clip::copy_and_hold_quiet(&pw, timeout, context.quiet)
@@ -892,17 +935,46 @@ fn cmd_backup(path: &std::path::Path, out: Option<std::path::PathBuf>) -> Result
             dir.join(format!("vault-backup-{ts}.bin"))
         }
     };
+    // The check+publish is one atomic operation (H-04): no window where
+    // another writer can create the destination between check and write.
     if out.exists() {
         return Err(CliError::Other(format!(
             "backup path {} already exists — not overwriting",
             out.display()
         )));
     }
-    let data = std::fs::read(path).map_err(|e| CliError::Other(format!("read vault: {e}")))?;
-    crate::vault::atomic_write::atomic_write(&out, &data)
-        .map_err(|e| CliError::Other(e.to_string()))?;
+    // Bounded read: the vault reader's size cap applies to backups too; an
+    // unbounded std::fs::read would happily OOM on a corrupt/giant file.
+    let data = read_bounded(path)?;
+    crate::vault::atomic_write::atomic_create(&out, &data).map_err(|e| match e {
+        crate::crypto::error::Error::Encrypt(ref m) if m.contains("already exists") => {
+            CliError::Other(format!(
+                "backup path {} already exists — not overwriting",
+                out.display()
+            ))
+        }
+        other => CliError::Other(other.to_string()),
+    })?;
     println!("backup written to {}", Terminal(out.display()));
     Ok(())
+}
+
+/// Read a file enforcing the vault size cap (H-04).
+fn read_bounded(path: &std::path::Path) -> Result<Vec<u8>> {
+    use std::io::Read;
+    let file =
+        std::fs::File::open(path).map_err(|e| CliError::Other(format!("read vault: {e}")))?;
+    let mut data = Vec::new();
+    file.take(crate::vault::vault_impl::MAX_VAULT_BYTES_CAP + 1)
+        .read_to_end(&mut data)
+        .map_err(|e| CliError::Other(format!("read vault: {e}")))?;
+    if data.len() as u64 > crate::vault::vault_impl::MAX_VAULT_BYTES_CAP {
+        return Err(CliError::Other(format!(
+            "vault exceeds {} MiB — refusing to read",
+            crate::vault::vault_impl::MAX_VAULT_BYTES_CAP / 1024 / 1024
+        )));
+    }
+    Ok(data)
 }
 
 // ─── shared prompt helpers ──────────────────────────────────────────────────
@@ -1141,25 +1213,24 @@ fn cmd_edit(path: &std::path::Path, a: EditArgs) -> Result<()> {
         Change::Keep
     };
 
-    let changed = ops::update_entry(
-        &mut vault,
-        entry.item_id,
-        EntryPatch {
-            username: new_username,
-            password: new_password.map_or(Change::Keep, Change::Set),
-            url: new_url,
-            notes: new_notes.map_or(Change::Keep, |value| Change::Set(value.into_bytes())),
-            totp: totp_change,
-            ..EntryPatch::default()
-        },
-    )
-    .map_err(|e| CliError::Other(e.to_string()))?;
+    let patch = EntryPatch {
+        username: new_username,
+        password: new_password.map_or(Change::Keep, Change::Set),
+        url: new_url,
+        notes: new_notes.map_or(Change::Keep, |value| Change::Set(value.into_bytes())),
+        totp: totp_change,
+        title: None,
+    };
+    let changed = ops::update_entry(&mut vault, entry.item_id, patch)
+        .map_err(|e| CliError::Other(e.to_string()))?;
     if changed {
         println!("updated item {}", entry.item_id);
         if let Some((value, entropy)) = generated {
             if reveal_generated {
-                // Deliberate secret output — Terminal() must not escape it.
-                println!("generated password ({} bits): {}", entropy as u64, *value);
+                print_secret_line(
+                    &format!("generated password ({} bits): {}", entropy as u64, *value),
+                    context,
+                );
             }
         }
     } else {
@@ -1176,17 +1247,20 @@ fn cmd_rotate(path: &std::path::Path, new_password: bool, context: CommandContex
         vault.config().kdf_params.argon2_t,
         vault.config().kdf_params.argon2_p
     );
-    // Rotate first (fresh DEK, current-policy KDF); then optionally re-wrap
-    // under a new master password. Two atomic writes, each self-consistent.
+    // Collect and validate the replacement password BEFORE any write. The DEK
+    // is rotated and wrapped under a KEK derived from the target password in
+    // ONE atomic commit — no on-disk intermediate ever carries the new DEK
+    // under the old password (SEC-01: a retained intermediate would decrypt
+    // future secrets after the password change).
+    let np = if new_password {
+        Some(passwords::prompt_new_master(context.from_stdin)?)
+    } else {
+        None
+    };
+    let target = np.as_deref().map_or(pw.as_slice(), |np| np.as_slice());
     vault
-        .rotate(&secret_vec(pw.to_vec()))
+        .rotate(&secret_vec(target.to_vec()))
         .map_err(|e| CliError::Other(e.to_string()))?;
-    if new_password {
-        let np = passwords::prompt_new_master(context.from_stdin)?;
-        vault
-            .change_password(&secret_vec(np.to_vec()))
-            .map_err(|e| CliError::Other(e.to_string()))?;
-    }
     let h = &vault.config().kdf_params;
     println!(
         "rotated — KDF is now {} MiB, t={}, p={}",
@@ -1280,24 +1354,46 @@ fn cmd_export(
                 out.display()
             )));
         }
-        let mut opts = std::fs::OpenOptions::new();
-        opts.write(true).create_new(true);
-        #[cfg(unix)]
+        #[cfg(windows)]
         {
+            // Plaintext secrets on disk: the file must not inherit the
+            // destination directory's reader ACEs. The protected DACL is set
+            // through the SECURITY_ATTRIBUTES of the creating call itself —
+            // no exposure window with default ACLs (SEC-02).
+            let file = crate::cli::windows_acl::create_new_protected(&out)
+                .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
+            let mut f = file
+                .into_std_file()
+                .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
+            use std::io::Write as _;
+            f.write_all(body.as_bytes())
+                .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
+            eprintln!(
+                "plaintext export written to {} — handle it carefully",
+                Terminal(out.display())
+            );
+            return Ok(());
+        }
+        #[cfg(unix)]
+        let mut f = {
             // Plaintext secrets on disk — owner-only, never the umask default.
+            let mut opts = std::fs::OpenOptions::new();
+            opts.write(true).create_new(true);
             use std::os::unix::fs::OpenOptionsExt;
             opts.mode(0o600);
+            opts.open(&out)
+                .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?
+        };
+        #[cfg(unix)]
+        {
+            use std::io::Write as _;
+            f.write_all(body.as_bytes())
+                .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
+            eprintln!(
+                "plaintext export written to {} — handle it carefully",
+                Terminal(out.display())
+            );
         }
-        let mut f = opts
-            .open(&out)
-            .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
-        use std::io::Write as _;
-        f.write_all(body.as_bytes())
-            .map_err(|e| CliError::Other(format!("write {}: {e}", out.display())))?;
-        eprintln!(
-            "plaintext export written to {} — handle it carefully",
-            Terminal(out.display())
-        );
     }
     Ok(())
 }
@@ -1327,15 +1423,22 @@ pub fn export_item_json(
     }
     let password_json = match &rec.password {
         Some(p) => {
-            let s = Zeroizing::new(String::from_utf8_lossy(p).to_string());
-            format!("\"{}\"", esc(&s))
+            // Intermediate escaped fragments are wiped on drop (H-02); the
+            // caller's Zeroizing<String> list covers the final assembled
+            // item block.
+            let mut escaped = Zeroizing::new(esc(&String::from_utf8_lossy(p)));
+            escaped.insert(0, '"');
+            escaped.push('"');
+            std::mem::take(&mut *escaped)
         }
         None => "null".to_string(),
     };
     let notes_json = match &rec.notes {
         Some(n) => {
-            let s = Zeroizing::new(String::from_utf8_lossy(n).to_string());
-            format!("\"{}\"", esc(&s))
+            let mut escaped = Zeroizing::new(esc(&String::from_utf8_lossy(n)));
+            escaped.insert(0, '"');
+            escaped.push('"');
+            std::mem::take(&mut *escaped)
         }
         None => "null".to_string(),
     };
@@ -1345,16 +1448,16 @@ pub fn export_item_json(
             crate::vault::shape::TotpAlgorithm::Sha256 => "SHA256",
             crate::vault::shape::TotpAlgorithm::Sha512 => "SHA512",
         };
-        format!(
-            "      \"secret\": \"{}\",\n      \"period\": {},\n      \"digits\": {},\n      \"algorithm\": \"{}\"",
-            esc(&base32::encode(
-                base32::Alphabet::Rfc4648 { padding: false },
-                &t.secret
-            )),
-            t.period,
-            t.digits,
-            alg
-        )
+        let mut secret_json = Zeroizing::new(esc(&base32::encode(
+            base32::Alphabet::Rfc4648 { padding: false },
+            &t.secret,
+        )));
+        secret_json.insert_str(0, "      \"secret\": \"");
+        secret_json.push_str(&format!(
+            "\",\n      \"period\": {},\n      \"digits\": {},\n      \"algorithm\": \"{}\"",
+            t.period, t.digits, alg
+        ));
+        std::mem::take(&mut *secret_json)
     });
     let totp_json = match totp {
         Some(t) => format!("{{\n{t}\n    }}"),

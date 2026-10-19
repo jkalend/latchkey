@@ -37,6 +37,48 @@ const DENY_LIST: &[&str] = &[
 
 const MIN_LEN: usize = 8;
 
+/// Common password set beyond the hopeless list above (H-01). Not a network
+/// API — a local filter for the most-predictable choices that pass the
+/// length floor. Checked case-insensitively.
+const WEAK_LIST: &[&str] = &[
+    "1234567890",
+    "11111111",
+    "00000000",
+    "12121212",
+    "12341234",
+    "123123123",
+    "123456789",
+    "12345678910",
+    "qwerty123",
+    "1q2w3e4r",
+    "qazwsx",
+    "zaq12wsx",
+    "abcd1234",
+    "abcd12345",
+    "asdf1234",
+    "iloveyou1",
+    "letmein1",
+    "welcome1",
+    "password123!",
+    "p@ssw0rd",
+    "p@ssword1",
+    "trustno1",
+    "sunshine2",
+    "princess1",
+    "dragon123",
+    "master123",
+    "football1",
+    "baseball1",
+    "superman1",
+    "batman123",
+    "starwars1",
+    "whatever1",
+    "changeme1",
+    "changeme123",
+    "secret123",
+    "latchkey123",
+];
+
 /// Read once for unlock. `from_stdin` is explicit because redirected standard
 /// input is visible to any process that can read the producing pipe or file.
 pub fn prompt_master(from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
@@ -91,23 +133,28 @@ fn read_password(prompt: &str, from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
     Ok(value)
 }
 
-/// Length floor + deny-list. Returns Some(complaint) on failure.
+/// Length floor + deny-list + whitespace-only rejection + weak-list warning.
+/// Returns Some(complaint) on failure.
 pub fn check_quality(pw: &str) -> Option<&'static str> {
     if pw.chars().count() < MIN_LEN {
         return Some("master password must be at least 8 characters");
+    }
+    if !pw.is_empty() && pw.trim().is_empty() {
+        return Some("master password must not be all whitespace");
     }
     let lower = pw.to_ascii_lowercase();
     if DENY_LIST.contains(&lower.as_str()) {
         return Some("that password is on a common-password deny-list");
     }
+    if WEAK_LIST.contains(&lower.as_str()) {
+        return Some("that password is on a predictable-password deny-list");
+    }
     None
 }
 
 /// Prompt for an item password (hidden, never a CLI argument — §5.7).
-pub fn prompt_item_password() -> Result<Zeroizing<Vec<u8>>> {
-    let pw = prompt_password("Password: ")
-        .map_err(|e| CliError::Other(format!("could not read password: {e}")))?;
-    Ok(Zeroizing::new(pw.into_bytes()))
+pub fn prompt_item_password(from_stdin: bool) -> Result<Zeroizing<Vec<u8>>> {
+    read_password("Password: ", from_stdin)
 }
 
 #[cfg(test)]

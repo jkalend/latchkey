@@ -1,6 +1,6 @@
 # TUI Guide
 
-**Status:** Public-preview implementation (`latchkey` 0.4.1)
+**Status:** Public-preview implementation (`latchkey` 0.4.2)
 
 ## Scope
 

@@ -1,0 +1,21 @@
+=== authenticated_vault start 2026-10-19T16:01:35Z budget=3600s ===
+=== authenticated_vault end rc=0 2026-10-19T17:01:54Z ===
+=== migrate_legacy start 2026-10-19T17:01:54Z budget=3600s ===
+=== migrate_legacy end rc=0 2026-10-19T18:02:07Z ===
+=== parse_header start 2026-10-19T18:02:07Z budget=1700s ===
+=== parse_header end rc=0 2026-10-19T18:30:30Z ===
+=== parse_index start 2026-10-19T18:30:30Z budget=1800s ===
+=== parse_index end rc=0 2026-10-19T19:00:34Z ===
+=== parse_item start 2026-10-19T19:00:34Z budget=1800s ===
+=== parse_item end rc=0 2026-10-19T19:30:38Z ===
+=== split_item_frames start 2026-10-19T19:30:38Z budget=1800s ===
+=== split_item_frames end rc=0 2026-10-19T20:00:43Z ===
+=== import_native_json start 2026-10-19T20:00:43Z budget=3000s ===
+=== import_native_json end rc=0 2026-10-19T20:50:48Z ===
+=== import_bitwarden start 2026-10-19T20:50:48Z budget=2000s ===
+=== import_bitwarden end rc=0 2026-10-19T21:24:52Z ===
+=== import_keepassxc start 2026-10-19T21:24:53Z budget=1800s ===
+=== import_keepassxc end rc=0 2026-10-19T21:55:32Z ===
+=== otpauth_uri start 2026-10-19T21:55:32Z budget=300s ===
+=== otpauth_uri end rc=0 2026-10-19T22:00:37Z ===
+campaign overall_rc=0 finished 2026-10-19T22:00:37Z

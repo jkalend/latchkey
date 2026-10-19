@@ -5,13 +5,14 @@
 //! helpers both it and the clipboard round-trip test need.
 
 use crate::clip::error::{ClipError, Result};
+use crate::clip::expiry::ExpiryMarker;
 
 #[cfg(test)]
 use windows::core::w;
 use windows::Win32::Foundation::{HANDLE, HGLOBAL, HWND};
 use windows::Win32::System::DataExchange::{
     CloseClipboard, EmptyClipboard, GetClipboardData, IsClipboardFormatAvailable, OpenClipboard,
-    SetClipboardData,
+    RegisterClipboardFormatW, SetClipboardData,
 };
 use windows::Win32::System::Memory::{
     GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE,
@@ -199,6 +200,100 @@ pub(super) fn restore_open_clipboard(prev: Option<&[u16]>) -> Result<()> {
         set_clipboard_hglobal(render_into_global(prev)?)?;
     }
     Ok(())
+}
+
+/// Register once; the format name is process-wide and stable across copies.
+pub(super) fn marker_format() -> u32 {
+    static FORMAT: std::sync::LazyLock<u32> =
+        std::sync::LazyLock::new(|| unsafe { RegisterClipboardFormatW(MARKER_NAME) });
+    *FORMAT
+}
+
+/// The `w!` macro needs a literal; keep the two definitions adjacent so a
+/// name change cannot diverge from the wire format.
+const MARKER_NAME: windows::core::PCWSTR = windows::core::w!("Latchkey.ClipboardExpiryMarker");
+
+#[cfg(test)]
+pub(crate) fn marker_name_to_string() -> String {
+    // Read the registered name's literal back through its wide pointer.
+    let mut len = 0usize;
+    unsafe {
+        while *MARKER_NAME.0.add(len) != 0 {
+            len += 1;
+        }
+    }
+    String::from_utf16_lossy(unsafe { std::slice::from_raw_parts(MARKER_NAME.0, len) })
+}
+
+/// Process-wide copy generation: each successful copy claims the next value.
+/// Only the newest generation is authoritative at expiry (SEC-04).
+pub(super) fn next_generation() -> u64 {
+    static GEN: std::sync::LazyLock<std::sync::atomic::AtomicU64> =
+        std::sync::LazyLock::new(|| {
+            std::sync::atomic::AtomicU64::new(
+                // Seed high bits from process start time so distinct processes
+                // never collide on generation numbers.
+                (std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.subsec_nanos() as u64)
+                    .unwrap_or(0)
+                    & 0xFFFF)
+                    << 48,
+            )
+        });
+    std::sync::LazyLock::force(&GEN).fetch_add(1, std::sync::atomic::Ordering::SeqCst)
+        & 0x0000_FFFF_FFFF_FFFF
+}
+
+/// Write the expiry marker alongside the clipboard contents. Caller must hold
+/// the clipboard lock. Ownership of the marker HGLOBAL transfers on success.
+pub(super) fn set_expiry_marker(generation: u64, deadline_unix: u64) -> Result<()> {
+    let marker = ExpiryMarker {
+        generation,
+        deadline_unix,
+    };
+    let bytes = marker.encode();
+    unsafe {
+        let h =
+            GlobalAlloc(GMEM_MOVEABLE, bytes.len()).map_err(|_| last_err("GlobalAlloc marker"))?;
+        let dst = GlobalLock(h);
+        if dst.is_null() {
+            global_free(HGLOBAL(h.0));
+            return Err(last_err("GlobalLock marker"));
+        }
+        std::ptr::copy_nonoverlapping(bytes.as_ptr(), dst.cast(), bytes.len());
+        let _ = GlobalUnlock(h);
+        match SetClipboardData(marker_format(), Some(HANDLE(h.0))) {
+            Ok(_) => Ok(()),
+            Err(_) => {
+                global_free(HGLOBAL(h.0));
+                Err(last_err("SetClipboardData marker"))
+            }
+        }
+    }
+}
+
+/// Read the expiry marker, if present and well-formed. Caller must hold the
+/// clipboard lock. Malformed/foreign marker data is reported as None.
+pub(super) fn read_expiry_marker() -> Result<Option<ExpiryMarker>> {
+    unsafe {
+        if IsClipboardFormatAvailable(marker_format()).is_err() {
+            return Ok(None);
+        }
+        let h = match GetClipboardData(marker_format()) {
+            Ok(h) => h,
+            Err(_) => return Ok(None),
+        };
+        let h = HGLOBAL(h.0);
+        let ptr = GlobalLock(h);
+        if ptr.is_null() {
+            return Ok(None);
+        }
+        let len = GlobalSize(h).min(24);
+        let bytes = std::slice::from_raw_parts(ptr as *const u8, len).to_vec();
+        let _ = GlobalUnlock(h);
+        Ok(ExpiryMarker::decode(&bytes))
+    }
 }
 
 #[cfg(test)]

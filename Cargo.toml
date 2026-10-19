@@ -1,6 +1,6 @@
 [package]
 name = "latchkey"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 rust-version = "1.98"
 license = "MIT OR Apache-2.0"
@@ -45,15 +45,26 @@ windows = { version = "0.62", features = [
     "Win32_System_Registry",
     "Win32_System_Console",
     "Win32_System_Ole",
+    "Win32_System_Threading",
     "Win32_UI_WindowsAndMessaging",
     "Win32_Graphics_Gdi", # WNDCLASSW lives behind this gate
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
 ] }
 
 [dev-dependencies]
 
+[target.'cfg(windows)'.dev-dependencies]
+windows = { version = "0.62", features = [
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Threading",
+] }
+
 [features]
-# Harness-only KDF floor: substitutes migration/creation default KDF
-# parameters (8 MiB, t=1) so fuzz targets can exercise the full
-# cryptographic path without the ~1 s production derivation per input.
-# Never enabled in production builds.
-fuzz-fast-kdf = []
+# NOTE: there is deliberately no fast-KDF feature (SEC-06). A feature-gated
+# weak KDF reachable via `--all-features` could silently weaken released
+# binaries. Fuzz harnesses pass KdfParams::new(8,1,1) explicitly instead;
+# the test suite uses the debug-only LATCHKEY_FAST_KDF env override.

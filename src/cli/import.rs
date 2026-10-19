@@ -39,6 +39,7 @@ pub fn run(path: &std::path::Path, a: ImportArgs<'_>) -> Result<()> {
         super::CommandContext {
             quiet: a.quiet,
             from_stdin: a.from_stdin,
+            exact_output: false,
         },
     )?;
     import_format_into_with_quiet(&mut vault, a.format, &text, a.dry_run, a.yes, a.quiet)
@@ -545,7 +546,20 @@ fn optional_json_str(obj: &Json, key: &str) -> Result<Option<String>> {
 }
 
 fn optional_secret(obj: &Json, key: &str) -> Result<Option<Vec<u8>>> {
-    Ok(optional_json_str(obj, key)?.map(|value| value.into_bytes()))
+    let value = optional_json_str(obj, key)?.map(|value| value.into_bytes());
+    // Text-only clipboard backends (CF_UNICODETEXT, wl-copy, Set-Clipboard)
+    // truncate at embedded NULs and silently paste a prefix (SEC-08). Import
+    // refuses such values so stored secrets always round-trip through the
+    // copy path; JSON \u0000 escapes are the documented way they slip in.
+    if let Some(bytes) = &value {
+        if bytes.contains(&0) {
+            return Err(CliError::Other(format!(
+                "'{key}' contains an embedded NUL character — the clipboard copy path \
+                 would truncate it to a different secret; remove it and re-import"
+            )));
+        }
+    }
+    Ok(value)
 }
 
 fn json_array_len(obj: &Json, key: &str) -> Result<usize> {

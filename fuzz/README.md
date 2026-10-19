@@ -12,12 +12,20 @@ and parsing its index.
 | `parse_index` | decrypted index payload: entry count + string length caps |
 | `parse_item` | ItemRecord parser + serialize↔parse round-trip invariant |
 | `authenticated_vault` | full `Vault::open` end-to-end: size/KDF-policy gates, MAC verify, index decrypt, frame walk, item decrypt |
-| `migrate_legacy` | full `Vault::migrate` end-to-end: both legacy layouts, source preservation, target coherence; runs under `fuzz-fast-kdf` |
+| `migrate_legacy` | full `Vault::migrate` end-to-end: both legacy layouts, source preservation, target coherence; harness passes the floor KDF explicitly (`migrate_with_kdf`) |
 | `split_item_frames` | format-2 on-disk frame walker (nonce ‖ ct_len ‖ ct ‖ tag), counts, and 40-byte trailer bounds |
 | `otpauth_uri` | `otpauth://` parsing: query split, percent-decoding, then TOTP computation |
 | `import_native_json` | serde_json-backed native schema-1 interpretation with bounded conversion |
 | `import_bitwarden` | Bitwarden JSON adapter: type dispatch, field extraction, TOTP URIs |
 | `import_keepassxc` | KeePassXC CSV adapter: quoting, record/field caps |
+
+Surfaces outside the targets (documented, not fuzzed): clipboard backends
+exercise real OS clipboard state and external tools — unsuitable for
+deterministic harnesses; they have regression tests instead
+(`tests/security_regressions.rs` covers the SEC-04/05/08 logic). The
+atomic-write path (`atomic_write_locked`/`atomic_create`) touches real
+filesystem metadata (ACLs, hard links); deterministic tests cover the
+link-clobber and no-replacement invariants.
 
 ## Running
 

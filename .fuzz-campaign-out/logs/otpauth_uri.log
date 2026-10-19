@@ -1,0 +1,330 @@
+warning: binary `authenticated_vault` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\authenticated_vault.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::non_kebab_case_bins` is set to `warn` by default
+help: to change the binary name to `authenticated-vault`, convert `bin.name`
+  --> Cargo.toml:15:8
+   |
+15 - name = "authenticated_vault"
+15 + name = "authenticated-vault"
+   |
+warning: binary `import_bitwarden` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_bitwarden.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-bitwarden`, convert `bin.name`
+  --> Cargo.toml:71:8
+   |
+71 - name = "import_bitwarden"
+71 + name = "import-bitwarden"
+   |
+warning: binary `import_keepassxc` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_keepassxc.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-keepassxc`, convert `bin.name`
+  --> Cargo.toml:78:8
+   |
+78 - name = "import_keepassxc"
+78 + name = "import-keepassxc"
+   |
+warning: binary `import_native_json` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_native_json.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-native-json`, convert `bin.name`
+  --> Cargo.toml:64:8
+   |
+64 - name = "import_native_json"
+64 + name = "import-native-json"
+   |
+warning: binary `migrate_legacy` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\migrate_legacy.exe
+   |                                                        ^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `migrate-legacy`, convert `bin.name`
+  --> Cargo.toml:22:8
+   |
+22 - name = "migrate_legacy"
+22 + name = "migrate-legacy"
+   |
+warning: binary `otpauth_uri` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\otpauth_uri.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `otpauth-uri`, convert `bin.name`
+  --> Cargo.toml:57:8
+   |
+57 - name = "otpauth_uri"
+57 + name = "otpauth-uri"
+   |
+warning: binary `parse_header` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_header.exe
+   |                                                        ^^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-header`, convert `bin.name`
+  --> Cargo.toml:29:8
+   |
+29 - name = "parse_header"
+29 + name = "parse-header"
+   |
+warning: binary `parse_index` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_index.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-index`, convert `bin.name`
+  --> Cargo.toml:36:8
+   |
+36 - name = "parse_index"
+36 + name = "parse-index"
+   |
+warning: binary `parse_item` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_item.exe
+   |                                                        ^^^^^^^^^^
+   |
+help: to change the binary name to `parse-item`, convert `bin.name`
+  --> Cargo.toml:43:8
+   |
+43 - name = "parse_item"
+43 + name = "parse-item"
+   |
+warning: binary `split_item_frames` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\split_item_frames.exe
+   |                                                        ^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `split-item-frames`, convert `bin.name`
+  --> Cargo.toml:50:8
+   |
+50 - name = "split_item_frames"
+50 + name = "split-item-frames"
+   |
+warning: `latchkey-fuzz` (manifest) generated 10 warnings
+warning: explicit `package.readme` can be inferred
+ --> E:\Side-Projects\rust_password_manager\Cargo.toml:8:1
+  |
+8 | readme = "README.md"
+  | ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `cargo::manual_readme` is set to `warn` by default
+help: consider removing `package.readme`
+warning: `latchkey` (manifest) generated 1 warning
+   Compiling latchkey-fuzz v0.0.0 (E:\Side-Projects\rust_password_manager\fuzz)
+    Finished `release` profile [optimized + debuginfo] target(s) in 3.00s
+warning: binary `authenticated_vault` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\authenticated_vault.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `cargo::non_kebab_case_bins` is set to `warn` by default
+help: to change the binary name to `authenticated-vault`, convert `bin.name`
+  --> Cargo.toml:15:8
+   |
+15 - name = "authenticated_vault"
+15 + name = "authenticated-vault"
+   |
+warning: binary `import_bitwarden` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_bitwarden.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-bitwarden`, convert `bin.name`
+  --> Cargo.toml:71:8
+   |
+71 - name = "import_bitwarden"
+71 + name = "import-bitwarden"
+   |
+warning: binary `import_keepassxc` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_keepassxc.exe
+   |                                                        ^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-keepassxc`, convert `bin.name`
+  --> Cargo.toml:78:8
+   |
+78 - name = "import_keepassxc"
+78 + name = "import-keepassxc"
+   |
+warning: binary `import_native_json` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\import_native_json.exe
+   |                                                        ^^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `import-native-json`, convert `bin.name`
+  --> Cargo.toml:64:8
+   |
+64 - name = "import_native_json"
+64 + name = "import-native-json"
+   |
+warning: binary `migrate_legacy` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\migrate_legacy.exe
+   |                                                        ^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `migrate-legacy`, convert `bin.name`
+  --> Cargo.toml:22:8
+   |
+22 - name = "migrate_legacy"
+22 + name = "migrate-legacy"
+   |
+warning: binary `otpauth_uri` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\otpauth_uri.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `otpauth-uri`, convert `bin.name`
+  --> Cargo.toml:57:8
+   |
+57 - name = "otpauth_uri"
+57 + name = "otpauth-uri"
+   |
+warning: binary `parse_header` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_header.exe
+   |                                                        ^^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-header`, convert `bin.name`
+  --> Cargo.toml:29:8
+   |
+29 - name = "parse_header"
+29 + name = "parse-header"
+   |
+warning: binary `parse_index` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_index.exe
+   |                                                        ^^^^^^^^^^^
+   |
+help: to change the binary name to `parse-index`, convert `bin.name`
+  --> Cargo.toml:36:8
+   |
+36 - name = "parse_index"
+36 + name = "parse-index"
+   |
+warning: binary `parse_item` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\parse_item.exe
+   |                                                        ^^^^^^^^^^
+   |
+help: to change the binary name to `parse-item`, convert `bin.name`
+  --> Cargo.toml:43:8
+   |
+43 - name = "parse_item"
+43 + name = "parse-item"
+   |
+warning: binary `split_item_frames` should have a kebab-case name
+   |
+ 1 | E:\Side-Projects\rust_password_manager\fuzz\target\...\split_item_frames.exe
+   |                                                        ^^^^^^^^^^^^^^^^^
+   |
+help: to change the binary name to `split-item-frames`, convert `bin.name`
+  --> Cargo.toml:50:8
+   |
+50 - name = "split_item_frames"
+50 + name = "split-item-frames"
+   |
+warning: `latchkey-fuzz` (manifest) generated 10 warnings
+warning: explicit `package.readme` can be inferred
+ --> E:\Side-Projects\rust_password_manager\Cargo.toml:8:1
+  |
+8 | readme = "README.md"
+  | ^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `cargo::manual_readme` is set to `warn` by default
+help: consider removing `package.readme`
+warning: `latchkey` (manifest) generated 1 warning
+    Finished `release` profile [optimized + debuginfo] target(s) in 0.44s
+     Running `target\x86_64-pc-windows-msvc\release\otpauth_uri.exe '-artifact_prefix=E:\Side-Projects\rust_password_manager\fuzz\artifacts\otpauth_uri\' -max_total_time=300 -timeout=25 -rss_limit_mb=4096 'E:\Side-Projects\rust_password_manager\fuzz\corpus\otpauth_uri'`
+INFO: Running with entropic power schedule (0xFF, 100).
+INFO: Seed: 3177208072
+INFO: Loaded 1 modules   (2277 inline 8-bit counters): 2277 [00007FF6D9C531C8, 00007FF6D9C53AAD), 
+INFO: Loaded 1 PC tables (2277 PCs): 2277 [00007FF6D9C26DB8,00007FF6D9C2FC08), 
+INFO:     2439 files found in E:\Side-Projects\rust_password_manager\fuzz\corpus\otpauth_uri
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+INFO: seed corpus: files: 2439 min: 1b max: 3409b total: 740330b rss: 49Mb
+#256	pulse  cov: 372 ft: 544 corp: 129/3591b exec/s: 128 rss: 52Mb
+#512	pulse  cov: 502 ft: 856 corp: 193/6020b exec/s: 128 rss: 54Mb
+#1024	pulse  cov: 511 ft: 1155 corp: 260/10586b exec/s: 128 rss: 57Mb
+#2048	pulse  cov: 518 ft: 1426 corp: 328/26Kb exec/s: 146 rss: 65Mb
+#2440	INITED cov: 518 ft: 1518 corp: 352/57Kb exec/s: 143 rss: 69Mb
+#4096	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 3431 exec/s: 240 rss: 70Mb
+#8192	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 3475 exec/s: 455 rss: 74Mb
+#16384	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 3552 exec/s: 910 rss: 78Mb
+#32768	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 3717 exec/s: 1820 rss: 88Mb
+#65536	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4047 exec/s: 3640 rss: 106Mb
+#131072	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 6898 rss: 142Mb
+#245571	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 12278 rss: 205Mb L: 128/3409 MS: 1 EraseBytes-
+#262144	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 13107 rss: 214Mb
+#346912	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 17345 rss: 261Mb L: 28/3409 MS: 1 EraseBytes-
+#502638	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 22847 rss: 353Mb L: 49/3409 MS: 1 EraseBytes-
+#524288	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 23831 rss: 365Mb
+#570259	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 24793 rss: 390Mb L: 176/3409 MS: 1 EraseBytes-
+#1031380	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 38199 rss: 451Mb L: 851/3409 MS: 1 EraseBytes-
+#1038756	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 37098 rss: 452Mb L: 1060/3409 MS: 1 EraseBytes-
+#1048576	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 37449 rss: 453Mb
+#1332409	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 42980 rss: 456Mb L: 841/3409 MS: 3 ChangeBit-ChangeBinInt-EraseBytes-
+#1454996	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 45468 rss: 456Mb L: 48/3409 MS: 1 EraseBytes-
+#1477238	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 46163 rss: 456Mb L: 345/3409 MS: 2 InsertByte-EraseBytes-
+#1597620	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 46988 rss: 457Mb L: 301/3409 MS: 2 EraseBytes-CrossOver-
+#2097152	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 53773 rss: 461Mb
+#2113276	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 54186 rss: 461Mb L: 358/3409 MS: 1 EraseBytes-
+#2332187	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 55528 rss: 462Mb L: 837/3409 MS: 1 EraseBytes-
+#2452208	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 57028 rss: 463Mb L: 728/3409 MS: 1 EraseBytes-
+#3338726	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 64206 rss: 467Mb L: 293/3409 MS: 3 EraseBytes-ChangeBit-InsertRepeatedBytes-
+#4194304	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 69905 rss: 469Mb
+#4260957	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 69851 rss: 469Mb L: 27/3409 MS: 1 EraseBytes-
+#4345113	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 70082 rss: 469Mb L: 53/3409 MS: 1 EraseBytes-
+#4553112	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 70047 rss: 469Mb L: 821/3409 MS: 4 ChangeASCIIInt-ShuffleBytes-ChangeBit-EraseBytes-
+#4993603	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71337 rss: 469Mb L: 791/3409 MS: 1 EraseBytes-
+#5760365	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 73850 rss: 471Mb L: 775/3409 MS: 1 EraseBytes-
+#6069377	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 74016 rss: 472Mb L: 766/3409 MS: 1 EraseBytes-
+#6117259	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 74600 rss: 472Mb L: 91/3409 MS: 2 EraseBytes-CrossOver-
+#6285130	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 73942 rss: 472Mb L: 155/3409 MS: 5 ChangeByte-ChangeByte-EraseBytes-ShuffleBytes-CopyPart-
+#6381699	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 73352 rss: 472Mb L: 288/3409 MS: 4 ShuffleBytes-InsertByte-EraseBytes-InsertByte-
+#6566970	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 72966 rss: 472Mb L: 344/3409 MS: 1 EraseBytes-
+#7011011	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 73800 rss: 472Mb L: 350/3409 MS: 1 EraseBytes-
+#7202942	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 73499 rss: 473Mb L: 344/3409 MS: 1 EraseBytes-
+#7422619	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 73491 rss: 473Mb L: 1330/3409 MS: 1 EraseBytes-
+#8304991	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 75499 rss: 475Mb L: 763/3409 MS: 2 ChangeBit-EraseBytes-
+#8388608	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 75573 rss: 475Mb
+#9252482	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 77104 rss: 477Mb L: 757/3409 MS: 1 EraseBytes-
+#9415864	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 77179 rss: 477Mb L: 336/3409 MS: 1 EraseBytes-
+#9781876	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 77633 rss: 477Mb L: 734/3409 MS: 2 ChangeASCIIInt-EraseBytes-
+#9931608	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 77590 rss: 477Mb L: 336/3409 MS: 2 InsertByte-EraseBytes-
+#10364754	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 77930 rss: 477Mb L: 130/3409 MS: 1 EraseBytes-
+#10410990	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 78278 rss: 477Mb L: 52/3409 MS: 1 EraseBytes-
+#10846547	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 77475 rss: 478Mb L: 51/3409 MS: 2 CopyPart-EraseBytes-
+#11088329	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 77002 rss: 478Mb L: 1097/3409 MS: 1 EraseBytes-
+#11554430	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 76519 rss: 478Mb L: 729/3409 MS: 1 EraseBytes-
+#11800813	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 76134 rss: 478Mb L: 727/3409 MS: 3 ChangeASCIIInt-ChangeASCIIInt-EraseBytes-
+#12045179	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 75755 rss: 478Mb L: 1074/3409 MS: 5 CMP-InsertByte-ShuffleBytes-EraseBytes-CopyPart- DE: "\000\000\000\000\000\000\000\000"-
+#12781978	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 74748 rss: 479Mb L: 291/3409 MS: 4 PersAutoDict-InsertByte-PersAutoDict-EraseBytes- DE: "\000\000\000\000\000\000\000\000"-"\000\000\000\000\000\000\000\000"-
+#13199905	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 74156 rss: 479Mb L: 290/3409 MS: 2 CrossOver-CrossOver-
+#15631656	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 72368 rss: 483Mb L: 724/3409 MS: 1 EraseBytes-
+#15831462	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71961 rss: 483Mb L: 289/3409 MS: 1 EraseBytes-
+#16194823	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71976 rss: 483Mb L: 2276/3409 MS: 1 EraseBytes-
+#16559057	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71995 rss: 483Mb L: 288/3409 MS: 4 ShuffleBytes-CMP-ChangeASCIIInt-EraseBytes- DE: "\011\001\000\000\000\000\000\000"-
+#16674898	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71566 rss: 483Mb L: 26/3409 MS: 1 EraseBytes-
+#16777216	pulse  cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71392 rss: 483Mb
+#16868189	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71475 rss: 483Mb L: 2396/3409 MS: 1 EraseBytes-
+#17421096	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 71106 rss: 483Mb L: 700/3409 MS: 2 EraseBytes-CopyPart-
+#17719097	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 70594 rss: 483Mb L: 324/3409 MS: 1 EraseBytes-
+#17846433	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 70539 rss: 483Mb L: 685/3409 MS: 1 EraseBytes-
+#18336099	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 69985 rss: 483Mb L: 322/3409 MS: 1 EraseBytes-
+#20475956	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 69410 rss: 484Mb L: 720/3409 MS: 2 ChangeBit-EraseBytes-
+#20667352	REDUCE cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 69121 rss: 484Mb L: 672/3409 MS: 1 EraseBytes-
+#20761562	DONE   cov: 518 ft: 1518 corp: 352/57Kb lim: 4096 exec/s: 68975 rss: 484Mb
+###### Recommended dictionary. ######
+"\000\000\000\000\000\000\000\000" # Uses: 582900
+"\011\001\000\000\000\000\000\000" # Uses: 184957
+###### End of recommended dictionary. ######
+Done 20761562 runs in 301 second(s)

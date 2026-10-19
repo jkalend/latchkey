@@ -53,9 +53,23 @@ impl Tool {
 }
 
 fn probe() -> Result<Tool> {
-    // wl-copy requires a Wayland session.
-    if std::env::var_os("WAYLAND_DISPLAY").is_some() && platform::which("wl-copy").is_some() {
-        return Ok(Tool::WlCopy);
+    // wl-copy requires a Wayland session; wl-paste is its read counterpart
+    // and the ownership compare depends on it (SEC-05). A session with
+    // wl-copy but no wl-paste would silently break expiry verification.
+    if std::env::var_os("WAYLAND_DISPLAY").is_some() {
+        let copy = platform::which("wl-copy").is_some();
+        let paste = platform::which("wl-paste").is_some();
+        match (copy, paste) {
+            (true, true) => return Ok(Tool::WlCopy),
+            (true, false) => {
+                return Err(ClipError::NoBackend(
+                    "wl-copy is installed but wl-paste is missing — install wl-clipboard \
+                     fully (both binaries) for clipboard support"
+                        .into(),
+                ))
+            }
+            _ => {}
+        }
     }
     if platform::which("xclip").is_some() {
         return Ok(Tool::XClip);
@@ -77,23 +91,39 @@ fn normalize(bytes: &[u8]) -> Vec<u8> {
     }
 }
 
-/// Current clipboard text per the selected tool, or None when it can't be
-/// read (no content, spawn failure — both treated as "unknown; don't touch").
-fn read_clipboard(tool: &Tool) -> Option<Vec<u8>> {
+/// Current clipboard text per the selected tool.
+///
+/// Distinguishes three outcomes (SEC-05): genuinely empty selection
+/// (`Ok(None)`), readable contents (`Ok(Some(..))`), and a tool/transport
+/// failure (`Err`). The expiry path must never treat "unknown" as "empty".
+enum ClipState {
+    Empty,
+    Value(Vec<u8>),
+    ReadError,
+}
+
+fn read_clipboard_state(tool: &Tool) -> ClipState {
     let (bin, args) = tool.paste_cmd();
-    let output = Command::new(bin)
+    match Command::new(bin)
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .output()
-        .ok()?;
-    if !output.status.success() {
-        return None;
+    {
+        Err(_) => ClipState::ReadError,
+        Ok(output) if !output.status.success() => ClipState::ReadError,
+        Ok(output) if output.stdout.is_empty() => ClipState::Empty,
+        Ok(output) => ClipState::Value(normalize(&output.stdout)),
     }
-    if output.stdout.is_empty() {
-        return None;
+}
+
+/// Legacy presence-only snapshot for callers that don't need the distinction.
+#[cfg_attr(not(test), allow(dead_code))]
+fn read_clipboard(tool: &Tool) -> Option<Vec<u8>> {
+    match read_clipboard_state(tool) {
+        ClipState::Value(bytes) => Some(bytes),
+        _ => None,
     }
-    Some(normalize(&output.stdout))
 }
 
 /// Write `data` to the clipboard, closing stdin immediately so the helper
@@ -154,10 +184,32 @@ pub fn copy_and_hold_cancellable(
 
     // Tool protocols cannot make compare-and-restore atomic; never write
     // after an unreadable snapshot, which may belong to another process.
-    if read_clipboard(&tool).as_deref() == Some(normalize(secret).as_slice()) {
-        write_clipboard(&tool, prev.as_deref().unwrap_or(b""))?;
+    // (SEC-05) A failed read at expiry must surface as an error, not silent
+    // success. Retry briefly (contention is transient), then report
+    // uncertainty explicitly.
+    let mut attempts = 0;
+    loop {
+        match read_clipboard_state(&tool) {
+            ClipState::ReadError if attempts < 3 => {
+                attempts += 1;
+                std::thread::sleep(std::time::Duration::from_millis(200 * attempts as u64));
+            }
+            ClipState::ReadError => {
+                return Err(ClipError::Other(
+                    "could not verify the clipboard was cleared (clipboard read kept failing); \
+                     it may still hold the copied secret — clear it manually"
+                        .into(),
+                ));
+            }
+            ClipState::Value(bytes) if bytes == normalize(secret) => {
+                write_clipboard(&tool, prev.as_deref().unwrap_or(b""))?;
+                return Ok(());
+            }
+            // Empty, or a value that is not ours (user copied something else):
+            // nothing latchkey-owned remains.
+            _ => return Ok(()),
+        }
     }
-    Ok(())
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 # CLI Reference
 
-**Status:** Public preview (`latchkey` 0.4.1)
+**Status:** Public preview (`latchkey` 0.4.2)
 **Binary name:** `latchkey`
 
 ---
@@ -12,6 +12,7 @@
 | `--vault <path>` | Override the vault location (ADR-0002) for this invocation |
 | `-q` / `--quiet` | Suppress **security warnings** (see §warning policy) — never suppresses errors or usability warnings |
 | `--from-stdin` | Read master-password prompts from stdin, one line per prompt; intended for controlled automation |
+| `--exact-output` | Print deliberate secret output (`get --reveal`, `--reveal-generated`) byte-exact even on a terminal; default escapes control sequences at the terminal boundary (SEC-07) |
 
 `--from-stdin` never accepts a secret as a process argument or environment
 variable. For `init`, provide the new master password twice. Other vault
@@ -30,8 +31,9 @@ when displayed in a terminal. C0 controls (including ESC), DEL/C1 controls,
 and Unicode bidirectional formatting/override/isolate controls appear as
 visible `\xNN` or `\u{NNNN}` escapes; newline, carriage return, and tab appear
 as `\n`, `\r`, and `\t`. Ordinary Unicode remains readable. Imported and stored
-values are unchanged. Deliberate secret reveals and JSON exports remain
-byte-exact and are not terminal-sanitized.
+values are unchanged. Deliberate secret reveals to a pipe/file and JSON exports
+remain byte-exact and are not terminal-sanitized; reveals to an interactive
+terminal are escaped unless `--exact-output` is given (SEC-07).
 
 ### Warning policy
 
@@ -96,17 +98,31 @@ copy-history warnings every time; errors must still reach a human.
   a failed save never reveals it.
 - Never accepts a password as a CLI argument (THREAT_MODEL §5.7).
 - `--notes` reads interactively in `$EDITOR` when the flag is given
-  without a value; a value on the command line is allowed since notes
-  are not classified as secrets (documented trade-off — `get`/`edit`
-  treat notes as secret on *output*).
+  without a value; a value on the command line is allowed for
+  convenience, but **notes are secret-classified** (they may hold
+  recovery codes or security answers — `get`/`edit` mask them on
+  output). Passing `--notes <value>` exposes the text in shell history
+  and process listings; prefer the `$EDITOR` form when the note is
+  sensitive.
 
 ### `latchkey get <title>`
 
 - Default behavior: copies to clipboard (same as `copy`) — printing to
   stdout requires `--reveal`, which also prints a warning that the
   terminal scrollback now contains the secret. `--copy` and `--reveal`
-  are mutually exclusive. Copying is byte-exact even for secrets that
-  are not valid UTF-8; `--reveal` refuses those (use `copy` instead).
+  are mutually exclusive. Copying is byte-exact for any secret that the
+  clipboard can represent as text (valid UTF-8 without embedded NULs);
+  other values are refused on copy and on import, because a truncated
+  paste would silently hand you a different secret than the one stored.
+  `--reveal` also refuses non-UTF-8 values.
+- **Terminal boundary (SEC-07):** on an interactive terminal, `--reveal`
+  escapes control characters and bidirectional marks so a hostile
+  imported password cannot emit terminal commands. Output through a
+  pipe/file remains byte-exact, and the global `--exact-output` flag
+  opts into byte-exact output even on a terminal for scripted
+  extraction.
+- `--reveal-generated` on `add`/`edit` follows the same terminal rule;
+  generated values are always printable.
 - `<title>` resolves to **all** live entries with that title (VAULT_FORMAT
   §5: titles are not unique). One match → direct; several → an
   interactive fuzzy chooser lists each with username + `item_id` suffix
@@ -326,7 +342,7 @@ an authentication-specific condition.
 
 ## Configuration file
 
-A configuration file remains out of scope for 0.4.1: the three environment
+A configuration file remains out of scope for 0.4.2: the three environment
 variables above do not justify another precedence layer or persisted plaintext
 settings. Revisit only when real settings outgrow them
 ([release non-goals](NEXT_RELEASE.md#5-explicit-non-goals-for-030)).

@@ -21,7 +21,11 @@ pub struct KdfParams {
     pub argon2_p: u8,
 }
 
-#[cfg(not(any(test, feature = "fuzz-fast-kdf")))]
+// Production creation/rotation defaults. The weak test profile is reachable
+// only through the debug-only LATCHKEY_FAST_KDF env override (for the test
+// suite) or by explicitly constructing KdfParams::new(8,1,1) in harness
+// code — never through a cargo feature, which could leak into a
+// distributable `--release --all-features` build (SEC-06).
 fn default_argon2_m_mib() -> u32 {
     #[cfg(debug_assertions)]
     if std::env::var_os("LATCHKEY_FAST_KDF").is_some() {
@@ -29,29 +33,20 @@ fn default_argon2_m_mib() -> u32 {
     }
     64
 }
-#[cfg(any(test, feature = "fuzz-fast-kdf"))]
-fn default_argon2_m_mib() -> u32 {
-    8
-}
 
 /// Iterations tuned so 64 MiB Argon2id takes ~1 s wall-clock on a mid-range
 /// 2026 CPU (CRYPTO_SPEC §3). Measured on a Ryzen-class desktop in release:
 /// t=34 → 0.94 s, t=36 → 1.00 s, t=38 → 1.09 s. If hardware assumptions
 /// change, re-measure with `cargo run --release --example kdf_bench` and
 /// update both this constant and CRYPTO_SPEC §3 (DEVELOPMENT.md release
-/// checklist). The fuzz-fast-kdf variant and debug LATCHKEY_FAST_KDF keep the
-/// same derivation path at floor cost for test and harness execution.
-#[cfg(not(any(test, feature = "fuzz-fast-kdf")))]
+/// checklist). The debug LATCHKEY_FAST_KDF override keeps the same derivation
+/// path at floor cost for test execution.
 fn default_argon2_t() -> u32 {
     #[cfg(debug_assertions)]
     if std::env::var_os("LATCHKEY_FAST_KDF").is_some() {
         return 1;
     }
     36
-}
-#[cfg(any(test, feature = "fuzz-fast-kdf"))]
-fn default_argon2_t() -> u32 {
-    1
 }
 
 impl Default for KdfParams {
@@ -141,9 +136,24 @@ impl Kdf {
 mod tests {
     use super::*;
 
+    /// Derivation is parameter-independent — exercise it at the floor rather
+    /// than the 1 s production default. The production-default value itself
+    /// is asserted by the compile-time constants below.
+    fn floor() -> KdfParams {
+        KdfParams::new(8, 1, 1).unwrap()
+    }
+
+    #[test]
+    fn production_defaults_are_the_documented_policy() {
+        // CRYPTO_SPEC §3: 64 MiB, t=36, p=1. A silent downgrade would be a
+        // SEC-06-class regression.
+        assert_eq!(default_argon2_m_mib(), 64);
+        assert_eq!(default_argon2_t(), 36);
+    }
+
     #[test]
     fn roundtrip_deterministic() {
-        let params = KdfParams::default();
+        let params = floor();
         let password = SecretVec::new(b"test-password".to_vec().into_boxed_slice());
         let salt = [0x42u8; SALT_LEN];
         let kdf = Kdf::new(params);
@@ -156,7 +166,7 @@ mod tests {
 
     #[test]
     fn different_passwords_different_keks() {
-        let params = KdfParams::default();
+        let params = floor();
         let kdf = Kdf::new(params);
         let salt = [0x42u8; SALT_LEN];
 

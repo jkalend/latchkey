@@ -51,7 +51,10 @@ pub enum Change<T: Zeroize> {
     Clear,
 }
 // No Debug: Change<Vec<u8>> fields hold raw secret bytes (CRYPTO_SPEC §6).
+// `#[zeroize(drop)]` wipes every field's allocation when an early error
+// drops the patch before its bytes move into a wiping record (H-02).
 #[derive(Default, Zeroize)]
+#[zeroize(drop)]
 pub struct EntryPatch {
     pub title: Option<String>,
     pub username: Option<String>,
@@ -84,11 +87,17 @@ pub fn update_entry(vault: &mut Vault, item_id: u32, patch: EntryPatch) -> Resul
     // session keeps its original state until save() succeeds.
     let (entry, mut record) = vault.record_for_update(item_id)?;
 
-    let title = patch.title.unwrap_or_else(|| entry.title.clone());
-    let username = patch.username.unwrap_or_else(|| entry.username.clone());
+    // EntryPatch wipes on drop (H-02), so fields are taken field-by-field via
+    // mem::take on a mutable binding instead of moving out of the value.
+    let mut patch = patch;
+    let title = patch.title.take().unwrap_or_else(|| entry.title.clone());
+    let username = patch
+        .username
+        .take()
+        .unwrap_or_else(|| entry.username.clone());
     let mut changed = title != entry.title || username != entry.username;
 
-    match patch.password {
+    match std::mem::take(&mut patch.password) {
         Change::Keep => {}
         Change::Set(value) => {
             changed |= record.password.as_deref() != Some(value.as_slice());
@@ -101,12 +110,12 @@ pub fn update_entry(vault: &mut Vault, item_id: u32, patch: EntryPatch) -> Resul
             record.password = None;
         }
     }
-    if let Some(value) = patch.url {
+    if let Some(value) = patch.url.take() {
         changed |= record.url != value;
         record.url.zeroize();
         record.url = value;
     }
-    match patch.notes {
+    match std::mem::take(&mut patch.notes) {
         Change::Keep => {}
         Change::Set(value) => {
             changed |= record.notes.as_deref() != Some(value.as_slice());
@@ -119,7 +128,7 @@ pub fn update_entry(vault: &mut Vault, item_id: u32, patch: EntryPatch) -> Resul
             record.notes = None;
         }
     }
-    match patch.totp {
+    match std::mem::take(&mut patch.totp) {
         Change::Keep => {}
         Change::Set(value) => {
             changed |= record.totp.as_ref() != Some(&value);
@@ -270,7 +279,8 @@ mod tests {
                 username: Some("bob".into()),
                 password: Change::Set(b"new-secret".to_vec()),
                 notes: Change::Clear,
-                ..EntryPatch::default()
+                url: None,
+                totp: Change::Keep,
             }
         )
         .unwrap());

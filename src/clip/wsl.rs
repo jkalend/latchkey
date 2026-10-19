@@ -177,19 +177,39 @@ fn set_clipboard_utf16_b64(b64: &str) -> Result<()> {
     )
 }
 
-/// Current clipboard text as raw UTF-16LE bytes, or None if empty/unreadable.
-fn snapshot_utf16() -> Option<Vec<u8>> {
-    let out = run_ps_output(
+/// Current clipboard text as raw UTF-16LE bytes.
+///
+/// Distinguishes three outcomes (SEC-05): a genuinely empty clipboard
+/// (`Ok(None)`), readable contents (`Ok(Some(..))`), and a tool/transport
+/// failure (`Err`). The expiry path must never treat "unknown" as "empty".
+enum ClipState {
+    Empty,
+    Value(Vec<u8>),
+    ReadError,
+}
+
+fn snapshot_utf16_state() -> ClipState {
+    match run_ps_output(
         "$t = Get-Clipboard -Raw; \
          if ($null -ne $t) { \
            [Console]::Out.Write([Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($t))) \
          }",
-    )?;
-    let decoded = b64_decode(&String::from_utf8_lossy(&out))?;
-    if decoded.is_empty() {
-        None
-    } else {
-        Some(decoded)
+    ) {
+        None => ClipState::ReadError,
+        Some(out) => match b64_decode(&String::from_utf8_lossy(&out)) {
+            Some(decoded) if decoded.is_empty() => ClipState::Empty,
+            Some(decoded) => ClipState::Value(decoded),
+            None => ClipState::ReadError,
+        },
+    }
+}
+
+/// Legacy snapshot used by callers that only care about presence.
+#[cfg_attr(not(test), allow(dead_code))]
+fn snapshot_utf16() -> Option<Vec<u8>> {
+    match snapshot_utf16_state() {
+        ClipState::Value(bytes) => Some(bytes),
+        _ => None,
     }
 }
 
@@ -221,13 +241,36 @@ pub fn copy_and_hold_cancellable(
 
     // PowerShell's clipboard commands cannot atomically compare-and-restore.
     // An unreadable value is not evidence of ownership: do not clobber it.
-    if snapshot_utf16().as_deref() == Some(ours_bytes.as_slice()) {
-        match &prev {
-            Some(previous) => set_clipboard_from_utf16(previous)?,
-            None => clear_clipboard()?,
+    // (SEC-05) A failed read must surface as an error, not as silent
+    // success — the user was told the clipboard would clear, and we cannot
+    // verify that it did. Retry briefly (contention is transient), then
+    // report uncertainty explicitly.
+    let mut attempts = 0;
+    loop {
+        match snapshot_utf16_state() {
+            ClipState::ReadError if attempts < 3 => {
+                attempts += 1;
+                std::thread::sleep(std::time::Duration::from_millis(200 * attempts as u64));
+            }
+            ClipState::ReadError => {
+                return Err(ClipError::Other(
+                    "could not verify the clipboard was cleared (clipboard read kept failing); \
+                     it may still hold the copied secret — clear it manually"
+                        .into(),
+                ));
+            }
+            ClipState::Value(bytes) if bytes == *ours_bytes => {
+                match &prev {
+                    Some(previous) => set_clipboard_from_utf16(previous)?,
+                    None => clear_clipboard()?,
+                }
+                return Ok(());
+            }
+            // Empty, or a value that is not ours (user copied something else):
+            // nothing latchkey-owned remains.
+            _ => return Ok(()),
         }
     }
-    Ok(())
 }
 
 #[cfg(test)]

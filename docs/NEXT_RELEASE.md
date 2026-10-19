@@ -1,13 +1,54 @@
-# Next Release: latchkey 0.4.0
+# Next Release: latchkey 0.4.2
 
-**Status:** Implementation complete; local verification green, fuzz campaign and publication pending
-**Date:** 2026-10-03
-**Target:** Hardening release following the 0.3.0 security preview
-**Package version:** `0.4.0`
+**Status:** Implementation complete; local verification green, fuzz campaigns clean, tag pending
+**Date:** 2026-10-20
+**Target:** Security-remediation release following the 2026-10-16 security review
+**Package version:** `0.4.2`
 **Vault format:** version 2 (`LKv` magic + binary version `0x02`), unchanged
 **Export schema:** version 1, unchanged
 
-## 0. What changed in 0.4.0
+## 0. What changed in 0.4.2
+
+Eight findings from `SECURITY_REVIEW_2026-10-16.md` fixed (2 High, 5 Medium,
+1 Low) plus four hardening observations. One commit set:
+
+1. **SEC-01 (High)** — `rotate --new-password` collects the replacement
+   password before any write and publishes the new DEK under the new
+   password's KEK in a single atomic commit. No on-disk intermediate state
+   exists that could leak the post-change DEK.
+2. **SEC-02 (High)** — Windows plaintext export creates the file with a
+   protected DACL at creation time (owner/SYSTEM/Administrators full
+   control, parent inheritance disabled); shared-directory reader ACEs can
+   no longer reach exported secrets.
+3. **SEC-03 (Medium)** — replacement writes use random, exclusively created
+   sibling temp names; a pre-planted hard/symlink cannot redirect the write.
+   Lock files are verified at the open boundary against symlink and
+   inode substitution.
+4. **SEC-04 (Medium)** — overlapping clipboard copies no longer resurrect an
+   expired secret: each copy records an expiry marker (registered clipboard
+   format, generation + deadline, no secret material) and a superseded copy
+   never restores its snapshot.
+5. **SEC-05 (Medium)** — WSL/Linux expiry distinguishes "empty" from
+   "unreadable"; a persistently failing read returns an explicit error
+   ("the clipboard may still hold the secret") instead of silent success.
+   The Linux probe requires `wl-paste` whenever `wl-copy` is accepted.
+6. **SEC-06 (Medium)** — the fuzz-only weak KDF feature is deleted.
+   Harnesses pass the floor KDF explicitly (`Vault::migrate_with_kdf`);
+   no `--all-features` release build can silently weaken vault creation.
+7. **SEC-07 (Medium)** — `get --reveal` escapes control and bidirectional
+   characters at the terminal boundary so hostile imported passwords cannot
+   emit terminal commands; pipe/file output stays byte-exact, with an
+   explicit `--exact-output` opt-in for scripted extraction.
+8. **SEC-08 (Low)** — import and copy refuse NUL-bearing and non-UTF-8
+   secrets with specific errors; text clipboard backends can no longer
+   silently paste a truncated secret.
+9. **Hardening** — master-password policy rejects whitespace-only values
+   and a broader predictable-password list; `EntryPatch` wipes on drop and
+   the TUI/export paths wipe revealed intermediates; notes are documented
+   secret-classified; `backup` publishes with the atomic no-replacement
+   primitive and a bounded 64 MiB read.
+
+## 0.1. What changed in 0.4.0
 
 Six hardening improvements over 0.3.0, one commit each:
 
@@ -26,8 +67,8 @@ Six hardening improvements over 0.3.0, one commit each:
 5. All CI/release actions are pinned by full commit SHA; release archives
    get GitHub build-provenance attestations.
 6. New end-to-end fuzz harnesses: `authenticated_vault` (full `Vault::open`)
-   and `migrate_legacy` (full `Vault::migrate`, under the harness-only
-   `fuzz-fast-kdf` feature).
+   and `migrate_legacy` (full `Vault::migrate_with_kdf` with an explicit
+   harness KDF floor).
 
 ## 1. Decision
 

@@ -1,6 +1,6 @@
 # Vault File Format
 
-**Status:** Public-preview implementation (`latchkey` 0.4.1)
+**Status:** Public-preview implementation (`latchkey` 0.4.2)
 **Covers:** Format version 2 (`LKv` magic + binary version byte `0x02`)
 **Companion specs:** [CRYPTO_SPEC.md](CRYPTO_SPEC.md), [THREAT_MODEL.md](THREAT_MODEL.md)
 
@@ -268,23 +268,35 @@ detected by a freshly opened session without externally trusted state.
 
 ## 8. Write protocol (normative)
 
-1. Serialize the new file completely, to a temp file in the **same
-   directory** as the vault (same filesystem → rename is atomic).
+1. Serialize the new file completely, to a **randomly named, exclusively
+   created** temp file in the **same directory** as the vault (same
+   filesystem → rename is atomic). `create_new` rejects any pre-existing
+   directory entry — including dangling symlinks or hard links — so a
+   pre-planted path cannot redirect the write (SEC-03, CWE-377).
 2. `fsync` the temp file.
 3. Atomically rename over the old vault.
 4. `fsync` the containing directory.
 
-- On crash before step 3: old vault intact; the deterministic temp path is
-  safely overwritten by the next write.
+- On crash before step 3: old vault intact; the uniquely named temp file is
+  inert leftover disk data with no predictable name to pre-link, and the
+  next successful write does not touch it again.
 - A sibling `${vault}.lock` is opened and held with an exclusive OS file lock
   for the complete read/modify/write cycle, preventing same-tool concurrent
-  writes. Cross-boundary writers (Windows-side processes editing via `\\wsl$`)
-  can bypass the lock; this is accepted (THREAT_MODEL §5.5, last-write-wins).
+  writes. The lock path is verified at the open boundary (symlinks and
+  inode substitution rejected). Cross-boundary writers (Windows-side
+  processes editing via `\\wsl$`) can bypass the lock; this is accepted
+  (THREAT_MODEL §5.5, last-write-wins).
 - **Sync-safety:** because rename is atomic, a sync tool observes either
   the complete old file or the complete new file — never a hybrid.
 - Creation and migration publish a complete synced temporary file via a
   same-filesystem hard link that atomically refuses an existing target,
   including a dangling symlink; no check-then-overwrite race is accepted.
+  `latchkey backup` uses the same no-replacement publish (H-04).
+- **Windows plaintext export** (`export --out <file>`) is created with a
+  protected DACL at creation time — owner full control, SYSTEM and
+  Administrators full control, parent inheritance disabled — so a shared
+  directory's inherited reader ACEs cannot reach exported secrets (SEC-02).
+  Encrypted vault files keep the platform-default inherited ACL.
 - Before replacement, authenticate the current disk snapshot and require the
   session's complete MAC commit identity, not merely a valid CRC. Validate the
   total candidate size and DEK encryption cap before writing.

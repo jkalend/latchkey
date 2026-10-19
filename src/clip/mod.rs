@@ -27,6 +27,7 @@
 //! clipboard-tool reads and writes atomic on WSL/Linux.
 
 pub mod error;
+pub mod expiry;
 pub mod platform;
 mod win_history;
 
@@ -47,6 +48,27 @@ pub fn validate_timeout(secs: u64) -> Result<u64> {
         Err(ClipError::Timeout(secs))
     } else {
         Ok(secs)
+    }
+}
+
+/// Text-only backends (CF_UNICODETEXT, wl-copy, Set-Clipboard) represent
+/// secrets as text: embedded NULs truncate the paste and non-UTF-8 bytes are
+/// lossily replaced (SEC-08). The byte-exact contract in CLI_REFERENCE then
+/// lies. Refuse such values with a specific error instead of silently
+/// copying something different from what is stored.
+pub fn validate_text_representable(secret: &[u8]) -> Result<()> {
+    match std::str::from_utf8(secret) {
+        Ok(text) if !text.contains('\0') => Ok(()),
+        Ok(_) => Err(ClipError::Other(
+            "secret contains an embedded NUL byte — text-based clipboard backends would \
+             truncate it; use `latchkey get --reveal --exact-output` with piped output instead"
+                .into(),
+        )),
+        Err(_) => Err(ClipError::Other(
+            "secret is not valid UTF-8 — text-based clipboard backends would corrupt it; \
+             use `latchkey get --reveal --exact-output` with piped output instead"
+                .into(),
+        )),
     }
 }
 
@@ -204,6 +226,9 @@ pub fn copy_and_hold_cancellable(
     cancel: &Cancellation,
 ) -> Result<()> {
     let timeout = validate_timeout(timeout_secs)?;
+    // Text-only backends cannot represent NUL-bearing or non-UTF-8 secrets
+    // faithfully (SEC-08): fail loudly instead of copying a different value.
+    validate_text_representable(secret)?;
     if !quiet && clipboard_history_enabled() == Some(true) {
         eprintln!(
             "warning: Windows Clipboard History is enabled — copied values are captured by Win+V and auto-clear does not remove them"

@@ -51,6 +51,9 @@ const ROTATION_LIMIT: u32 = 1 << 24;
 const MAX_VAULT_BYTES: u64 = 64 * 1024 * 1024;
 #[cfg(test)]
 const MAX_VAULT_BYTES: u64 = 1024 * 1024;
+/// Public size cap for bounded reads outside this module (e.g. the backup
+/// path); mirrors the cfg'd constant above.
+pub const MAX_VAULT_BYTES_CAP: u64 = MAX_VAULT_BYTES;
 
 fn random_nonce() -> Result<[u8; NONCE_LEN]> {
     let mut n = [0u8; NONCE_LEN];
@@ -263,7 +266,22 @@ impl Vault {
 
     /// Explicitly migrate v1, verifying every record and publishing a fresh v2
     /// vault without replacing any existing target. The source is never written.
+    /// KDF parameters come from the production default policy (`KdfParams::default()`)
+    /// — the weak test/harness profile must be passed explicitly, never shipped
+    /// through feature flags (SEC-06).
     pub fn migrate(source: &Path, target: &Path, password: &SecretVec) -> Result<Self> {
+        Self::migrate_with_kdf(source, target, password, KdfParams::default())
+    }
+
+    /// Migration with explicit KDF parameters. Public for the fuzz harness,
+    /// which needs the 8 MiB/t=1 floor without a feature flag downgrading
+    /// production defaults.
+    pub fn migrate_with_kdf(
+        source: &Path,
+        target: &Path,
+        password: &SecretVec,
+        params: KdfParams,
+    ) -> Result<Self> {
         let _lock = acquire_write_lock(target)?;
         match std::fs::symlink_metadata(target) {
             Ok(_) => return Err(Error::Encrypt("migration target already exists".into())),
@@ -290,7 +308,6 @@ impl Vault {
             let record = vault.decrypt_item_frame(frame, entry.item_id)?;
             vault.open_items.insert(entry.slot, record);
         }
-        let params = KdfParams::default();
         let salt = random_salt();
         vault.kek = crate::crypto::kdf::Kdf::new(params).derive(password, &salt)?;
         vault.dek = random_dek();
